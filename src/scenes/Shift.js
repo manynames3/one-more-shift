@@ -368,7 +368,7 @@ export default class Shift extends Phaser.Scene {
     if (!name) return;
     const spr = this.makeChar(name, DOOR.x, DOOR.y);
     if (disguised) spr.sh.setVisible(false);
-    const max = isReg ? 6.5 : Math.max(8, 14 - this.d);
+    const max = isReg ? 6.5 : Math.max(11, 19 - this.d);
     const c = { spr, name, isReg, disguised, max, pat: max, arrived: false, atSlot: false, out: false, glitchT: rand(1, 2.5),
       pay: 3000 + 500 * Math.floor(rand(0, 7)), bar: this.add.graphics().setDepth(600) };
     this.customers.push(c); this.queue.push(c);
@@ -505,7 +505,7 @@ export default class Shift extends Phaser.Scene {
       this.stall -= dt; this.stallGrace -= dt;
       if (this.stallGrace <= 0 && this.moving) return this.fail("clock");
       // customers don't care what time it is
-      for (const c of [...this.queue]) if (c.arrived) this.drain(c, dt, 1.6);
+      for (const c of [...this.queue]) if (c.arrived) this.drain(c, dt, 1.25);
       if (this.over) return;
       if (this.stall <= 0) {
         this.flick.setAlpha(0); snd.ambience(true); snd.music(this.watch.state === "watch" ? "watch" : "store");
