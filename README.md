@@ -44,6 +44,9 @@ that is playable within one tap, readable on a phone, and gives the player somet
 3. **Never ring up the Regular.** It queues like a customer and blocks the line. From shift 4 it can wear another customer's face; the tell is a missing shadow.
 4. **Don't open the fridge after 03:40** (shift 5+). After 03:40 the fridge job pays triple.
 
+**Daily shift:** one seeded night per day, the same customers and timings for every player, one attempt, with a
+Wordle-style share line (`🟩 Clocked out ₩72,000`).
+
 Each new rule gets a one-time on-screen hint until you survive it once. Die and you can continue from the same shift
 twice per run, for a cleanup fee added to your debt.
 
@@ -96,7 +99,6 @@ Cloudflare Pages: build command `npm run build`, output directory `dist`.
 
 ## What's next
 
-- Daily shift: one shared rule set per day, one attempt.
 - A unique death animation per rule.
 - A second workplace.
 

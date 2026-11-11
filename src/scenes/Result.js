@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, button, soundToggle } from "../ui.js";
-import { S, t, won, WAGE, newRun, MAX_CONTINUES, continueCost } from "../state.js";
+import { S, t, won, WAGE, newRun, MAX_CONTINUES, continueCost, saveDaily } from "../state.js";
 import * as snd from "../audio.js";
 import { sharePayStub } from "../share.js";
 
@@ -10,7 +10,9 @@ export default class Result extends Phaser.Scene {
 
   create(data) {
     const run = S.run, cause = data.cause || "door";
-    const win = cause === "win", fired = cause === "fired" || cause === "quota";
+    const daily = run.daily, dailyOk = cause === "daily";
+    if (daily && !dailyOk) saveDaily({ done: true, ok: false, pay: run.earned, cause });
+    const win = cause === "win" || dailyOk, fired = cause === "fired" || cause === "quota";
     this.cameras.main.fadeIn(300, 20, 16, 26);
     snd.ambience(false); snd.music("off");
     if (win) { snd.jingle("debtfree"); this.time.delayedCall(3400, () => snd.music("result")); }
@@ -18,7 +20,7 @@ export default class Result extends Phaser.Scene {
     this.add.image(0, 0, "bg_death_bg").setOrigin(0);
 
     const shiftNo = win ? run.cleared : run.cleared + 1;
-    this.rows = [t("place"), t("shiftRow", shiftNo), won(WAGE), won(run.earned), t("cause_" + cause), won(run.debt)];
+    this.rows = [t("place"), daily ? t("dailyRow", daily) : t("shiftRow", shiftNo), won(WAGE), won(run.earned), t("cause_" + cause), daily ? "—" : won(run.debt)];
     this.stampKey = win ? "ui_stamp_success" : fired ? "ui_stamp_fired" : "ui_stamp_fail";
 
     // the stub (180x240) prints upward, then scrolls to show the bottom half
@@ -40,15 +42,15 @@ export default class Result extends Phaser.Scene {
     this.add.rectangle(0, H - BAR, W, BAR, 0x14101a).setOrigin(0).setDepth(20);
 
     const x = 256;
-    txt(this, x, BAR + 12, t(win ? "over_win" : fired ? "over_fired" : "over_fail"), { ox: 0.5, color: win ? C.green : C.red, depth: 30 });
+    txt(this, x, BAR + 12, t(dailyOk ? "over_daily" : win ? "over_win" : fired ? "over_fired" : "over_fail"), { ox: 0.5, color: win ? C.green : C.red, depth: 30 });
     txt(this, x, BAR + 30, t("cause_" + cause), { ox: 0.5, size: 9, depth: 30, wrap: 112 });
-    txt(this, x, BAR + 48, t("survived", run.cleared), { ox: 0.5, size: 9, color: C.yellow, depth: 30 });
-    txt(this, x, BAR + 60, `${t("debt")} ${won(run.debt)}`, { ox: 0.5, size: 9, color: C.grey, depth: 30 });
+    txt(this, x, BAR + 48, daily ? won(run.earned) : t("survived", run.cleared), { ox: 0.5, size: daily ? 11 : 9, color: C.yellow, depth: 30 });
+    if (!daily) txt(this, x, BAR + 60, `${t("debt")} ${won(run.debt)}`, { ox: 0.5, size: 9, color: C.grey, depth: 30 });
 
     this.locked = true;
     this.time.delayedCall(900, () => { this.locked = false; });
     // Continue from this shift for a cleanup fee (twice per run). Otherwise start over.
-    this.canCont = !win && (run.continues || 0) < MAX_CONTINUES;
+    this.canCont = !win && !daily && (run.continues || 0) < MAX_CONTINUES;
     if (this.canCont) {
       this.cost = continueCost(run.continues || 0);
       txt(this, x, BAR + 72, t("cont_cost", won(this.cost)), { ox: 0.5, size: 9, color: C.orange, depth: 30 });
@@ -84,7 +86,9 @@ export default class Result extends Phaser.Scene {
   }
 
   async share(shiftNo, cause) {
-    const how = await sharePayStub(this, this.rows, this.stampKey, t("shareText", shiftNo, t("cause_" + cause)));
+    const r = S.run;
+    const text = r.daily ? t("dailyShare", r.daily, cause === "daily", won(r.earned), t("cause_" + cause)) : t("shareText", shiftNo, t("cause_" + cause));
+    const how = await sharePayStub(this, this.rows, this.stampKey, text);
     if (how === "download") {
       this.shareBtn.label.setText(t("saved"));
       this.time.delayedCall(1500, () => this.shareBtn.label.setText(t("share")));

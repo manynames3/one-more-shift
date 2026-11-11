@@ -16,6 +16,26 @@ export const S = {
   run: null,
 };
 
+// ---- daily shift: one seeded night for everyone, one attempt per day (local date)
+const DAY0 = Date.UTC(2026, 10, 11);
+export function today() {
+  const d = new Date();
+  return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - DAY0) / 86400000) + 1;
+}
+export function dailyRecord() { const r = store.get("oms.daily", null); return r && r.n === today() ? r : null; }
+export function saveDaily(rec) { store.set("oms.daily", { n: today(), ...rec }); }
+export function newDailyRun() {
+  const n = today();
+  S.run = { shift: 3 + (n % 3), earned: 0, debt: START_DEBT, cleared: 0, continues: 0, daily: n };
+  saveDaily({ done: false });
+  return S.run;
+}
+/** Small seeded PRNG so every player gets the same night. */
+export function seeded(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
 export function markSeen(keys) { keys.forEach(k => { S.seen[k] = true; }); store.set("oms.seen", S.seen); }
 
 /** Continuing after a death costs a cleanup fee added to the debt. Twice per run at most. */
@@ -56,6 +76,9 @@ const STR = {
     brief5: ["냉장고는 03:40까지만 열어.", "그 뒤엔 돈을 세 배 준대도 열지 마."],
     cont: ["...살아 있네?", "청소비는 빚에 얹어 둘게."],
     hint_clock: "03:33엔 그대로 멈춰!", hint_regular: "▼ 단골 · 계산 금지", hint_fridge: "03:40부터 열지 마!", hint_disguise: "그림자가 없다...",
+    daily: n => `오늘의 교대 #${n} ▶`, dailyDone: "오늘 교대는 끝났어요. 내일 또!", dailyRow: n => `오늘의 교대 #${n}`,
+    dailyIntro: ["오늘 밤은 다들 같은 가게야.", "기회는 한 번. 규칙은 알지?"], cause_daily: "생존 · 퇴근 성공", over_daily: "오늘의 교대 완료",
+    dailyShare: (n, ok, pay, cause) => `한 번만 더 · 오늘의 교대 #${n}\n${ok ? "🟩 퇴근 성공" : "🟥 " + cause}  ${pay}`,
     cont_btn: "이어하기", cont_cost: c => `이어하기 비용 ${c}`, x3: "x3",
     hint: "이동: 방향키·터치   작업: Space·터치   문 보기: ↑·문 터치",
     quotaLine: q => `오늘 목표 ${q}`, lookHint: "▲ 문을 보세요!",
@@ -81,6 +104,9 @@ const STR = {
     brief5: ["The fridge closes at 03:40.", "Even if it pays triple. Don't open it."],
     cont: ["...You're alive?", "The cleanup fee goes on your tab."],
     hint_clock: "FREEZE at 03:33!", hint_regular: "▼ THE REGULAR · DON'T SERVE", hint_fridge: "NOT AFTER 03:40!", hint_disguise: "No shadow...",
+    daily: n => `DAILY SHIFT #${n} ▶`, dailyDone: "Today's shift is done. Come back tomorrow!", dailyRow: n => `Daily #${n}`,
+    dailyIntro: ["Tonight everyone works the same store.", "One try. You know the rules."], cause_daily: "Survived the night", over_daily: "DAILY CLEARED",
+    dailyShare: (n, ok, pay, cause) => `ONE MORE SHIFT · Daily #${n}\n${ok ? "🟩 Clocked out" : "🟥 " + cause}  ${pay}`,
     cont_btn: "CONTINUE", cont_cost: c => `Continue costs ${c}`, x3: "x3",
     hint: "Move: arrows/tap  Work: Space/tap  Look: ↑ or tap door",
     quotaLine: q => `Tonight's quota ${q}`, lookHint: "▲ LOOK AT IT!",

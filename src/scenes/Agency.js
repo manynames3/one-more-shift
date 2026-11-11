@@ -16,7 +16,7 @@ export default class Agency extends Phaser.Scene {
     this.add.sprite(160, 118, "characters_kwak").setOrigin(0.5, 1).play("characters_kwak_down_idle");
     this.add.image(0, 0, "bg_agency_desk_fg").setOrigin(0);
     this.add.rectangle(0, 0, W, 22, 0x14101a).setOrigin(0);
-    txt(this, 6, 6, t("shiftN", run.shift), { size: 9, color: C.yellow });
+    txt(this, 6, 6, run.daily ? t("dailyRow", run.daily) : t("shiftN", run.shift), { size: 9, color: C.yellow });
     soundToggle(this);
 
     this.newRule = newRuleFor(run.shift);

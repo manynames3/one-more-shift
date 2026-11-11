@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
-import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen } from "../state.js";
+import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily } from "../state.js";
 import * as snd from "../audio.js";
 
 // ---- store geometry (feet positions, in canvas pixels) ---------------------
@@ -40,6 +40,12 @@ export default class Shift extends Phaser.Scene {
     this.disguiseTwist = run.shift >= 4;
     this.min = 0; this.minT = 0; this.stall = 0; this.stallGrace = 0;
     this.cameras.main.fadeIn(250, 20, 16, 26);
+    // daily: everyone gets the same night (same customers, same timings) from the date
+    if (run.daily) {
+      const realRandom = Math.random;
+      Math.random = seeded(run.daily * 7919);
+      this.events.once("shutdown", () => { Math.random = realRandom; });
+    }
     if (window.__speed) { this.tweens.timeScale = window.__speed; this.time.timeScale = window.__speed; }   // bot test hook
 
     // world
@@ -644,6 +650,7 @@ export default class Shift extends Phaser.Scene {
     if (this.over) return;
     if (this.pay < this.quota) return this.fired("quota");
     markSeen([...this.hintsShown]);
+    if (this.run.daily) return this.dailyDone();
     this.freeze();
     const bonus = 40000 + 10000 * this.run.shift;
     this.bank(bonus);
@@ -658,6 +665,16 @@ export default class Shift extends Phaser.Scene {
     const win = this.run.debt <= 0;
     this.time.delayedCall(2100, () => this.cameras.main.fadeOut(300, 20, 16, 26));
     this.time.delayedCall(2450, () => win ? this.scene.start("Result", { cause: "win" }) : this.scene.start("Agency", { context: "next" }));
+  }
+
+  dailyDone() {
+    this.freeze(); this.bank();
+    saveDaily({ done: true, ok: true, pay: this.run.earned });
+    this.ent.setVisible(false); this.vigDark.setVisible(false); this.flick.setAlpha(0.35);
+    snd.jingle("clockout"); this.stamp("ui_stamp_success");
+    this.p.anims.stop(); this.p.setFrame("face_smile");
+    this.time.delayedCall(2100, () => this.cameras.main.fadeOut(300, 20, 16, 26));
+    this.time.delayedCall(2450, () => this.scene.start("Result", { cause: "daily" }));
   }
 
   update(time, ms) {
