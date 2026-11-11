@@ -24,7 +24,7 @@ that is playable within one tap, readable on a phone, and gives the player somet
 | **Audio** | Music and 13 sound effects synthesized in the browser. Zero audio files. |
 | **Languages** | Korean and English, switchable in game. |
 | **Input** | Keyboard, mouse and touch from the same code path. |
-| **Sharing** | The end-of-run pay stub renders to a 720×960 PNG and opens the system share sheet. |
+| **Sharing** | The end-of-run pay stub renders to a 720×960 PNG; a death also shares a 4-second GIF replay of the scare, recorded from the canvas and encoded in the browser. |
 | **Hosting** | Static site on Cloudflare Pages. Every push to `main` deploys. |
 
 ## Results
@@ -100,6 +100,7 @@ Cloudflare Pages: build command `npm run build`, output directory `dist`.
 ## What's next
 
 - A unique death animation per rule.
+- Launch posts for Korean and English communities.
 - A second workplace.
 
 ## Credits

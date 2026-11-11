@@ -3,6 +3,7 @@ import { W, H, BAR, C, txt, button, soundToggle } from "../ui.js";
 import { S, t, won, WAGE, newRun, MAX_CONTINUES, continueCost, saveDaily } from "../state.js";
 import * as snd from "../audio.js";
 import { sharePayStub } from "../share.js";
+import { hasReplay, replayGif } from "../replay.js";
 
 // End of a run: the pay stub prints, then retry or share.
 export default class Result extends Phaser.Scene {
@@ -88,7 +89,16 @@ export default class Result extends Phaser.Scene {
   async share(shiftNo, cause) {
     const r = S.run;
     const text = r.daily ? t("dailyShare", r.daily, cause === "daily", won(r.earned), t("cause_" + cause)) : t("shareText", shiftNo, t("cause_" + cause));
-    const how = await sharePayStub(this, this.rows, this.stampKey, text);
+    if (this.sharing) return;
+    this.sharing = true;
+    let gif = null;
+    if (hasReplay()) {
+      this.shareBtn.label.setText("...");
+      try { gif = this.gif || (this.gif = await replayGif()); } catch { gif = null; }
+      this.shareBtn.label.setText(t("share"));
+    }
+    const how = await sharePayStub(this, this.rows, this.stampKey, text, gif);
+    this.sharing = false;
     if (how === "download") {
       this.shareBtn.label.setText(t("saved"));
       this.time.delayedCall(1500, () => this.shareBtn.label.setText(t("share")));

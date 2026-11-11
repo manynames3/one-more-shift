@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "gifenc": "^1.0.3",
     "phaser": "3.90.0"
   },
   "devDependencies": {

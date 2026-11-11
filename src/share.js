@@ -22,19 +22,27 @@ export function renderPayStub(scene, rows, stampKey) {
   return cv;
 }
 
-/** Returns "share" when the system share sheet was used, "download" otherwise. */
-export async function sharePayStub(scene, rows, stampKey, text) {
+function download(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/** Share the pay stub (and the death replay GIF, if any). Returns "share" or "download". */
+export async function sharePayStub(scene, rows, stampKey, text, gif = null) {
   const cv = renderPayStub(scene, rows, stampKey);
   const blob = await new Promise(res => cv.toBlob(res, "image/png"));
-  const file = new File([blob], "one-more-shift-paystub.png", { type: "image/png" });
+  const files = [new File([blob], "one-more-shift-paystub.png", { type: "image/png" })];
+  if (gif) files.unshift(new File([gif], "one-more-shift-replay.gif", { type: "image/gif" }));
   const url = location.href.split("#")[0];
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], text: `${text}\n${url}` }); return "share"; }
-    catch (e) { if (e.name === "AbortError") return "share"; }
+  const body = { text: `${text}\n${url}` };
+  for (const set of [files, files.slice(-1)]) {          // some apps take only one file
+    if (navigator.canShare && navigator.canShare({ files: set })) {
+      try { await navigator.share({ ...body, files: set }); return "share"; }
+      catch (e) { if (e.name === "AbortError") return "share"; }
+    }
   }
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = file.name;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  files.forEach((f, i) => setTimeout(() => download(f, f.name), i * 400));
   return "download";
 }

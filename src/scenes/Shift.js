@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
 import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily } from "../state.js";
 import * as snd from "../audio.js";
+import { startReplay, endReplay, cancelReplay } from "../replay.js";
 
 // ---- store geometry (feet positions, in canvas pixels) ---------------------
 const TOP = 118, BOT = 154;
@@ -84,6 +85,7 @@ export default class Shift extends Phaser.Scene {
 
     this.buildHud();
     this.bindInput();
+    startReplay(this.game);
     snd.music("store"); snd.ambience(true);
 
     const plate = this.add.rectangle(W / 2, 70, 150, 34, 0x14101a, 0.85).setStrokeStyle(1, 0xffd42a).setDepth(879);
@@ -599,6 +601,8 @@ export default class Shift extends Phaser.Scene {
     this.over = true;
     snd.music("off"); snd.ambience(false);
     this.workBar.clear(); this.bang.setVisible(false); this.eyes.setVisible(false);
+    if (this.lookHint) { this.lookHint.destroy(); this.lookHint = null; }
+    Object.keys(this.hints).forEach(k => this.unhint(k));
     Object.values(this.tasks).forEach(k => k.mark.setVisible(false));
     this.customers.forEach(c => c.bar.clear());
   }
@@ -606,6 +610,7 @@ export default class Shift extends Phaser.Scene {
   fail(cause) {
     if (this.over) return;
     this.freeze(); this.bank(); recordBest();
+    endReplay(1700);   // the GIF ends on the scare
     snd.sfx("fail"); snd.sfx("static", 1.2);
     this.bg.setTexture("bg_store_wrong"); this.counter.setTexture("bg_store_counter_wrong");
     this.flick.setAlpha(0); this.vigDark.setVisible(false); this.vigRed.setVisible(true);
@@ -634,6 +639,7 @@ export default class Shift extends Phaser.Scene {
 
   fired(cause = "fired") {
     if (this.over) return;
+    cancelReplay();
     this.freeze(); this.bank(); recordBest();
     this.flick.setAlpha(0.45);
     snd.jingle("gameover");
@@ -650,6 +656,7 @@ export default class Shift extends Phaser.Scene {
     if (this.over) return;
     if (this.pay < this.quota) return this.fired("quota");
     markSeen([...this.hintsShown]);
+    cancelReplay();
     if (this.run.daily) return this.dailyDone();
     this.freeze();
     const bonus = 40000 + 10000 * this.run.shift;
