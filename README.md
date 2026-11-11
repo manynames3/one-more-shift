@@ -39,11 +39,16 @@ that is playable within one tap, readable on a phone, and gives the player somet
 
 **The rules are the game.** Each is a few lines of state checked every frame:
 
-1. **Never turn your back to the door.** Something stands in the doorway at random. Walk toward the camera while it watches and the run ends.
-2. **Do not move at 03:33.** The clock stalls for three seconds. Any movement ends the run.
-3. **Never ring up the Regular.** It queues like a customer. Serving it ends the run, and the real customers behind it keep losing patience.
+1. **When it comes, face the door.** Something appears in the doorway at random. Stop what you're doing and look at it, while the queue at the till keeps losing patience.
+2. **Do not move at 03:33.** The clock stalls, the phone rings, a ₩10,000 note lands at your feet, and customers keep waiting. Any action ends the run.
+3. **Never ring up the Regular.** It queues like a customer and blocks the line. From shift 4 it can wear another customer's face.
 
-Three customer complaints gets you fired. Clear the ₩500,000 debt to win.
+Every shift has a pay quota, so you can't hide at the register: the side jobs and dropped coins are where the money is.
+Miss the quota or collect three customer complaints and you're fired. Clear the ₩800,000 debt to win.
+
+**Balance is tested with bots.** A bot that never leaves the register used to win every run; now it misses the quota by
+shift 2–3, while a bot that serves first and does side jobs when the till is clear survives. Bot testing also surfaced
+a movement bug on low frame rates that would have hit players on slower phones.
 
 **The art is a build artifact.** `art/tools/pxkit.py` holds the palette, ordered-dither functions, outline pass and
 sprite-sheet packer. `art/src/build_*.py` draw every background, character, prop and UI element through it, so
