@@ -10,7 +10,7 @@ export default class Result extends Phaser.Scene {
 
   create(data) {
     const run = S.run, cause = data.cause || "door";
-    const win = cause === "win", fired = cause === "fired";
+    const win = cause === "win", fired = cause === "fired" || cause === "quota";
     this.cameras.main.fadeIn(300, 20, 16, 26);
     snd.ambience(false); snd.music("off");
     if (win) { snd.jingle("debtfree"); this.time.delayedCall(3400, () => snd.music("result")); }

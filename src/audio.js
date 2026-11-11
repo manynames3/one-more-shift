@@ -390,6 +390,8 @@ const SFX = {
   },
   static: (d, t) => noise(d, { t, dur: 1.6, vol: 0.12, f: 5000, type: "bandpass", q: 0.5, a: 0.01 }),
   win: (d, t) => jingle("clockout", d, t),
+  // the store phone, at the worst possible time
+  ring: (d, t) => { for (let k = 0; k < 2; k++) for (let i = 0; i < 8; i++) tone(d, { type: "p25", f: i % 2 ? 1397 : 1175, t: t + k * 0.9 + i * 0.05, dur: 0.045, vol: 0.08, r: 0.01 }); },
   hop: (d, t) => { tone(d, { type: "p25", f: 330, slide: 2.2, t, dur: 0.14, vol: 0.1 }); noise(d, { t: t + 0.26, dur: 0.06, vol: 0.12, f: 500, type: "lowpass" }); },
 };
 
