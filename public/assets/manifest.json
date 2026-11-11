@@ -554,6 +554,18 @@
    "png": "ui/vignette_red.png",
    "w": 320,
    "h": 180
+  },
+  {
+   "key": "bg_store_counter",
+   "png": "bg/store_counter.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_store_counter_wrong",
+   "png": "bg/store_counter_wrong.png",
+   "w": 320,
+   "h": 180
   }
  ],
  "atlases": [

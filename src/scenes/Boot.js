@@ -6,7 +6,7 @@ import { t } from "../state.js";
 // Only what the game uses is loaded; the rest of the pack stays on the server.
 const USED = new Set([
   "bg_title_bg", "bg_agency_office", "bg_agency_desk_fg", "bg_store_day", "bg_store_wrong", "bg_store_fg",
-  "bg_store_fg_wrong", "bg_death_bg",
+  "bg_store_fg_wrong", "bg_store_counter", "bg_store_counter_wrong", "bg_death_bg",
   "characters_sora", "characters_kwak", "characters_halmae", "characters_daeri", "characters_jisu",
   "characters_deokgu", "characters_regular",
   "portraits_kwak", "portraits_regular",

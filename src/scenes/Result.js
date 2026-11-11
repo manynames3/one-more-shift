@@ -12,7 +12,9 @@ export default class Result extends Phaser.Scene {
     const run = S.run, cause = data.cause || "door";
     const win = cause === "win", fired = cause === "fired";
     this.cameras.main.fadeIn(300, 20, 16, 26);
-    snd.music("off");
+    snd.ambience(false); snd.music("off");
+    if (win) { snd.jingle("debtfree"); this.time.delayedCall(3400, () => snd.music("result")); }
+    else this.time.delayedCall(400, () => snd.music("result"));
     this.add.image(0, 0, "bg_death_bg").setOrigin(0);
 
     const shiftNo = win ? run.cleared : run.cleared + 1;
@@ -29,7 +31,7 @@ export default class Result extends Phaser.Scene {
       this.add.rectangle(0, 0, 74, 28, 0xf6f1e7).setOrigin(0), this.add.image(0, 0, this.stampKey).setOrigin(0),
     ]).setVisible(false);
     stub.add(stamp);
-    this.tweens.add({ targets: stub, y: BAR + 4, duration: 900, ease: "Stepped", easeParams: [18], onStart: () => snd.sfx("work") });
+    this.tweens.add({ targets: stub, y: BAR + 4, duration: 900, ease: "Stepped", easeParams: [18], onStart: () => snd.sfx("print") });
     this.tweens.add({ targets: stub, y: H - BAR - 244, delay: 2000, duration: 1400, ease: "Stepped", easeParams: [28] });
     this.time.delayedCall(3500, () => { stamp.setVisible(true); snd.sfx("stamp"); this.cameras.main.shake(120, 0.006); });
 
@@ -51,7 +53,6 @@ export default class Result extends Phaser.Scene {
     this.input.keyboard.on("keydown-SPACE", () => this.retry());
     this.input.keyboard.on("keydown-ENTER", () => this.retry());
     this.input.keyboard.on("keydown-R", () => this.retry());
-    snd.sfx(win ? "win" : "strike");
   }
 
   retry() {

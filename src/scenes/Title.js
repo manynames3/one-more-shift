@@ -22,11 +22,12 @@ export default class Title extends Phaser.Scene {
     this.drawLang();
     soundToggle(this);
 
+    snd.music("title");   // starts on the first tap or key (browsers block sound before that)
     this.started = false;
     const go = () => {
       if (this.started) return;
       this.started = true;
-      snd.init(); snd.sfx("coin");
+      snd.init(); snd.sfx("start");
       newRun();
       this.cameras.main.fadeOut(250, 20, 16, 26);
       this.time.delayedCall(280, () => this.scene.start("Agency", { context: S.runs > 1 ? "again" : "intro" }));

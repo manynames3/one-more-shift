@@ -10,7 +10,7 @@ export default class Agency extends Phaser.Scene {
   create(data) {
     const run = S.run;
     this.cameras.main.fadeIn(250, 20, 16, 26);
-    snd.music("off");
+    snd.ambience(false);
     this.add.image(0, 0, "bg_agency_office").setOrigin(0);
     this.add.sprite(160, 118, "characters_kwak").setOrigin(0.5, 1).play("characters_kwak_down_idle");
     this.add.image(0, 0, "bg_agency_desk_fg").setOrigin(0);
@@ -21,6 +21,7 @@ export default class Agency extends Phaser.Scene {
     const rules = rulesFor(run.shift);
     this.newRule = rules[rules.length - 1];
     const ctx = data?.context || "intro";
+    snd.music(ctx === "intro" ? "title" : "office");
     this.lines = [...t(ctx === "next" ? (run.shift <= 3 ? "more" : "same") : ctx)];
     this.face = ctx === "next" && run.shift <= 3 ? "sly" : "smile";
 
@@ -91,7 +92,7 @@ export default class Agency extends Phaser.Scene {
   clockIn() {
     if (this.time.now < this.guard) return;
     this.done = true;
-    snd.sfx("serve");
+    snd.sfx("start");
     this.cameras.main.fadeOut(250, 20, 16, 26);
     this.time.delayedCall(280, () => this.scene.start("Shift"));
   }
