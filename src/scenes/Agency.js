@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { W, H, C, txt, soundToggle } from "../ui.js";
-import { S, t, rulesFor } from "../state.js";
+import { S, t, won, newRuleFor } from "../state.js";
+import { quotaFor } from "./Shift.js";
 import * as snd from "../audio.js";
 
 // Briefing: the manager talks, then hands over tonight's job card.
@@ -18,12 +19,12 @@ export default class Agency extends Phaser.Scene {
     txt(this, 6, 6, t("shiftN", run.shift), { size: 9, color: C.yellow });
     soundToggle(this);
 
-    const rules = rulesFor(run.shift);
-    this.newRule = rules[rules.length - 1];
+    this.newRule = newRuleFor(run.shift);
     const ctx = data?.context || "intro";
     snd.music(ctx === "intro" ? "title" : "office");
-    this.lines = [...t(ctx === "next" ? (run.shift <= 3 ? "more" : "same") : ctx)];
-    this.face = ctx === "next" && run.shift <= 3 ? "sly" : "smile";
+    const brief = { 2: "more", 3: "more", 4: "brief4", 5: "brief5" }[run.shift] || "same";
+    this.lines = [...t(ctx === "next" ? brief : ctx)];
+    this.face = ctx === "next" && brief !== "same" ? "sly" : ctx === "cont" ? "serious" : "smile";
 
     this.portrait = this.add.image(12, 106, "portraits_kwak", this.face).setOrigin(0).setCrop(2, 10, 60, 36);
     this.add.image(10, 112, "ui_dialog_box").setOrigin(0);
@@ -84,7 +85,7 @@ export default class Agency extends Phaser.Scene {
     this.tweens.add({ targets: c, y: 26, duration: 380, ease: "Back.easeOut" });
     this.l1.setText(t("rulePre") + t("rule_" + this.newRule));
     this.l1.setColor(C.red);
-    this.l2.setText("[ " + t("go") + " ]"); this.more.setVisible(false);
+    this.l2.setText(t("quotaLine", won(quotaFor(S.run.shift))) + "   [ " + t("go") + " ]"); this.more.setVisible(false);
     this.tweens.add({ targets: this.l2, alpha: 0.3, duration: 400, yoyo: true, repeat: -1 });
     this.guard = this.time.now + 350;
   }

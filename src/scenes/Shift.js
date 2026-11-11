@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
-import { S, t, rulesFor, won, START_DEBT, recordBest } from "../state.js";
+import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen } from "../state.js";
 import * as snd from "../audio.js";
 
 // ---- store geometry (feet positions, in canvas pixels) ---------------------
@@ -36,6 +36,8 @@ export default class Shift extends Phaser.Scene {
     this.d = run.shift - 1;                      // difficulty step
     this.over = false; this.pay = 0; this.strikes = 0; this.quota = quotaFor(run.shift);
     this.watchesSeen = 0; this.lure = null;
+    this.hintsShown = new Set(); this.hints = {};
+    this.disguiseTwist = run.shift >= 4;
     this.min = 0; this.minT = 0; this.stall = 0; this.stallGrace = 0;
     this.cameras.main.fadeIn(250, 20, 16, 26);
     if (window.__speed) { this.tweens.timeScale = window.__speed; this.time.timeScale = window.__speed; }   // bot test hook
@@ -90,6 +92,22 @@ export default class Shift extends Phaser.Scene {
 
   has(rule) { return this.rules.includes(rule); }
 
+  /** One-time teaching hint, shown until the player survives a shift with it. */
+  hint(key, x, y) {
+    if (S.seen[key] || this.hints[key]) return null;
+    this.hintsShown.add(key);
+    const h = txt(this, x, y, t("hint_" + key), { ox: 0.5, size: 9, color: C.yellow, depth: 880 });
+    h.setBackgroundColor("#14101a").setPadding(2, 1, 2, 1);
+    this.tweens.add({ targets: h, alpha: 0.4, duration: 300, yoyo: true, repeat: -1 });
+    this.hints[key] = h;
+    return h;
+  }
+
+  unhint(key) { if (this.hints[key]) { this.hints[key].destroy(); this.hints[key] = null; } }
+
+  /** After 03:40 on fridge shifts the fridge pays triple and opening it is fatal. */
+  fridgeCursed() { return this.has("fridge") && this.min >= 40; }
+
   makeChar(key, x, y) {
     const sh = this.add.image(x, y - 1, "props_shadow_blob").setAlpha(0.6);
     const spr = this.add.sprite(x, y, "characters_" + key, "down_idle_0").setOrigin(0.5, FEET);
@@ -135,6 +153,7 @@ export default class Shift extends Phaser.Scene {
     if (this.watch.state !== "idle") return "door";
     if (this.has("clock") && (this.stall > 0 || (this.min >= 30 && this.min < 33))) return "clock";
     if (this.regularHere && !this.regDisguised) return "regular";
+    if (this.has("fridge") && this.min >= 38) return "fridge";
     return null;
   }
 
@@ -324,6 +343,7 @@ export default class Shift extends Phaser.Scene {
   startWork(kind) {
     this.intent = null; this.target = null;
     if (kind === "serve" && this.front().isReg) return this.fail("regular");
+    if (kind === "fridge" && this.fridgeCursed()) return this.fail("fridge");
     this.working = { kind, t: SPOT[kind].dur, dur: SPOT[kind].dur };
     this.face = SPOT[kind].face; this.scanT = 0;
     if (kind !== "serve") snd.sfx("work");
@@ -377,7 +397,11 @@ export default class Shift extends Phaser.Scene {
     const c = { spr, name, isReg, disguised, max, pat: max, arrived: false, atSlot: false, out: false, glitchT: rand(1, 2.5),
       pay: 3000 + 500 * Math.floor(rand(0, 7)), bar: this.add.graphics().setDepth(600) };
     this.customers.push(c); this.queue.push(c);
-    if (isReg) { this.regularHere = true; this.regDisguised = disguised; this.sinceReg = 0; snd.sfx("door_wrong"); }
+    if (isReg) {
+      this.regularHere = true; this.regDisguised = disguised; this.sinceReg = 0; snd.sfx("door_wrong");
+      c.hintKey = disguised ? "disguise" : "regular";
+      c.hint = this.hint(c.hintKey, spr.x, spr.y - 64);
+    }
     else { this.sinceReg++; snd.sfx("door"); }
   }
 
@@ -389,7 +413,7 @@ export default class Shift extends Phaser.Scene {
       const spr = c.spr;
       if (c.out) {
         if (this.walk(spr, DOOR.x, DOOR.y, 60, dt)) {
-          if (c.isReg) this.regularHere = false;
+          if (c.isReg) { this.regularHere = false; if (c.hint) this.unhint(c.hintKey); }
           spr.sh.destroy(); spr.destroy(); c.bar.destroy();
           this.customers.splice(this.customers.indexOf(c), 1);
           continue;
@@ -400,6 +424,7 @@ export default class Shift extends Phaser.Scene {
         if (c.atSlot) { spr.anims.stop(); spr.setFrame("right_walk_0"); c.arrived = true; }
         if (c.arrived) this.drain(c, dt, 1);
       }
+      if (c.hint && c.hint.active) c.hint.setPosition(Math.round(spr.x), Math.round(spr.y) - 64);
       if (c.disguised && !c.out) {
         c.glitchT -= dt;
         if (c.glitchT <= 0) {
@@ -439,6 +464,15 @@ export default class Shift extends Phaser.Scene {
 
   // ---- side jobs + pickups ------------------------------------------------
   tickTasks(dt) {
+    if (this.fridgeCursed()) {
+      const f = this.tasks.fridge;
+      if (!f.cursed) {
+        f.cursed = true; f.active = true;
+        f.mark.setVisible(true).setTint(0xef3b4a);
+        f.x3 = txt(this, SPOT.fridge.mark.x + 12, SPOT.fridge.mark.y - 6, t("x3"), { size: 9, color: C.yellow, depth: 611 });
+        snd.sfx("task");
+      }
+    }
     for (const k of ["shelf", "fridge"]) {
       const task = this.tasks[k];
       if (!task.active) { task.t -= dt; if (task.t <= 0) { task.active = true; task.mark.setVisible(true); snd.sfx("task"); } }
@@ -473,7 +507,8 @@ export default class Shift extends Phaser.Scene {
         snd.sfx("warn");
         this.watchesSeen++;
         // the first couple of times in a player's first runs, point at the door
-        if (S.runs <= 2 && this.watchesSeen <= 2) {
+        if (!S.seen.door && this.watchesSeen <= 2) {
+          this.hintsShown.add("door");
           this.lookHint = txt(this, DOOR.x, 96, t("lookHint"), { ox: 0.5, color: C.yellow, depth: 880 });
           this.tweens.add({ targets: this.lookHint, y: 92, duration: 260, yoyo: true, repeat: -1 });
         }
@@ -515,6 +550,7 @@ export default class Shift extends Phaser.Scene {
       if (this.stall <= 0) {
         this.flick.setAlpha(0); snd.ambience(true); snd.music(this.watch.state === "watch" ? "watch" : "store");
         this.customers.forEach(c => c.spr.anims.resume());
+        this.unhint("clock");
         if (this.lure) { const l = this.lure; this.lure = null; this.tweens.add({ targets: l, alpha: 0, x: l.x - 40, duration: 500, onComplete: () => l.destroy() }); }
       }
       else { this.tickT = (this.tickT || 0) - dt; if (this.tickT <= 0) { snd.sfx(this.tock ? "tock" : "tick"); this.tock = !this.tock; this.tickT = 0.5; } }
@@ -523,7 +559,10 @@ export default class Shift extends Phaser.Scene {
     this.minT += dt;
     if (this.minT < MINLEN) return;
     this.minT -= MINLEN; this.min++;
+    if (this.has("fridge") && this.min === 37) this.hint("fridge", SPOT.fridge.mark.x, SPOT.fridge.mark.y - 20);
+    if (this.has("fridge") && this.min === 44) this.unhint("fridge");
     if (this.has("clock")) {
+      if (this.min === 30) this.hint("clock", 176, 62);
       if (this.min >= 30 && this.min < 33) snd.sfx(this.min % 2 ? "tock" : "tick");
       if (this.min === 33) {
         this.stall = rand(3, 3.8); this.stallGrace = 0.45;
@@ -604,6 +643,7 @@ export default class Shift extends Phaser.Scene {
   clockOut() {
     if (this.over) return;
     if (this.pay < this.quota) return this.fired("quota");
+    markSeen([...this.hintsShown]);
     this.freeze();
     const bonus = 40000 + 10000 * this.run.shift;
     this.bank(bonus);

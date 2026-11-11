@@ -41,7 +41,11 @@ that is playable within one tap, readable on a phone, and gives the player somet
 
 1. **When it comes, face the door.** Something appears in the doorway at random. Stop what you're doing and look at it, while the queue at the till keeps losing patience.
 2. **Do not move at 03:33.** The clock stalls, the phone rings, a ₩10,000 note lands at your feet, and customers keep waiting. Any action ends the run.
-3. **Never ring up the Regular.** It queues like a customer and blocks the line. From shift 4 it can wear another customer's face.
+3. **Never ring up the Regular.** It queues like a customer and blocks the line. From shift 4 it can wear another customer's face; the tell is a missing shadow.
+4. **Don't open the fridge after 03:40** (shift 5+). After 03:40 the fridge job pays triple.
+
+Each new rule gets a one-time on-screen hint until you survive it once. Die and you can continue from the same shift
+twice per run, for a cleanup fee added to your debt.
 
 Every shift has a pay quota, so you can't hide at the register: the side jobs and dropped coins are where the money is.
 Miss the quota or collect three customer complaints and you're fired. Clear the ₩700,000 debt to win.

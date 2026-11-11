@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, button, soundToggle } from "../ui.js";
-import { S, t, won, WAGE, newRun } from "../state.js";
+import { S, t, won, WAGE, newRun, MAX_CONTINUES, continueCost } from "../state.js";
 import * as snd from "../audio.js";
 import { sharePayStub } from "../share.js";
 
@@ -47,11 +47,22 @@ export default class Result extends Phaser.Scene {
 
     this.locked = true;
     this.time.delayedCall(900, () => { this.locked = false; });
-    button(this, x, BAR + 88, "ui_btn_primary", t("retry"), () => this.retry(), 30);
-    this.shareBtn = button(this, x, BAR + 112, "ui_btn_secondary", t("share"), () => this.share(shiftNo, cause), 30);
+    // Continue from this shift for a cleanup fee (twice per run). Otherwise start over.
+    this.canCont = !win && (run.continues || 0) < MAX_CONTINUES;
+    if (this.canCont) {
+      this.cost = continueCost(run.continues || 0);
+      txt(this, x, BAR + 72, t("cont_cost", won(this.cost)), { ox: 0.5, size: 9, color: C.orange, depth: 30 });
+      button(this, x, BAR + 92, "ui_btn_primary", t("cont_btn"), () => this.cont(), 30);
+      button(this, x, BAR + 113, "ui_btn_danger", t("retry"), () => this.retry(), 30);
+      this.shareBtn = button(this, x, BAR + 134, "ui_btn_secondary", t("share"), () => this.share(shiftNo, cause), 30);
+      this.input.keyboard.on("keydown-C", () => this.cont());
+    } else {
+      button(this, x, BAR + 88, "ui_btn_primary", t("retry"), () => this.retry(), 30);
+      this.shareBtn = button(this, x, BAR + 112, "ui_btn_secondary", t("share"), () => this.share(shiftNo, cause), 30);
+    }
     soundToggle(this);
-    this.input.keyboard.on("keydown-SPACE", () => this.retry());
-    this.input.keyboard.on("keydown-ENTER", () => this.retry());
+    this.input.keyboard.on("keydown-SPACE", () => this.canCont ? this.cont() : this.retry());
+    this.input.keyboard.on("keydown-ENTER", () => this.canCont ? this.cont() : this.retry());
     this.input.keyboard.on("keydown-R", () => this.retry());
   }
 
@@ -61,6 +72,15 @@ export default class Result extends Phaser.Scene {
     newRun();
     this.cameras.main.fadeOut(220, 20, 16, 26);
     this.time.delayedCall(250, () => this.scene.start("Agency", { context: "again" }));
+  }
+
+  cont() {
+    if (this.locked || !this.canCont) return;
+    this.locked = true;
+    const run = S.run;
+    run.debt += this.cost; run.continues = (run.continues || 0) + 1;
+    this.cameras.main.fadeOut(220, 20, 16, 26);
+    this.time.delayedCall(250, () => this.scene.start("Agency", { context: "cont" }));
   }
 
   async share(shiftNo, cause) {
