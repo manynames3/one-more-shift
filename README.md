@@ -51,6 +51,11 @@ you're away from the till, so every trip is a risk.
 6. **The Regular wears other faces.** The tell is a missing shadow.
 7. **Don't open the fridge after 03:40.** After 03:40 the fridge job pays triple.
 
+**The coworker.** 덕구 works shifts 1–3 with you and gives advice. On shift 3 he gets hungry and loses his shadow; at
+03:45 the customers run and he turns into the Rat King. It spawns rats, rears up and lunges along a red line it shows
+you first; after a lunge it's dazed, and that's the only time the mop hurts it. Three hits and you're done, six on it
+and you finish the shift with hazard pay.
+
 Every shift has a pay quota, so you can't hide at the register. Miss it or collect three customer complaints and you're
 fired. Clear the ₩1,000,000 debt to win.
 

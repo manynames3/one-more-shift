@@ -7,6 +7,7 @@ import { t } from "../state.js";
 const USED = new Set([
   "bg_title_bg", "bg_agency_office", "bg_agency_desk_fg", "bg_store_day", "bg_store_wrong", 
   "bg_store_counter", "bg_store_counter_wrong", "bg_death_bg",
+  "boss_ratking", "boss_rat", "boss_fx", "boss_mop",
   "bg_backroom", "bg_street_night", "props_door_staff", "props_box_stack", "props_box_closed", "props_trash_bag",
   "characters_sora", "characters_kwak", "characters_halmae", "characters_daeri", "characters_jisu",
   "characters_deokgu", "characters_regular",
@@ -52,6 +53,8 @@ export default class Boot extends Phaser.Scene {
     mk("props_exclaim", "exclaim", 2, 4);
     mk("props_coin_spin", "coin", 6, 10);
     mk("props_static_overlay", "static", 4, 14);
+    mk("boss_ratking", "idle", 2, 3); mk("boss_ratking", "stun", 2, 6); mk("boss_ratking", "die", 2, 4, 0);
+    mk("boss_rat", "run", 2, 10); mk("boss_fx", "swing", 3, 18, 0); mk("boss_fx", "star", 2, 6);
     this.scene.start("Title");
   }
 }

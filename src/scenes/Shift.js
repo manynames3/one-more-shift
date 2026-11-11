@@ -4,6 +4,7 @@ import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDail
 import * as snd from "../audio.js";
 import { startReplay, endReplay, cancelReplay } from "../replay.js";
 import { RoomMixin, ROOM } from "./rooms.js";
+import { BossMixin, BOSS_SHIFT, BOSS_MIN } from "./boss.js";
 
 // ---- store geometry (feet positions, in canvas pixels) ---------------------
 const TOP = 118, BOT = 154;
@@ -22,7 +23,7 @@ const SPEED = 66;        // player px/s
 const MINLEN = 1.15;     // real seconds per in-game minute (03:00 -> 04:00)
 const FEET = 46 / 48;    // sprite origin so y is the feet line
 const P = "characters_sora";
-const NORMALS = ["halmae", "daeri", "jisu", "deokgu"];
+const NORMALS = ["halmae", "daeri", "jisu"];   // 덕구 is staff, not a customer
 const DOOR_TAP = { x0: 130, x1: 195, y0: 30, y1: 117 };   // tap here to look at the door
 
 /** Pay you must earn in a shift or you are fired at 04:00. */
@@ -86,6 +87,7 @@ export default class Shift extends Phaser.Scene {
 
     this.buildHud();
     this.initRooms();
+    this.initBoss();
     this.bindInput();
     startReplay(this.game);
     snd.music("store"); snd.ambience(true);
@@ -163,6 +165,7 @@ export default class Shift extends Phaser.Scene {
   }
 
   hotRule() {
+    if (this.bossActive()) return "boss";
     const room = this.hotRoomRule();
     if (room) return room;
     if (this.watch.state !== "idle") return "door";
@@ -263,6 +266,7 @@ export default class Shift extends Phaser.Scene {
 
   // keyboard action: do whatever job is within reach
   act() {
+    if (this.bossActive()) return this.swing();
     if (this.over || this.working || this.frozenNow()) return;
     if (this.roomAct()) return;
     // Space does the closest waiting job: a customer at the till wins unless a task is right next to you
@@ -281,6 +285,7 @@ export default class Shift extends Phaser.Scene {
   // touch / mouse: tap a job to walk there and do it, tap the floor to walk
   tap(x, y) {
     if (this.over || y < BAR || y > H - BAR) return;
+    if (this.bossActive()) return this.fightTap(x, y);
     if (this.frozenNow()) return;
     if (this.roomTap(x, y)) return;          // x, y are screen = room-local coordinates
     let kind = null;
@@ -431,7 +436,7 @@ export default class Shift extends Phaser.Scene {
 
   tickCustomers(dt) {
     this.custT -= dt;
-    if (this.custT <= 0 && this.queue.length < 3) { this.spawnCustomer(); this.custT = Math.max(3, rand(5, 8) - this.d * 0.5); }
+    if (this.custT <= 0 && this.queue.length < 3 && !this.bossActive()) { this.spawnCustomer(); this.custT = Math.max(3, rand(5, 8) - this.d * 0.5); }
 
     for (const c of [...this.customers]) {
       const spr = c.spr;
@@ -583,9 +588,11 @@ export default class Shift extends Phaser.Scene {
       else { this.tickT = (this.tickT || 0) - dt; if (this.tickT <= 0) { snd.sfx(this.tock ? "tock" : "tick"); this.tock = !this.tock; this.tickT = 0.5; } }
       return;
     }
+    if (this.bossActive()) return;           // time stands still while you fight
     this.minT += dt;
     if (this.minT < MINLEN) return;
     this.minT -= MINLEN; this.min++;
+    if (this.deokgu && this.run.shift === BOSS_SHIFT && this.min === BOSS_MIN) return this.startBoss();
     if (this.has("fridge") && this.min === 37) this.hint("fridge", SPOT.fridge.mark.x, SPOT.fridge.mark.y - 20);
     if (this.has("fridge") && this.min === 44) this.unhint("fridge");
     if (this.has("clock")) {
@@ -621,6 +628,7 @@ export default class Shift extends Phaser.Scene {
     this.over = true;
     snd.music("off"); snd.ambience(false);
     this.workBar.clear(); this.bang.setVisible(false); this.eyes.setVisible(false);
+    if (this.boss) this.endBossFx();
     if (this.lookHint) { this.lookHint.destroy(); this.lookHint = null; }
     Object.keys(this.hints).forEach(k => this.unhint(k));
     Object.values(this.tasks).forEach(k => k.mark.setVisible(false));
@@ -645,7 +653,8 @@ export default class Shift extends Phaser.Scene {
     const p = this.p;
     p.play(P + "_scared");
     // it was behind you the whole time: twice your size, looming over your shoulder
-    this.ent.setVisible(true).setScale(2).setPosition(p.x, p.y + 2).setDepth(p.y - this.oy - 1).play("characters_regular_down_idle");
+    if (cause !== "ratking") this.ent.setVisible(true).setScale(2).setPosition(p.x, p.y + 2).setDepth(p.y - this.oy - 1).play("characters_regular_down_idle");
+    else if (this.boss?.spr) { this.boss.spr.setFrame("tell"); this.rats.forEach(r => r.setTint(0x8c1526)); }
     this.cameras.main.shake(450, 0.012);
     this.time.delayedCall(1700, () => this.cameras.main.fadeOut(300, 20, 16, 26));
     this.time.delayedCall(2050, () => this.scene.start("Result", { cause }));
@@ -675,7 +684,8 @@ export default class Shift extends Phaser.Scene {
 
   clockOut() {
     if (this.over) return;
-    if (this.pay < this.quota) return this.fired("quota");
+    // beating the Rat King is the job tonight: no quota on top of that
+    if (this.pay < this.quota && this.boss?.phase !== "done") return this.fired("quota");
     markSeen([...this.hintsShown]);
     cancelReplay();
     if (this.run.daily) return this.dailyDone();
@@ -714,6 +724,15 @@ export default class Shift extends Phaser.Scene {
     if (this.over) return;
     this.tickPlayer(dt);
     if (this.over) return;
+    if (this.bossActive()) {
+      this.tickCustomers(dt);              // they're running for the door
+      this.tickBoss(dt);
+      if (this.over) return;
+      this.tickFightChase();
+      this.tickHud(dt);
+      return;
+    }
+    this.tickDeokgu(dt);
     if (this.stall <= 0) {
       // the door watch only runs on the shop floor; walking off the floor while it watches is turning your back
       if (this.room === "floor") this.tickWatch(dt);
@@ -728,4 +747,4 @@ export default class Shift extends Phaser.Scene {
   }
 }
 
-Object.assign(Shift.prototype, RoomMixin);
+Object.assign(Shift.prototype, RoomMixin, BossMixin);

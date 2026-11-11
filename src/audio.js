@@ -167,6 +167,17 @@ const SONGS = {
       drums: { notes: "k . h . s . h . k . h k s . h h | k . h . s . h . k k h . s . o . |" },
     },
   },
+  // The Rat King: fast, driving, A minor.
+  boss: {
+    bpm: 150, swing: 0,
+    ch: {
+      lead: { type: "p50", vol: 0.085, vib: 0.006, r: 0.04, s: 0.6, notes:
+        "A4 - C5 - E5 - A5 - G5 - E5 - C5 - D5 - | E5 - - - D5 - C5 - B4 - G4 - B4 - - - | A4 - C5 - E5 - A5 - B5 - A5 - G5 - E5 - | F5 - E5 - D5 - C5 - B4 - - - G#4 - - - |" },
+      arp: { type: "p12", vol: 0.045, d: 0.04, s: 0.25, r: 0.02, arp: ["A3 C4 E4", "G3 B3 D4", "F3 A3 C4", "E3 G#3 B3"], pattern: [0, 1, 2, 1] },
+      bass: { type: "triangle", vol: 0.38, s: 0.7, r: 0.03, roots: ["A2", "G2", "F2", "E2"], pattern: "R . R2 . R . R2 . R . R2 . R R2 R R2" },
+      drums: { notes: "k . h k s . h . k k h . s . h s | k . h k s . h . k . h k s s s s |" },
+    },
+  },
   // Something is in the doorway. Heartbeat, a low drone and a wrong-sounding arp.
   watch: {
     bpm: 66, swing: 0,
@@ -393,6 +404,12 @@ const SFX = {
   },
   static: (d, t) => noise(d, { t, dur: 1.6, vol: 0.12, f: 5000, type: "bandpass", q: 0.5, a: 0.01 }),
   win: (d, t) => jingle("clockout", d, t),
+  swing: (d, t) => noise(d, { t, dur: 0.14, vol: 0.2, f: 900, sweep: 4, type: "bandpass", q: 1.2, a: 0.01 }),
+  hitboss: (d, t) => { noise(d, { t, dur: 0.12, vol: 0.4, f: 700, type: "lowpass" }); tone(d, { type: "square", f: 220, slide: 0.5, t, dur: 0.12, vol: 0.18 }); tone(d, { type: "p25", f: 1900, slide: 1.3, t: t + 0.05, dur: 0.1, vol: 0.08 }); },
+  squeak: (d, t) => tone(d, { type: "p25", f: 2400 + Math.random() * 600, slide: 1.25, t, dur: 0.07, vol: 0.05 }),
+  roar: (d, t) => { tone(d, { type: "sawtooth", f: 70, t, dur: 0.9, vol: 0.2, vib: 0.08, s: 0.9 }); noise(d, { t, dur: 0.9, vol: 0.2, f: 500, type: "bandpass", q: 1.5, a: 0.05 }); for (let i = 0; i < 6; i++) tone(d, { type: "p25", f: 2200 + i * 150, slide: 1.2, t: t + i * 0.09, dur: 0.06, vol: 0.04 }); },
+  clang: (d, t) => { tone(d, { type: "square", f: 1300, t, dur: 0.04, vol: 0.08 }); tone(d, { type: "triangle", f: 880, t, dur: 0.2, vol: 0.1, s: 0.3 }); },
+  dash: (d, t) => noise(d, { t, dur: 0.35, vol: 0.18, f: 300, sweep: 6, type: "bandpass", q: 1, a: 0.02 }),
   // three heavy knocks on a steel door
   knock: (d, t) => { for (let i = 0; i < 3; i++) { tone(d, { type: "sine", f: 70, slide: 0.6, t: t + i * 0.16, dur: 0.12, vol: 0.7, a: 0.002 }); noise(d, { t: t + i * 0.16, dur: 0.08, vol: 0.25, f: 400, type: "lowpass" }); } },
   creak: (d, t) => { tone(d, { type: "sawtooth", f: 180, slide: 1.6, t, dur: 0.3, vol: 0.04, vib: 0.05 }); noise(d, { t: t + 0.25, dur: 0.06, vol: 0.12, f: 600, type: "lowpass" }); },

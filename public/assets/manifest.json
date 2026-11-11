@@ -566,6 +566,12 @@
    "png": "bg/store_counter_wrong.png",
    "w": 320,
    "h": 180
+  },
+  {
+   "key": "boss_mop",
+   "png": "boss/mop.png",
+   "w": 12,
+   "h": 22
   }
  ],
  "atlases": [
@@ -778,6 +784,27 @@
    "json": "ui/loading.json",
    "w": 64,
    "h": 16
+  },
+  {
+   "key": "boss_fx",
+   "png": "boss/fx.png",
+   "json": "boss/fx.json",
+   "w": 168,
+   "h": 24
+  },
+  {
+   "key": "boss_rat",
+   "png": "boss/rat.png",
+   "json": "boss/rat.json",
+   "w": 32,
+   "h": 12
+  },
+  {
+   "key": "boss_ratking",
+   "png": "boss/ratking.png",
+   "json": "boss/ratking.json",
+   "w": 360,
+   "h": 128
   }
  ]
 }

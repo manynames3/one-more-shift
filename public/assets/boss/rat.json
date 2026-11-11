@@ -1,0 +1,50 @@
+{
+ "frames": {
+  "run_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 12
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 12
+   }
+  },
+  "run_1": {
+   "frame": {
+    "x": 16,
+    "y": 0,
+    "w": 16,
+    "h": 12
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 12
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 12
+   }
+  }
+ },
+ "meta": {
+  "image": "rat.png",
+  "size": {
+   "w": 32,
+   "h": 12
+  },
+  "scale": 1,
+  "frameWidth": 16,
+  "frameHeight": 12
+ }
+}
