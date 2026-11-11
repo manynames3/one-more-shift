@@ -35,8 +35,10 @@ export default class Title extends Phaser.Scene {
       if (this.started) return;
       this.started = true;
       snd.init(); snd.sfx("start");
-      newRun();
       this.cameras.main.fadeOut(250, 20, 16, 26);
+      // once Act 1 is done, the job board comes first
+      if (S.acts[1]) return this.time.delayedCall(280, () => this.scene.start("Board"));
+      newRun();
       this.time.delayedCall(280, () => this.scene.start("Agency", { context: S.runs > 1 ? "again" : "intro" }));
     };
     this.input.keyboard.on("keydown", e => { if (!["KeyL", "KeyM", "KeyD"].includes(e.code)) go(); });

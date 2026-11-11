@@ -13,6 +13,7 @@ export const S = {
   best: store.get("oms.best", 0),
   runs: store.get("oms.runs", 0),
   seen: store.get("oms.seen", {}),     // rules whose first-time hint the player has survived
+  acts: store.get("oms.acts", {}),     // story acts cleared, e.g. { 1: true } once the Rat King is beaten
   run: null,
 };
 
@@ -35,6 +36,18 @@ export function seeded(seed) {
   let a = seed >>> 0;
   return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
+
+// The job board: one workplace per act. Only the store is built so far.
+export const ACTS = [
+  { n: 1, key: "store", built: true },
+  { n: 2, key: "delivery" },
+  { n: 3, key: "cinema" },
+  { n: 4, key: "cold" },
+  { n: 5, key: "office" },
+];
+export function clearAct(n) { S.acts[n] = true; store.set("oms.acts", S.acts); }
+/** An act is open once the one before it is cleared. */
+export const actOpen = n => n === 1 || !!S.acts[n - 1];
 
 export function markSeen(keys) { keys.forEach(k => { S.seen[k] = true; }); store.set("oms.seen", S.seen); }
 
@@ -65,6 +78,11 @@ export function won(n) { return "₩" + Math.max(0, Math.round(n)).toLocaleStrin
 
 const STR = {
   ko: {
+    board: "새벽인력 · 일자리 게시판", act: n => `${n}막`, st_clear: "완료", st_open: "모집 중", st_soon: "준비 중", st_locked: "잠김",
+    job_store: "편의점", job_delivery: "야간 배달", job_cinema: "24시 극장", job_cold: "냉동 창고", job_office: "새벽인력",
+    jd_store: "사흘 밤을 버티고 쥐왕을 쓰러뜨려라", jd_soon: "다음 업데이트에서 문을 엽니다", jd_locked: "앞의 일을 먼저 끝내세요",
+    jd_keep: "계속 근무: 편의점 다음 교대", board_clear: "곽 실장: 준호? 모르는 이름인데. 다음 일이나 보자.", act_clear: "1막 완료",
+    board_keys: "←→ 고르기 · Space 선택 · Esc 처음으로",
     start: "아무 키나 누르세요", best: n => `최고 기록 · ${n}번째 교대`, lang: "한국어", loading: "출근 준비 중",
     rule_door: "그것이 오면 문을 바라보시오", rule_clock: "03:33에는 움직이지 마시오", rule_regular: "단골은 계산해 주지 마시오", rule_fridge: "03:40 이후 냉장고를 열지 마시오", rule_knock: "철문이 두드리면 창고에서 나가시오", rule_lamp: "가로등 아래 그것을 쳐다보지 마시오", rule_disguise: "그림자 없는 손님은 단골이다",
     rule: "규칙", rulePre: "규칙: ", place: "달빛마트 야간", wageLine: "₩12,400 + 수당",
@@ -104,6 +122,11 @@ const STR = {
     shareText: (n, cause) => `한 번만 더: ${n}번째 교대에서 끝. 사인 — ${cause}`,
   },
   en: {
+    board: "DAWN STAFFING · JOB BOARD", act: n => `ACT ${n}`, st_clear: "CLEAR", st_open: "HIRING", st_soon: "SOON", st_locked: "LOCKED",
+    job_store: "STORE", job_delivery: "DELIVERY", job_cinema: "CINEMA", job_cold: "FREEZER", job_office: "AGENCY",
+    jd_store: "Survive three nights and beat the Rat King", jd_soon: "Opens in a future update", jd_locked: "Finish the job before it first",
+    jd_keep: "Keep working: next shift at the store", board_clear: "Kwak: Junho? Never heard of him. Let's find your next job.", act_clear: "ACT 1 CLEAR",
+    board_keys: "←→ pick · Space choose · Esc title",
     start: "PRESS ANY KEY", best: n => `BEST · SHIFT ${n}`, lang: "ENGLISH", loading: "Clocking in",
     rule_door: "When it comes, face the door", rule_clock: "Do not move at 03:33", rule_regular: "Never ring up the Regular", rule_fridge: "Don't open the fridge after 03:40", rule_knock: "If the steel door knocks, leave the stockroom", rule_lamp: "Don't look at what stands under the streetlamp", rule_disguise: "No shadow? It's the Regular",
     rule: "RULE", rulePre: "", place: "Dalbit Mart", wageLine: "₩12,400 +",

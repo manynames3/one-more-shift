@@ -13,7 +13,7 @@ const USED = new Set([
   "characters_deokgu", "characters_regular",
   "portraits_kwak", "portraits_regular",
   "props_icons", "props_items", "props_exclaim", "props_red_eyes", "props_shadow_blob", "props_static_overlay",
-  "props_coin_spin", "props_sweat",
+  "props_coin_spin", "props_sweat", "props_register", "props_cctv", "props_wet_floor_sign", "props_time_clock",
   "ui_logo", "ui_dialog_box", "ui_job_card", "ui_rule_banner", "ui_hud_bottom", "ui_debt_meter_fill",
   "ui_btn_primary", "ui_btn_secondary", "ui_btn_danger", "ui_stamp_success", "ui_stamp_fail", "ui_stamp_fired",
   "ui_paystub", "ui_vignette_red", "ui_vignette_dark",

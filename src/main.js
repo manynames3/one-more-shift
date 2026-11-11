@@ -6,6 +6,7 @@ import Title from "./scenes/Title.js";
 import Agency from "./scenes/Agency.js";
 import Shift from "./scenes/Shift.js";
 import Result from "./scenes/Result.js";
+import Board from "./scenes/Board.js";
 
 async function start() {
   // Text is drawn with the pixel fonts, so they must be ready before the first scene.
@@ -21,7 +22,7 @@ async function start() {
     pixelArt: true, roundPixels: true, antialias: false,
     scale: { mode: Phaser.Scale.NONE, width: W, height: H },
     input: { activePointers: 2 },
-    scene: [Boot, Title, Agency, Shift, Result],
+    scene: [Boot, Title, Agency, Shift, Result, Board],
   });
 
   // Largest scale that fits the window and lands on whole device pixels.
