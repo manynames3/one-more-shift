@@ -22,7 +22,7 @@ export default class Agency extends Phaser.Scene {
     this.newRule = newRuleFor(run.shift);
     const ctx = data?.context || "intro";
     snd.music(ctx === "intro" ? "title" : "office");
-    const brief = { 2: "more", 3: "more", 4: "brief4", 5: "brief5" }[run.shift] || "same";
+    const brief = { 2: "brief2", 3: "brief3", 4: "brief4", 5: "brief5", 6: "brief6", 7: "brief7" }[run.shift] || "same";
     this.lines = [...t(ctx === "next" ? brief : ctx)];
     this.face = ctx === "next" && brief !== "same" ? "sly" : ctx === "cont" ? "serious" : "smile";
 

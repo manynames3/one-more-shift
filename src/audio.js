@@ -50,6 +50,9 @@ export function init() {
   if (pending) { const p = pending; pending = null; music(p); }
 }
 
+/** Turn the music down (stockroom, outside) or back up. */
+export function duck(level) { if (musicBus) musicBus.gain.setTargetAtTime(0.55 * level, ctx.currentTime, 0.12); }
+
 export function setMuted(m) { if (master) master.gain.setTargetAtTime(m ? 0 : MASTER, ctx.currentTime, 0.02); }
 
 // ------------------------------------------------------------ instruments
@@ -390,6 +393,10 @@ const SFX = {
   },
   static: (d, t) => noise(d, { t, dur: 1.6, vol: 0.12, f: 5000, type: "bandpass", q: 0.5, a: 0.01 }),
   win: (d, t) => jingle("clockout", d, t),
+  // three heavy knocks on a steel door
+  knock: (d, t) => { for (let i = 0; i < 3; i++) { tone(d, { type: "sine", f: 70, slide: 0.6, t: t + i * 0.16, dur: 0.12, vol: 0.7, a: 0.002 }); noise(d, { t: t + i * 0.16, dur: 0.08, vol: 0.25, f: 400, type: "lowpass" }); } },
+  creak: (d, t) => { tone(d, { type: "sawtooth", f: 180, slide: 1.6, t, dur: 0.3, vol: 0.04, vib: 0.05 }); noise(d, { t: t + 0.25, dur: 0.06, vol: 0.12, f: 600, type: "lowpass" }); },
+  buzz: (d, t) => { for (let i = 0; i < 5; i++) tone(d, { type: "sawtooth", f: 120, t: t + i * 0.13, dur: 0.07, vol: 0.06 }); },
   // the store phone, at the worst possible time
   ring: (d, t) => { for (let k = 0; k < 2; k++) for (let i = 0; i < 8; i++) tone(d, { type: "p25", f: i % 2 ? 1397 : 1175, t: t + k * 0.9 + i * 0.05, dur: 0.045, vol: 0.08, r: 0.01 }); },
   hop: (d, t) => { tone(d, { type: "p25", f: 330, slide: 2.2, t, dur: 0.14, vol: 0.1 }); noise(d, { t: t + 0.26, dur: 0.06, vol: 0.12, f: 500, type: "lowpass" }); },

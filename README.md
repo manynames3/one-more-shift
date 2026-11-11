@@ -37,15 +37,22 @@ that is playable within one tap, readable on a phone, and gives the player somet
 
 ## How it works
 
-**The rules are the game.** Each is a few lines of state checked every frame:
+**The store is three areas.** The shop floor, the stockroom behind the staff door (restocking means fetching a box
+from here), and the street out front (trash goes to the bins). Customers, the clock and the debt keep running while
+you're away from the till, so every trip is a risk.
 
-1. **When it comes, face the door.** Something appears in the doorway at random. Stop what you're doing and look at it, while the queue at the till keeps losing patience.
-2. **Do not move at 03:33.** The clock stalls, the phone rings, a ₩10,000 note lands at your feet, and customers keep waiting. Any action ends the run.
-3. **Never ring up the Regular.** It queues like a customer and blocks the line. From shift 4 it can wear another customer's face; the tell is a missing shadow.
-4. **Don't open the fridge after 03:40** (shift 5+). After 03:40 the fridge job pays triple.
+**The rules are the game.** One new rule each shift:
 
-**Daily shift:** one seeded night per day, the same customers and timings for every player, one attempt, with a
-Wordle-style share line (`🟩 Clocked out ₩72,000`).
+1. **When it comes, face the door.** Something appears in the doorway. Stop and look at it while the queue waits.
+2. **If the steel door knocks, leave the stockroom.** You have about three seconds, and a box slows you down.
+3. **Do not move at 03:33.** The clock stalls, the phone rings, a ₩10,000 note lands at your feet, customers keep waiting.
+4. **Never ring up the Regular.** It queues like a customer and blocks the line.
+5. **Don't look at what stands under the streetlamp.** Out front, the way back to the door is towards it.
+6. **The Regular wears other faces.** The tell is a missing shadow.
+7. **Don't open the fridge after 03:40.** After 03:40 the fridge job pays triple.
+
+Every shift has a pay quota, so you can't hide at the register. Miss it or collect three customer complaints and you're
+fired. Clear the ₩1,000,000 debt to win.
 
 Each new rule gets a one-time on-screen hint until you survive it once. Die and you can continue from the same shift
 twice per run, for a cleanup fee added to your debt.

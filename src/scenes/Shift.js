@@ -3,6 +3,7 @@ import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
 import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily } from "../state.js";
 import * as snd from "../audio.js";
 import { startReplay, endReplay, cancelReplay } from "../replay.js";
+import { RoomMixin, ROOM } from "./rooms.js";
 
 // ---- store geometry (feet positions, in canvas pixels) ---------------------
 const TOP = 118, BOT = 154;
@@ -38,7 +39,7 @@ export default class Shift extends Phaser.Scene {
     this.over = false; this.pay = 0; this.strikes = 0; this.quota = quotaFor(run.shift);
     this.watchesSeen = 0; this.lure = null;
     this.hintsShown = new Set(); this.hints = {};
-    this.disguiseTwist = run.shift >= 4;
+    this.disguiseTwist = run.shift >= 6;
     this.min = 0; this.minT = 0; this.stall = 0; this.stallGrace = 0;
     this.cameras.main.fadeIn(250, 20, 16, 26);
     // daily: everyone gets the same night (same customers, same timings) from the date
@@ -84,6 +85,7 @@ export default class Shift extends Phaser.Scene {
     this.watch = { state: "idle", t: rand(6, 8), back: 0 };
 
     this.buildHud();
+    this.initRooms();
     this.bindInput();
     startReplay(this.game);
     snd.music("store"); snd.ambience(true);
@@ -104,7 +106,7 @@ export default class Shift extends Phaser.Scene {
   hint(key, x, y) {
     if (S.seen[key] || this.hints[key]) return null;
     this.hintsShown.add(key);
-    const h = txt(this, x, y, t("hint_" + key), { ox: 0.5, size: 9, color: C.yellow, depth: 880 });
+    const h = txt(this, x, y, t("hint_" + key), { ox: 0.5, size: 9, color: C.yellow, depth: 630 });
     h.setBackgroundColor("#14101a").setPadding(2, 1, 2, 1);
     this.tweens.add({ targets: h, alpha: 0.4, duration: 300, yoyo: true, repeat: -1 });
     this.hints[key] = h;
@@ -128,7 +130,10 @@ export default class Shift extends Phaser.Scene {
       spr.setDepth(this.vaulting ? this.vaultDepth : BEHIND_DEPTH); spr.sh.setVisible(false); return;
     }
     if (spr === this.p) spr.sh.setVisible(true);
-    spr.setDepth(spr.y); spr.sh.setPosition(Math.round(spr.x), Math.round(spr.y) - 1).setDepth(spr.y - 0.5); }
+    const ly = spr.y - (spr === this.p ? this.oy : 0);    // depth sorts by the feet line within a room
+    spr.setDepth(ly); spr.sh.setPosition(Math.round(spr.x), Math.round(spr.y) - 1).setDepth(ly - 0.5); }
+
+  spot(kind) { return SPOT[kind]; }
 
   // ---- HUD ----------------------------------------------------------------
   buildHud() {
@@ -158,6 +163,8 @@ export default class Shift extends Phaser.Scene {
   }
 
   hotRule() {
+    const room = this.hotRoomRule();
+    if (room) return room;
     if (this.watch.state !== "idle") return "door";
     if (this.has("clock") && (this.stall > 0 || (this.min >= 30 && this.min < 33))) return "clock";
     if (this.regularHere && !this.regDisguised) return "regular";
@@ -170,7 +177,8 @@ export default class Shift extends Phaser.Scene {
     const on = Math.floor(this.blink * 6) % 2 === 0;
     const hot = this.hotRule();
     if (!hot) { this.ruleT += dt; if (this.ruleT > 3.5) { this.ruleT = 0; this.ruleIdx = (this.ruleIdx + 1) % this.rules.length; } }
-    const rule = hot || this.rules[this.ruleIdx];
+    const here = this.room === "stock" && this.has("knock") ? "knock" : this.room === "out" && this.has("lamp") ? "lamp" : null;
+    const rule = hot || here || this.rules[this.ruleIdx];
     const sig = rule + (hot ? "!" : "");
     if (sig !== this.ruleShown) {
       this.ruleShown = sig;
@@ -196,6 +204,7 @@ export default class Shift extends Phaser.Scene {
 
   available(kind) {
     if (kind === "serve") return !!this.front();
+    if (kind === "shelf") return this.tasks.shelf.active && this.carry === "box";
     return this.tasks[kind].active;
   }
 
@@ -208,10 +217,8 @@ export default class Shift extends Phaser.Scene {
 
   // go and do a job: serving means getting behind the counter first
   goDo(kind) {
-    this.intent = kind;
-    if (kind === "serve") { this.target = this.behind ? null : { ...GATE }; return; }
-    if (this.behind) { this.vaultOut({ ...SPOT[kind] }); return; }
-    this.target = { ...SPOT[kind] };
+    if (this.working && this.working.kind !== kind) this.cancelWork();
+    this.intent = kind; this.target = null;
   }
 
   /** Hop over the counter. Arc from the gate to the register (or back). */
@@ -257,9 +264,16 @@ export default class Shift extends Phaser.Scene {
   // keyboard action: do whatever job is within reach
   act() {
     if (this.over || this.working || this.frozenNow()) return;
+    if (this.roomAct()) return;
     // Space does the closest waiting job: a customer at the till wins unless a task is right next to you
-    const d = k => Phaser.Math.Distance.Between(this.p.x, this.p.y, k === "serve" ? GATE.x : SPOT[k].x, k === "serve" ? GATE.y : SPOT[k].y);
-    const task = ["shelf", "fridge"].filter(k => this.available(k)).sort((a, b) => d(a) - d(b))[0];
+    const where = { serve: GATE, shelf: SPOT.shelf, fridge: SPOT.fridge, box: GATE, bins: DOOR, trash: this.trash ? { x: this.trash.x, y: this.trash.fy } : GATE };
+    const d = k => Phaser.Math.Distance.Between(this.p.x, this.p.y, where[k].x, where[k].y);
+    const jobs = [];
+    if (this.carry === "trash") jobs.push("bins");
+    if (this.tasks.shelf.active) jobs.push(this.carry === "box" ? "shelf" : "box");
+    if (this.available("fridge")) jobs.push("fridge");
+    if (this.trash && !this.carry) jobs.push("trash");
+    const task = jobs.sort((a, b) => d(a) - d(b))[0];
     if (this.available("serve") && (this.behind || !task || d(task) > 24)) return this.goDo("serve");
     if (task) this.goDo(task);
   }
@@ -268,16 +282,19 @@ export default class Shift extends Phaser.Scene {
   tap(x, y) {
     if (this.over || y < BAR || y > H - BAR) return;
     if (this.frozenNow()) return;
-    if (x >= DOOR_TAP.x0 && x <= DOOR_TAP.x1 && y >= DOOR_TAP.y0 && y <= DOOR_TAP.y1) return this.look();
+    if (this.roomTap(x, y)) return;          // x, y are screen = room-local coordinates
     let kind = null;
-    const f = this.queue[0];
-    if (f && ((Math.abs(x - f.spr.x) < 16 && y > f.spr.y - 48 && y < f.spr.y + 6) || (x > 232 && y > 84 && y < 146))) kind = "serve";
-    else if (this.tasks.shelf.active && x < 96 && y > 40) kind = "shelf";
-    else if (this.tasks.fridge.active && x > 86 && x < 126 && y > 44 && y < 122) kind = "fridge";
+    if (this.room === "floor") {
+      if (x >= DOOR_TAP.x0 && x <= DOOR_TAP.x1 && y >= DOOR_TAP.y0 && y <= DOOR_TAP.y1) return this.look();
+      const f = this.queue[0];
+      if (f && ((Math.abs(x - f.spr.x) < 16 && y > f.spr.y - 48 && y < f.spr.y + 6) || (x > 232 && y > 84 && y < 146))) kind = "serve";
+      else if (this.tasks.shelf.active && x < 96 && y > 40) kind = this.carry === "box" ? "shelf" : "box";
+      else if (this.tasks.fridge.active && x > 86 && x < 126 && y > 44 && y < 122) kind = "fridge";
+    }
     if (kind) return this.goDo(kind);
     if (this.vaulting) return;
-    const ty = Phaser.Math.Clamp(y, TOP, BOT);
-    const dest = { x: Phaser.Math.Clamp(x, xl(ty), xr(ty)), y: ty };
+    const B = this.B, ty = Phaser.Math.Clamp(y, B.top, B.bot);
+    const dest = { x: Phaser.Math.Clamp(x, B.xl(ty), B.xr(ty)), y: ty + this.oy };
     this.intent = null;
     if (this.working) this.cancelWork();
     if (this.behind) return this.vaultOut(dest);
@@ -290,9 +307,11 @@ export default class Shift extends Phaser.Scene {
     if (this.vaulting) { this.moving = false; this.syncChar(p); return; }
     let vx = (k.RIGHT.isDown || k.D.isDown ? 1 : 0) - (k.LEFT.isDown || k.A.isDown ? 1 : 0);
     let vy = (k.DOWN.isDown || k.S.isDown ? 1 : 0) - (k.UP.isDown || k.W.isDown ? 1 : 0);
+    const kvx = vx, kvy = vy;
     if (this.behind) {
-      // at the register until you step out: left or down hops back over the counter, up looks at the door
+      // at the register: left or down hops back over the counter, right goes through the staff door, up looks at the door
       if (vx < 0 || vy > 0) { this.intent = null; this.vaultOut(null); this.syncChar(p); return; }
+      if (vx > 0) { this.intent = null; this.enterRoom("stock", ROOM.stock.enter, { face: "up" }); return; }
       if (vy < 0) this.look();
       vx = 0; vy = 0;
     }
@@ -311,24 +330,20 @@ export default class Shift extends Phaser.Scene {
       if (vy > 0 && vy >= 0.5 * Math.abs(vx)) this.face = "down";
       else if (vy < 0 && -vy >= Math.abs(vx)) this.face = "up";
       else this.face = vx < 0 ? "left" : "right";
-      const step = Math.min(SPEED * dt, maxStep), ox = p.x, oy = p.y;
-      const ny = Phaser.Math.Clamp(p.y + vy * step, TOP, BOT);
-      p.setPosition(Phaser.Math.Clamp(p.x + vx * step, xl(ny), xr(ny)), ny);
+      const speed = SPEED * (this.carry ? 0.8 : 1);
+      const step = Math.min(speed * dt, maxStep), ox = p.x, oy = p.y;
+      const B = this.B, ny = Phaser.Math.Clamp(p.y - this.oy + vy * step, B.top, B.bot);
+      p.setPosition(Phaser.Math.Clamp(p.x + vx * step, B.xl(ny), B.xr(ny)), ny + this.oy);
       if (this.target && Math.hypot(this.target.x - p.x, this.target.y - p.y) < 1.2) { p.setPosition(this.target.x, this.target.y); this.target = null; }
       else if (this.target && Math.hypot(p.x - ox, p.y - oy) < 0.01) this.target = null;   // blocked by a wall: give up
     }
 
     if (this.moving) { this.stepT -= dt; if (this.stepT <= 0) { snd.sfx("step"); this.stepT = 0.21; } } else this.stepT = 0;
 
-    // reached the counter: vault over it, then serve
-    if (this.intent === "serve" && !this.behind && !this.moving && !this.target &&
-        Phaser.Math.Distance.Between(p.x, p.y, GATE.x, GATE.y) < 2) {
-      this.vault(true, () => { if (this.intent === "serve" && this.available("serve")) this.startWork("serve"); else this.intent = null; });
-      this.syncChar(p); return;
-    }
-    // start an intended job once standing on its spot
-    if (!this.working && this.intent && !this.moving && this.near(this.intent) && this.available(this.intent)) this.startWork(this.intent);
-    if (this.over) return;
+    if (this.roomEdges(kvx, kvy)) return;
+    // standing still with something to do: take the next leg (walk, vault, change room, start the job)
+    if (!this.working && !this.vaulting && this.intent && !this.moving && !this.target) this.stepIntent();
+    if (this.over || this.vaulting) return;
 
     if (this.working) {
       const w = this.working;
@@ -370,6 +385,7 @@ export default class Shift extends Phaser.Scene {
     } else {
       const task = this.tasks[kind];
       task.active = false; task.t = rand(9, 14) - this.d; task.mark.setVisible(false);
+      if (kind === "shelf") { this.carry = null; this.carrySpr.setVisible(false); }
       this.earn(SPOT[kind].pay + 1000 * this.d, this.p.x, this.p.y - 50); snd.sfx("stock"); snd.sfx("coin", 0.25);
     }
   }
@@ -520,7 +536,7 @@ export default class Shift extends Phaser.Scene {
         // the first couple of times in a player's first runs, point at the door
         if (!S.seen.door && this.watchesSeen <= 2) {
           this.hintsShown.add("door");
-          this.lookHint = txt(this, DOOR.x, 96, t("lookHint"), { ox: 0.5, color: C.yellow, depth: 880 });
+          this.lookHint = txt(this, DOOR.x, 96, t("lookHint"), { ox: 0.5, color: C.yellow, depth: 630 });
           this.tweens.add({ targets: this.lookHint, y: 92, duration: 260, yoyo: true, repeat: -1 });
         }
       }
@@ -582,9 +598,10 @@ export default class Shift extends Phaser.Scene {
         snd.sfx("ring", 1.0);
         this.customers.forEach(c => c.spr.anims.pause());
         // a ₩10,000 note lands right by your feet
-        const lx = this.behind ? GATE.x - 30 : Phaser.Math.Clamp(this.p.x + (this.p.x > 160 ? -26 : 26), xl(this.p.y) + 6, xr(this.p.y) - 6);
-        const ly = this.behind ? GATE.y : this.p.y;
-        this.lure = this.add.container(lx, ly - 6, [
+        const ply = this.p.y - this.oy;
+        const lx = this.behind ? GATE.x - 30 : Phaser.Math.Clamp(this.p.x + (this.p.x > 160 ? -26 : 26), this.B.xl(ply) + 6, this.B.xr(ply) - 6);
+        const ly = (this.behind ? GATE.y : ply);
+        this.lure = this.add.container(lx, ly + this.oy - 6, [
           this.add.image(0, 0, "props_items", "banknote"),
           txt(this, 0, -16, "₩10,000", { ox: 0.5, size: 9, color: C.yellow }),
         ]).setDepth(ly + 1);
@@ -616,6 +633,7 @@ export default class Shift extends Phaser.Scene {
     endReplay(1700);   // the GIF ends on the scare
     snd.sfx("fail"); snd.sfx("static", 1.2);
     this.bg.setTexture("bg_store_wrong"); this.counter.setTexture("bg_store_counter_wrong");
+    if (this.room !== "floor") this.roomBg[this.room].setTint(0xff5a5a);
     this.flick.setAlpha(0); this.vigDark.setVisible(false); this.vigRed.setVisible(true);
     this.staticTile.setVisible(true);
     this.staticEv = this.time.addEvent({ delay: 70, loop: true, callback: () => this.staticTile.setFrame("static_" + Phaser.Math.Between(0, 3)) });
@@ -627,7 +645,7 @@ export default class Shift extends Phaser.Scene {
     const p = this.p;
     p.play(P + "_scared");
     // it was behind you the whole time: twice your size, looming over your shoulder
-    this.ent.setVisible(true).setScale(2).setPosition(p.x, p.y + 2).setDepth(p.y - 1).play("characters_regular_down_idle");
+    this.ent.setVisible(true).setScale(2).setPosition(p.x, p.y + 2).setDepth(p.y - this.oy - 1).play("characters_regular_down_idle");
     this.cameras.main.shake(450, 0.012);
     this.time.delayedCall(1700, () => this.cameras.main.fadeOut(300, 20, 16, 26));
     this.time.delayedCall(2050, () => this.scene.start("Result", { cause }));
@@ -688,6 +706,8 @@ export default class Shift extends Phaser.Scene {
   }
 
   update(time, ms) {
+    // HUD and screen effects (depth 640+) stay put while the camera moves between areas
+    for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
     if (this.over) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);   // __speed: test hook for bots
     this.tickClock(dt);
@@ -695,7 +715,11 @@ export default class Shift extends Phaser.Scene {
     this.tickPlayer(dt);
     if (this.over) return;
     if (this.stall <= 0) {
-      this.tickWatch(dt);
+      // the door watch only runs on the shop floor; walking off the floor while it watches is turning your back
+      if (this.room === "floor") this.tickWatch(dt);
+      else if (this.watch.state !== "idle") return this.fail("door");
+      if (this.over) return;
+      this.tickRooms(dt);
       if (this.over) return;
       this.tickCustomers(dt);
       this.tickTasks(dt);
@@ -703,3 +727,5 @@ export default class Shift extends Phaser.Scene {
     this.tickHud(dt);
   }
 }
+
+Object.assign(Shift.prototype, RoomMixin);
