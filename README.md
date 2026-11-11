@@ -44,7 +44,7 @@ that is playable within one tap, readable on a phone, and gives the player somet
 3. **Never ring up the Regular.** It queues like a customer and blocks the line. From shift 4 it can wear another customer's face.
 
 Every shift has a pay quota, so you can't hide at the register: the side jobs and dropped coins are where the money is.
-Miss the quota or collect three customer complaints and you're fired. Clear the ₩800,000 debt to win.
+Miss the quota or collect three customer complaints and you're fired. Clear the ₩700,000 debt to win.
 
 **Balance is tested with bots.** A bot that never leaves the register used to win every run; now it misses the quota by
 shift 2–3, while a bot that serves first and does side jobs when the till is clear survives. Bot testing also surfaced

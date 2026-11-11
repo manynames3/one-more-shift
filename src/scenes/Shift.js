@@ -24,7 +24,7 @@ const NORMALS = ["halmae", "daeri", "jisu", "deokgu"];
 const DOOR_TAP = { x0: 130, x1: 195, y0: 30, y1: 117 };   // tap here to look at the door
 
 /** Pay you must earn in a shift or you are fired at 04:00. */
-export const quotaFor = shift => 42000 + 9000 * (shift - 1);
+export const quotaFor = shift => 42000 + 6000 * (shift - 1);
 
 export default class Shift extends Phaser.Scene {
   constructor() { super("Shift"); }

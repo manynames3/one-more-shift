@@ -4,7 +4,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
 };
 
-export const START_DEBT = 800000;
+export const START_DEBT = 700000;
 export const WAGE = 12400;
 
 export const S = {
