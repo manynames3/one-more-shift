@@ -4,7 +4,7 @@
 
 You take a night shift at a convenience store. Every shift adds one strange rule. Break a rule and you never clock out.
 
-**▶ Play it: LIVE_URL**
+**▶ Play it: [one-more-shift.pages.dev](https://one-more-shift.pages.dev)**
 
 ![Four screens from the game: the store shift, a broken rule, the briefing and the title](docs/art-mock.png)
 
