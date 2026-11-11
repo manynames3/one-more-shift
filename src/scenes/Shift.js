@@ -25,7 +25,7 @@ const NORMALS = ["halmae", "daeri", "jisu", "deokgu"];
 const DOOR_TAP = { x0: 130, x1: 195, y0: 30, y1: 117 };   // tap here to look at the door
 
 /** Pay you must earn in a shift or you are fired at 04:00. */
-export const quotaFor = shift => 42000 + 6000 * (shift - 1);
+export const quotaFor = shift => 42000 + 5000 * (shift - 1);
 
 export default class Shift extends Phaser.Scene {
   constructor() { super("Shift"); }
@@ -476,6 +476,9 @@ export default class Shift extends Phaser.Scene {
       const f = this.tasks.fridge;
       if (!f.cursed) {
         f.cursed = true; f.active = true;
+        // don't let a walk you started at 03:39 kill you: 03:40 cancels any trip to the fridge
+        if (this.intent === "fridge") { this.intent = null; this.target = null; }
+        if (this.working?.kind === "fridge") this.cancelWork();
         f.mark.setVisible(true).setTint(0xef3b4a);
         f.x3 = txt(this, SPOT.fridge.mark.x + 12, SPOT.fridge.mark.y - 6, t("x3"), { size: 9, color: C.yellow, depth: 611 });
         snd.sfx("task");
