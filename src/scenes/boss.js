@@ -11,6 +11,7 @@ import * as snd from "../audio.js";
 
 export const BOSS_SHIFT = 3, BOSS_MIN = 45;
 const SPOT = { x: 56, y: 151 };           // where Deokgu stands
+const CARD = { x: 252, y: 88 };           // the time card on the counter (shift 1)
 const ARENA = { top: 122, bot: 154, xl: y => 100 - (y - 118) * 1.45 + 6, xr: y => Math.min(236, 213 + (y - 118) * 1.3) - 4 };
 const PLAYER_HP = 3, BOSS_HP = 6;
 
@@ -27,11 +28,44 @@ export const BossMixin = {
     this.dgBubble = txt(this, 0, 0, "", { ox: 0.5, size: 9, color: C.white, depth: 630 }).setVisible(false);
     this.dgBubble.setBackgroundColor("#14101a").setPadding(3, 1, 3, 1);
     if (this.run.shift === BOSS_SHIFT) { dg.sh.setVisible(false); this.dgGlitch = 2; }
+    if (this.run.shift === 1) this.initTimeCard();
+  },
+
+  // Story clue, shift 1: someone else's time card sits by the till. You read it the first time you get behind the counter.
+  initTimeCard() {
+    if (!this.textures.exists("clue_card")) {
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      g.fillStyle(0x14101a).fillRect(0, 0, 9, 7);
+      g.fillStyle(0xe8dcc0).fillRect(1, 1, 7, 5);
+      g.fillStyle(0xb8402c).fillRect(1, 1, 7, 1);
+      g.fillStyle(0x6a6070).fillRect(2, 3, 5, 1).fillRect(2, 5, 3, 1);
+      g.generateTexture("clue_card", 9, 7); g.destroy();
+    }
+    this.clueCard = this.add.image(CARD.x, CARD.y, "clue_card").setOrigin(0.5, 1).setDepth(106);
+    this.clueRead = false;
+  },
+
+  tickClues() {
+    if (this.clueCard && !this.clueRead && this.behind && this.room === "floor") {
+      this.clueRead = true;
+      this.tweens.add({ targets: this.clueCard, y: CARD.y - 3, duration: 160, yoyo: true });
+      this.caption(t("clue1"));
+    }
+  },
+
+  /** A line of story at the top of the screen. */
+  caption(line, secs = 4) {
+    const c = txt(this, W / 2, 40, line, { ox: 0.5, size: 9, color: C.white, depth: 960 });
+    c.setBackgroundColor("#14101a").setPadding(3, 1, 3, 1).setAlpha(0);
+    snd.sfx("type");
+    this.tweens.add({ targets: c, alpha: 1, duration: 200 });
+    this.tweens.add({ targets: c, alpha: 0, delay: secs * 1000, duration: 400, onComplete: () => c.destroy() });
   },
 
   bossActive() { return this.boss && this.boss.phase !== "done"; },
 
   tickDeokgu(dt) {
+    this.tickClues();
     const dg = this.deokgu;
     if (!dg || this.bossActive()) return;
     this.syncChar(dg);
@@ -310,6 +344,7 @@ export const BossMixin = {
       this.say(t("dgGone"), 3);
       this.dgBubble.setPosition(spr.x, spr.y - 40);
     });
+    this.time.delayedCall(2200, () => this.caption(t("clue3"), 3.5));
     const hazard = 30000;
     this.time.delayedCall(1600, () => {
       this.earn(hazard, this.p.x, this.p.y - 50);
