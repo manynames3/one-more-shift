@@ -1,0 +1,230 @@
+{
+ "frames": {
+  "cereal": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "milk": {
+   "frame": {
+    "x": 8,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "soda": {
+   "frame": {
+    "x": 16,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "snack": {
+   "frame": {
+    "x": 24,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "water": {
+   "frame": {
+    "x": 32,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "noodle_pack": {
+   "frame": {
+    "x": 40,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "tuna": {
+   "frame": {
+    "x": 0,
+    "y": 10,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "juice": {
+   "frame": {
+    "x": 8,
+    "y": 10,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "jam": {
+   "frame": {
+    "x": 16,
+    "y": 10,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "chips": {
+   "frame": {
+    "x": 24,
+    "y": 10,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "tissue": {
+   "frame": {
+    "x": 32,
+    "y": 10,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  },
+  "green_bottle": {
+   "frame": {
+    "x": 40,
+    "y": 10,
+    "w": 8,
+    "h": 10
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 10
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   }
+  }
+ },
+ "meta": {
+  "image": "products.png",
+  "size": {
+   "w": 48,
+   "h": 20
+  },
+  "scale": 1,
+  "frameWidth": 8,
+  "frameHeight": 10
+ }
+}

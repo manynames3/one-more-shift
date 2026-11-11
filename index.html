@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ONE MORE SHIFT · 한 번만 더</title>
+<meta name="description" content="규칙은 딱 하나. 어기면 퇴근은 없다. A 16-bit rules-horror night shift.">
+<meta property="og:title" content="ONE MORE SHIFT · 한 번만 더">
+<meta property="og:description" content="규칙은 딱 하나. 어기면 퇴근은 없다. One rule per shift. Break it and you never clock out.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#14101a">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preload" href="fonts/Galmuri11.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Galmuri9.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face { font-family: "Galmuri11"; src: url("fonts/Galmuri11.woff2") format("woff2"); font-display: block; }
+  @font-face { font-family: "Galmuri9"; src: url("fonts/Galmuri9.woff2") format("woff2"); font-display: block; }
+  html, body { margin: 0; height: 100%; background: #14101a; overflow: hidden; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none; }
+  #game { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #game canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  #rotate { display: none; position: fixed; left: 0; right: 0; bottom: 14px; text-align: center; pointer-events: none;
+    font: 12px "Galmuri11", monospace; color: #7b7689; }
+  @media (orientation: portrait) and (max-width: 640px) { #rotate { display: block; } }
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="rotate">화면을 가로로 돌리면 더 커집니다 · rotate for a bigger view</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

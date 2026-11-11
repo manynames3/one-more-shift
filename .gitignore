@@ -1,0 +1,6 @@
+node_modules/
+dist/
+art/previews/
+__pycache__/
+.DS_Store
+.wrangler/

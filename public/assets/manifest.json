@@ -1,0 +1,771 @@
+{
+ "canvas": {
+  "w": 320,
+  "h": 180,
+  "letterbox": 22,
+  "characterFrame": [
+   32,
+   48
+  ]
+ },
+ "images": [
+  {
+   "key": "bg_agency_desk_fg",
+   "png": "bg/agency_desk_fg.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_agency_office",
+   "png": "bg/agency_office.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_backroom",
+   "png": "bg/backroom.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_clockin_bg",
+   "png": "bg/clockin_bg.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_crossing",
+   "png": "bg/crossing.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_death_bg",
+   "png": "bg/death_bg.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_store_day",
+   "png": "bg/store_day.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_store_fg",
+   "png": "bg/store_fg.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_store_fg_wrong",
+   "png": "bg/store_fg_wrong.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_store_wrong",
+   "png": "bg/store_wrong.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_street_day",
+   "png": "bg/street_day.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_street_night",
+   "png": "bg/street_night.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "bg_title_bg",
+   "png": "bg/title_bg.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "characters_daeri_down",
+   "png": "characters/daeri_down.png",
+   "w": 48,
+   "h": 32
+  },
+  {
+   "key": "characters_deokgu_down",
+   "png": "characters/deokgu_down.png",
+   "w": 48,
+   "h": 32
+  },
+  {
+   "key": "characters_halmae_down",
+   "png": "characters/halmae_down.png",
+   "w": 48,
+   "h": 32
+  },
+  {
+   "key": "characters_jisu_down",
+   "png": "characters/jisu_down.png",
+   "w": 48,
+   "h": 32
+  },
+  {
+   "key": "characters_kwak_down",
+   "png": "characters/kwak_down.png",
+   "w": 48,
+   "h": 32
+  },
+  {
+   "key": "characters_regular_down",
+   "png": "characters/regular_down.png",
+   "w": 48,
+   "h": 32
+  },
+  {
+   "key": "characters_sora_down",
+   "png": "characters/sora_down.png",
+   "w": 48,
+   "h": 32
+  },
+  {
+   "key": "portraits_daeri_drunk",
+   "png": "portraits/daeri_drunk.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_daeri_tired",
+   "png": "portraits/daeri_tired.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_deokgu_laugh",
+   "png": "portraits/deokgu_laugh.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_deokgu_scared",
+   "png": "portraits/deokgu_scared.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_deokgu_tired",
+   "png": "portraits/deokgu_tired.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_halmae_smile",
+   "png": "portraits/halmae_smile.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_halmae_stare",
+   "png": "portraits/halmae_stare.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_jisu_neutral",
+   "png": "portraits/jisu_neutral.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_jisu_surprised",
+   "png": "portraits/jisu_surprised.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_kwak_angry",
+   "png": "portraits/kwak_angry.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_kwak_serious",
+   "png": "portraits/kwak_serious.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_kwak_sly",
+   "png": "portraits/kwak_sly.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_kwak_smile",
+   "png": "portraits/kwak_smile.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_regular_blank",
+   "png": "portraits/regular_blank.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_regular_glitch",
+   "png": "portraits/regular_glitch.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_regular_smile",
+   "png": "portraits/regular_smile.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_sora_determined",
+   "png": "portraits/sora_determined.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_sora_neutral",
+   "png": "portraits/sora_neutral.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_sora_relieved",
+   "png": "portraits/sora_relieved.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_sora_scared",
+   "png": "portraits/sora_scared.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "portraits_sora_tired",
+   "png": "portraits/sora_tired.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "props_box_closed",
+   "png": "props/box_closed.png",
+   "w": 20,
+   "h": 16
+  },
+  {
+   "key": "props_box_open",
+   "png": "props/box_open.png",
+   "w": 20,
+   "h": 16
+  },
+  {
+   "key": "props_box_stack",
+   "png": "props/box_stack.png",
+   "w": 24,
+   "h": 40
+  },
+  {
+   "key": "props_ceiling_light_off",
+   "png": "props/ceiling_light_off.png",
+   "w": 40,
+   "h": 8
+  },
+  {
+   "key": "props_ceiling_light_on",
+   "png": "props/ceiling_light_on.png",
+   "w": 40,
+   "h": 8
+  },
+  {
+   "key": "props_counter",
+   "png": "props/counter.png",
+   "w": 64,
+   "h": 30
+  },
+  {
+   "key": "props_door_staff",
+   "png": "props/door_staff.png",
+   "w": 30,
+   "h": 52
+  },
+  {
+   "key": "props_door_staff_ajar",
+   "png": "props/door_staff_ajar.png",
+   "w": 30,
+   "h": 52
+  },
+  {
+   "key": "props_fridge_door",
+   "png": "props/fridge_door.png",
+   "w": 40,
+   "h": 60
+  },
+  {
+   "key": "props_fridge_door_open",
+   "png": "props/fridge_door_open.png",
+   "w": 40,
+   "h": 60
+  },
+  {
+   "key": "props_hand_truck",
+   "png": "props/hand_truck.png",
+   "w": 20,
+   "h": 34
+  },
+  {
+   "key": "props_mop_bucket",
+   "png": "props/mop_bucket.png",
+   "w": 20,
+   "h": 26
+  },
+  {
+   "key": "props_phone",
+   "png": "props/phone.png",
+   "w": 12,
+   "h": 20
+  },
+  {
+   "key": "props_register",
+   "png": "props/register.png",
+   "w": 22,
+   "h": 20
+  },
+  {
+   "key": "props_shelf_empty",
+   "png": "props/shelf_empty.png",
+   "w": 48,
+   "h": 56
+  },
+  {
+   "key": "props_shelf_unit",
+   "png": "props/shelf_unit.png",
+   "w": 48,
+   "h": 56
+  },
+  {
+   "key": "props_time_clock",
+   "png": "props/time_clock.png",
+   "w": 20,
+   "h": 28
+  },
+  {
+   "key": "props_trash_bag",
+   "png": "props/trash_bag.png",
+   "w": 16,
+   "h": 16
+  },
+  {
+   "key": "props_wall_clock",
+   "png": "props/wall_clock.png",
+   "w": 16,
+   "h": 16
+  },
+  {
+   "key": "props_wet_floor_sign",
+   "png": "props/wet_floor_sign.png",
+   "w": 14,
+   "h": 20
+  },
+  {
+   "key": "ui_cursor",
+   "png": "ui/cursor.png",
+   "w": 12,
+   "h": 12
+  },
+  {
+   "key": "ui_cursor_hand",
+   "png": "ui/cursor_hand.png",
+   "w": 12,
+   "h": 12
+  },
+  {
+   "key": "ui_debt_meter_fill",
+   "png": "ui/debt_meter_fill.png",
+   "w": 60,
+   "h": 4
+  },
+  {
+   "key": "ui_debt_meter_frame",
+   "png": "ui/debt_meter_frame.png",
+   "w": 64,
+   "h": 8
+  },
+  {
+   "key": "ui_dialog_9slice",
+   "png": "ui/dialog_9slice.png",
+   "w": 24,
+   "h": 24
+  },
+  {
+   "key": "ui_dialog_box",
+   "png": "ui/dialog_box.png",
+   "w": 300,
+   "h": 44
+  },
+  {
+   "key": "ui_font_preview",
+   "png": "ui/font_preview.png",
+   "w": 300,
+   "h": 150
+  },
+  {
+   "key": "ui_hud_bottom",
+   "png": "ui/hud_bottom.png",
+   "w": 320,
+   "h": 22
+  },
+  {
+   "key": "ui_job_card",
+   "png": "ui/job_card.png",
+   "w": 120,
+   "h": 88
+  },
+  {
+   "key": "ui_job_card_blank",
+   "png": "ui/job_card_blank.png",
+   "w": 120,
+   "h": 88
+  },
+  {
+   "key": "ui_lbl_accept",
+   "png": "ui/lbl_accept.png",
+   "w": 50,
+   "h": 13
+  },
+  {
+   "key": "ui_lbl_clockin",
+   "png": "ui/lbl_clockin.png",
+   "w": 25,
+   "h": 13
+  },
+  {
+   "key": "ui_lbl_clockout",
+   "png": "ui/lbl_clockout.png",
+   "w": 25,
+   "h": 13
+  },
+  {
+   "key": "ui_lbl_quit",
+   "png": "ui/lbl_quit.png",
+   "w": 31,
+   "h": 13
+  },
+  {
+   "key": "ui_lbl_retry",
+   "png": "ui/lbl_retry.png",
+   "w": 24,
+   "h": 13
+  },
+  {
+   "key": "ui_lbl_share",
+   "png": "ui/lbl_share.png",
+   "w": 25,
+   "h": 13
+  },
+  {
+   "key": "ui_logo",
+   "png": "ui/logo.png",
+   "w": 160,
+   "h": 64
+  },
+  {
+   "key": "ui_logo_small",
+   "png": "ui/logo_small.png",
+   "w": 96,
+   "h": 24
+  },
+  {
+   "key": "ui_name_tag",
+   "png": "ui/name_tag.png",
+   "w": 56,
+   "h": 12
+  },
+  {
+   "key": "ui_paystub",
+   "png": "ui/paystub.png",
+   "w": 180,
+   "h": 240
+  },
+  {
+   "key": "ui_paystub_example",
+   "png": "ui/paystub_example.png",
+   "w": 180,
+   "h": 240
+  },
+  {
+   "key": "ui_phone_frame",
+   "png": "ui/phone_frame.png",
+   "w": 72,
+   "h": 120
+  },
+  {
+   "key": "ui_phone_ui",
+   "png": "ui/phone_ui.png",
+   "w": 72,
+   "h": 120
+  },
+  {
+   "key": "ui_rule_banner",
+   "png": "ui/rule_banner.png",
+   "w": 320,
+   "h": 22
+  },
+  {
+   "key": "ui_stamp_fail",
+   "png": "ui/stamp_fail.png",
+   "w": 72,
+   "h": 28
+  },
+  {
+   "key": "ui_stamp_fired",
+   "png": "ui/stamp_fired.png",
+   "w": 72,
+   "h": 28
+  },
+  {
+   "key": "ui_stamp_success",
+   "png": "ui/stamp_success.png",
+   "w": 72,
+   "h": 28
+  },
+  {
+   "key": "ui_timer_frame",
+   "png": "ui/timer_frame.png",
+   "w": 40,
+   "h": 12
+  },
+  {
+   "key": "ui_vignette_dark",
+   "png": "ui/vignette_dark.png",
+   "w": 320,
+   "h": 180
+  },
+  {
+   "key": "ui_vignette_red",
+   "png": "ui/vignette_red.png",
+   "w": 320,
+   "h": 180
+  }
+ ],
+ "atlases": [
+  {
+   "key": "characters_daeri",
+   "png": "characters/daeri.png",
+   "json": "characters/daeri.json",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "characters_deokgu",
+   "png": "characters/deokgu.png",
+   "json": "characters/deokgu.json",
+   "w": 256,
+   "h": 240
+  },
+  {
+   "key": "characters_halmae",
+   "png": "characters/halmae.png",
+   "json": "characters/halmae.json",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "characters_jisu",
+   "png": "characters/jisu.png",
+   "json": "characters/jisu.json",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "characters_kwak",
+   "png": "characters/kwak.png",
+   "json": "characters/kwak.json",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "characters_regular",
+   "png": "characters/regular.png",
+   "json": "characters/regular.json",
+   "w": 256,
+   "h": 144
+  },
+  {
+   "key": "characters_sora",
+   "png": "characters/sora.png",
+   "json": "characters/sora.json",
+   "w": 256,
+   "h": 240
+  },
+  {
+   "key": "portraits_daeri",
+   "png": "portraits/daeri.png",
+   "json": "portraits/daeri.json",
+   "w": 320,
+   "h": 64
+  },
+  {
+   "key": "portraits_deokgu",
+   "png": "portraits/deokgu.png",
+   "json": "portraits/deokgu.json",
+   "w": 320,
+   "h": 64
+  },
+  {
+   "key": "portraits_halmae",
+   "png": "portraits/halmae.png",
+   "json": "portraits/halmae.json",
+   "w": 320,
+   "h": 64
+  },
+  {
+   "key": "portraits_jisu",
+   "png": "portraits/jisu.png",
+   "json": "portraits/jisu.json",
+   "w": 320,
+   "h": 64
+  },
+  {
+   "key": "portraits_kwak",
+   "png": "portraits/kwak.png",
+   "json": "portraits/kwak.json",
+   "w": 320,
+   "h": 64
+  },
+  {
+   "key": "portraits_regular",
+   "png": "portraits/regular.png",
+   "json": "portraits/regular.json",
+   "w": 320,
+   "h": 64
+  },
+  {
+   "key": "portraits_sora",
+   "png": "portraits/sora.png",
+   "json": "portraits/sora.json",
+   "w": 320,
+   "h": 64
+  },
+  {
+   "key": "props_cctv",
+   "png": "props/cctv.png",
+   "json": "props/cctv.json",
+   "w": 112,
+   "h": 22
+  },
+  {
+   "key": "props_coin_spin",
+   "png": "props/coin_spin.png",
+   "json": "props/coin_spin.json",
+   "w": 96,
+   "h": 16
+  },
+  {
+   "key": "props_dust_puff",
+   "png": "props/dust_puff.png",
+   "json": "props/dust_puff.json",
+   "w": 64,
+   "h": 16
+  },
+  {
+   "key": "props_exclaim",
+   "png": "props/exclaim.png",
+   "json": "props/exclaim.json",
+   "w": 32,
+   "h": 16
+  },
+  {
+   "key": "props_icons",
+   "png": "props/icons.png",
+   "json": "props/icons.json",
+   "w": 84,
+   "h": 24
+  },
+  {
+   "key": "props_items",
+   "png": "props/items.png",
+   "json": "props/items.json",
+   "w": 128,
+   "h": 32
+  },
+  {
+   "key": "props_phone_ring",
+   "png": "props/phone_ring.png",
+   "json": "props/phone_ring.json",
+   "w": 32,
+   "h": 20
+  },
+  {
+   "key": "props_products",
+   "png": "props/products.png",
+   "json": "props/products.json",
+   "w": 48,
+   "h": 20
+  },
+  {
+   "key": "props_red_eyes",
+   "png": "props/red_eyes.png",
+   "json": "props/red_eyes.json",
+   "w": 32,
+   "h": 8
+  },
+  {
+   "key": "props_shadow_blob",
+   "png": "props/shadow_blob.png",
+   "json": "props/shadow_blob.json",
+   "w": 24,
+   "h": 8
+  },
+  {
+   "key": "props_static_overlay",
+   "png": "props/static_overlay.png",
+   "json": "props/static_overlay.json",
+   "w": 256,
+   "h": 64
+  },
+  {
+   "key": "props_sweat",
+   "png": "props/sweat.png",
+   "json": "props/sweat.json",
+   "w": 24,
+   "h": 8
+  },
+  {
+   "key": "ui_btn_danger",
+   "png": "ui/btn_danger.png",
+   "json": "ui/btn_danger.json",
+   "w": 216,
+   "h": 18
+  },
+  {
+   "key": "ui_btn_primary",
+   "png": "ui/btn_primary.png",
+   "json": "ui/btn_primary.json",
+   "w": 216,
+   "h": 18
+  },
+  {
+   "key": "ui_btn_secondary",
+   "png": "ui/btn_secondary.png",
+   "json": "ui/btn_secondary.json",
+   "w": 216,
+   "h": 18
+  },
+  {
+   "key": "ui_loading",
+   "png": "ui/loading.png",
+   "json": "ui/loading.json",
+   "w": 64,
+   "h": 16
+  }
+ ]
+}

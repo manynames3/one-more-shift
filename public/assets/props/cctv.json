@@ -1,0 +1,86 @@
+{
+ "frames": {
+  "cctv_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 22
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 22
+   }
+  },
+  "cctv_1": {
+   "frame": {
+    "x": 28,
+    "y": 0,
+    "w": 28,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 22
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 22
+   }
+  },
+  "cctv_2": {
+   "frame": {
+    "x": 56,
+    "y": 0,
+    "w": 28,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 22
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 22
+   }
+  },
+  "cctv_3": {
+   "frame": {
+    "x": 84,
+    "y": 0,
+    "w": 28,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 22
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 22
+   }
+  }
+ },
+ "meta": {
+  "image": "cctv.png",
+  "size": {
+   "w": 112,
+   "h": 22
+  },
+  "scale": 1,
+  "frameWidth": 28,
+  "frameHeight": 22
+ }
+}

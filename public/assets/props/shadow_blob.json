@@ -1,0 +1,32 @@
+{
+ "frames": {
+  "shadow_blob": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 8
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 8
+   }
+  }
+ },
+ "meta": {
+  "image": "shadow_blob.png",
+  "size": {
+   "w": 24,
+   "h": 8
+  },
+  "scale": 1,
+  "frameWidth": 24,
+  "frameHeight": 8
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "frames": {
+  "exclaim_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   }
+  },
+  "exclaim_1": {
+   "frame": {
+    "x": 16,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 16
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+   }
+  }
+ },
+ "meta": {
+  "image": "exclaim.png",
+  "size": {
+   "w": 32,
+   "h": 16
+  },
+  "scale": 1,
+  "frameWidth": 16,
+  "frameHeight": 16
+ }
+}

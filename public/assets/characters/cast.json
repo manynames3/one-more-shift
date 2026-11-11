@@ -1,0 +1,30 @@
+{
+ "sora": {
+  "name_ko": "소라",
+  "role": "player"
+ },
+ "kwak": {
+  "name_ko": "곽 실장",
+  "role": "agency manager"
+ },
+ "deokgu": {
+  "name_ko": "덕구",
+  "role": "coworker"
+ },
+ "halmae": {
+  "name_ko": "할매",
+  "role": "customer"
+ },
+ "daeri": {
+  "name_ko": "박 대리",
+  "role": "customer"
+ },
+ "jisu": {
+  "name_ko": "지수",
+  "role": "customer"
+ },
+ "regular": {
+  "name_ko": "단골",
+  "role": "entity"
+ }
+}

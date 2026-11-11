@@ -1,0 +1,50 @@
+{
+ "frames": {
+  "tired": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  },
+  "drunk": {
+   "frame": {
+    "x": 64,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   }
+  }
+ },
+ "meta": {
+  "image": "daeri.png",
+  "size": {
+   "w": 320,
+   "h": 64
+  },
+  "scale": 1,
+  "frameWidth": 64,
+  "frameHeight": 64
+ }
+}

@@ -1,0 +1,72 @@
+import Phaser from "phaser";
+import { W, H, BAR, C, txt, button, soundToggle } from "../ui.js";
+import { S, t, won, WAGE, newRun } from "../state.js";
+import * as snd from "../audio.js";
+import { sharePayStub } from "../share.js";
+
+// End of a run: the pay stub prints, then retry or share.
+export default class Result extends Phaser.Scene {
+  constructor() { super("Result"); }
+
+  create(data) {
+    const run = S.run, cause = data.cause || "door";
+    const win = cause === "win", fired = cause === "fired";
+    this.cameras.main.fadeIn(300, 20, 16, 26);
+    snd.music("off");
+    this.add.image(0, 0, "bg_death_bg").setOrigin(0);
+
+    const shiftNo = win ? run.cleared : run.cleared + 1;
+    this.rows = [t("place"), t("shiftRow", shiftNo), won(WAGE), won(run.earned), t("cause_" + cause), won(run.debt)];
+    this.stampKey = win ? "ui_stamp_success" : fired ? "ui_stamp_fired" : "ui_stamp_fail";
+
+    // the stub (180x240) prints upward, then scrolls to show the bottom half
+    const stub = this.add.container(14, H).setDepth(10);
+    stub.add(this.add.image(0, 0, "ui_paystub").setOrigin(0));
+    this.rows.forEach((v, i) => stub.add(txt(this, 66, 61 + 20 * i, v, {
+      size: v.length > 13 ? 9 : 11, color: i === 4 || i === 5 ? C.red2 : C.ink, shadow: false,
+    })));
+    const stamp = this.add.container(100, 179, [
+      this.add.rectangle(0, 0, 74, 28, 0xf6f1e7).setOrigin(0), this.add.image(0, 0, this.stampKey).setOrigin(0),
+    ]).setVisible(false);
+    stub.add(stamp);
+    this.tweens.add({ targets: stub, y: BAR + 4, duration: 900, ease: "Stepped", easeParams: [18], onStart: () => snd.sfx("work") });
+    this.tweens.add({ targets: stub, y: H - BAR - 244, delay: 2000, duration: 1400, ease: "Stepped", easeParams: [28] });
+    this.time.delayedCall(3500, () => { stamp.setVisible(true); snd.sfx("stamp"); this.cameras.main.shake(120, 0.006); });
+
+    // bars above the stub so it prints "through" the letterbox
+    this.add.rectangle(0, 0, W, BAR, 0x14101a).setOrigin(0).setDepth(20);
+    this.add.rectangle(0, H - BAR, W, BAR, 0x14101a).setOrigin(0).setDepth(20);
+
+    const x = 256;
+    txt(this, x, BAR + 12, t(win ? "over_win" : fired ? "over_fired" : "over_fail"), { ox: 0.5, color: win ? C.green : C.red, depth: 30 });
+    txt(this, x, BAR + 30, t("cause_" + cause), { ox: 0.5, size: 9, depth: 30, wrap: 112 });
+    txt(this, x, BAR + 48, t("survived", run.cleared), { ox: 0.5, size: 9, color: C.yellow, depth: 30 });
+    txt(this, x, BAR + 60, `${t("debt")} ${won(run.debt)}`, { ox: 0.5, size: 9, color: C.grey, depth: 30 });
+
+    this.locked = true;
+    this.time.delayedCall(900, () => { this.locked = false; });
+    button(this, x, BAR + 88, "ui_btn_primary", t("retry"), () => this.retry(), 30);
+    this.shareBtn = button(this, x, BAR + 112, "ui_btn_secondary", t("share"), () => this.share(shiftNo, cause), 30);
+    soundToggle(this);
+    this.input.keyboard.on("keydown-SPACE", () => this.retry());
+    this.input.keyboard.on("keydown-ENTER", () => this.retry());
+    this.input.keyboard.on("keydown-R", () => this.retry());
+    snd.sfx(win ? "win" : "strike");
+  }
+
+  retry() {
+    if (this.locked) return;
+    this.locked = true;
+    newRun();
+    this.cameras.main.fadeOut(220, 20, 16, 26);
+    this.time.delayedCall(250, () => this.scene.start("Agency", { context: "again" }));
+  }
+
+  async share(shiftNo, cause) {
+    const how = await sharePayStub(this, this.rows, this.stampKey, t("shareText", shiftNo, t("cause_" + cause)));
+    if (how === "download") {
+      this.shareBtn.label.setText(t("saved"));
+      this.time.delayedCall(1500, () => this.shareBtn.label.setText(t("share")));
+    }
+  }
+}
