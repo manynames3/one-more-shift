@@ -38,6 +38,7 @@ export default class Shift extends Phaser.Scene {
     this.watchesSeen = 0; this.lure = null;
     this.min = 0; this.minT = 0; this.stall = 0; this.stallGrace = 0;
     this.cameras.main.fadeIn(250, 20, 16, 26);
+    if (window.__speed) { this.tweens.timeScale = window.__speed; this.time.timeScale = window.__speed; }   // bot test hook
 
     // world
     this.bg = this.add.image(0, 0, "bg_store_day").setOrigin(0);
@@ -269,10 +270,11 @@ export default class Shift extends Phaser.Scene {
       vx = 0; vy = 0;
     }
     if (vx || vy) { this.target = null; this.intent = null; if (this.working) this.cancelWork(); }
-    else if (this.target && !this.working) {
+    let maxStep = Infinity;
+    if (!(vx || vy) && this.target && !this.working) {
       const dx = this.target.x - p.x, dy = this.target.y - p.y, dist = Math.hypot(dx, dy);
       if (dist < 1.2) { p.setPosition(this.target.x, this.target.y); this.target = null; }
-      else { vx = dx / dist; vy = dy / dist; }
+      else { vx = dx / dist; vy = dy / dist; maxStep = dist; }   // never overshoot on a slow frame
     }
 
     this.moving = !!(vx || vy);
@@ -282,8 +284,11 @@ export default class Shift extends Phaser.Scene {
       if (vy > 0 && vy >= 0.5 * Math.abs(vx)) this.face = "down";
       else if (vy < 0 && -vy >= Math.abs(vx)) this.face = "up";
       else this.face = vx < 0 ? "left" : "right";
-      const ny = Phaser.Math.Clamp(p.y + vy * SPEED * dt, TOP, BOT);
-      p.setPosition(Phaser.Math.Clamp(p.x + vx * SPEED * dt, xl(ny), xr(ny)), ny);
+      const step = Math.min(SPEED * dt, maxStep), ox = p.x, oy = p.y;
+      const ny = Phaser.Math.Clamp(p.y + vy * step, TOP, BOT);
+      p.setPosition(Phaser.Math.Clamp(p.x + vx * step, xl(ny), xr(ny)), ny);
+      if (this.target && Math.hypot(this.target.x - p.x, this.target.y - p.y) < 1.2) { p.setPosition(this.target.x, this.target.y); this.target = null; }
+      else if (this.target && Math.hypot(p.x - ox, p.y - oy) < 0.01) this.target = null;   // blocked by a wall: give up
     }
 
     if (this.moving) { this.stepT -= dt; if (this.stepT <= 0) { snd.sfx("step"); this.stepT = 0.21; } } else this.stepT = 0;
