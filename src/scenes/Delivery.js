@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
-import { S, t, won, START_DEBT, recordBest, markSeen, drulesFor } from "../state.js";
+import { S, t, won, START_DEBT, recordBest, markSeen, drulesFor, hourly } from "../state.js";
 import * as snd from "../audio.js";
 import { startReplay, endReplay, cancelReplay } from "../replay.js";
 
@@ -513,14 +513,14 @@ export default class Delivery extends Phaser.Scene {
     markSeen([...this.hintsShown]);
     cancelReplay();
     this.freeze();
-    const bonus = 40000 + 10000 * this.run.shift;
+    const bonus = hourly(2);      // one hour at the gig's minimum-wage multiple
     this.bank(bonus);
     this.run.cleared++; this.run.shift++; recordBest();
     this.drawMoney();
     this.flick.setAlpha(0.35);
     snd.jingle("clockout");
     this.stamp("ui_stamp_success");
-    const b = txt(this, W / 2, H / 2 + 40, `${t("bonus")} +${won(bonus)}`, { ox: 0.5, color: C.yellow, depth: 960 });
+    const b = txt(this, W / 2, H / 2 + 40, `${t("wagePaid")} +${won(bonus)}`, { ox: 0.5, color: C.yellow, depth: 960 });
     b.setAlpha(0); this.tweens.add({ targets: b, alpha: 1, delay: 300, duration: 200 });
     this.p.setVisible(true); this.p.anims.stop(); this.p.setFrame("face_smile");
     const win = this.run.debt <= 0;

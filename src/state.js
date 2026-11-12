@@ -4,8 +4,14 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
 };
 
-export const START_DEBT = 1000000;
-export const WAGE = 12400;
+// Pay matches the show: each gig pays a multiple of the 2026 minimum wage (₩10,320 an hour).
+// 편의점 50x (episode 1), delivery 200x (the milk-delivery gig), cinema 100x (the show gives no figure
+// for its cinema shift; 100x is what the agency offers after the first job), freezer 200x (the
+// construction gig). A shift is one in-game hour, so a cleared shift pays one hour at that rate.
+export const MIN_WAGE = 10320;
+export const MULT = { 1: 50, 2: 200, 3: 100, 4: 200 };
+export const hourly = act => MIN_WAGE * (MULT[act] || 50);
+export const START_DEBT = 20000000;
 
 export const S = {
   lang: store.get("oms.lang", (navigator.language || "en").toLowerCase().startsWith("ko") ? "ko" : "en"),
@@ -45,7 +51,11 @@ export const ACTS = [
   { n: 4, key: "cold" },
   { n: 5, key: "office" },
 ];
-export function clearAct(n) { S.acts[n] = true; store.set("oms.acts", S.acts); }
+export function clearAct(n, run) {
+  S.acts[n] = true; store.set("oms.acts", S.acts);
+  // the next job carries this run's money: debt and earnings pick up where this act left off
+  if (run) { const c = store.get("oms.career", {}); c[n] = { debt: run.debt, earned: run.earned, cleared: run.cleared }; store.set("oms.career", c); }
+}
 /** An act is open once the one before it is cleared. */
 export const actOpen = n => n === 1 || !!S.acts[n - 1];
 
@@ -53,13 +63,14 @@ export function markSeen(keys) { keys.forEach(k => { S.seen[k] = true; }); store
 
 /** Continuing after a death costs a cleanup fee added to the debt. Twice per run at most. */
 export const MAX_CONTINUES = 2;
-export const continueCost = n => 100000 * (n + 1);
+export const continueCost = n => 500000 * (n + 1);
 
 export function saveSettings() { store.set("oms.lang", S.lang); store.set("oms.muted", S.muted); }
 
 export function newRun(act = 1) {
   S.runs += 1; store.set("oms.runs", S.runs);
-  S.run = { shift: 1, earned: 0, debt: START_DEBT, cleared: 0, continues: 0, act };
+  const prev = act > 1 ? store.get("oms.career", {})[act - 1] : null;
+  S.run = { shift: 1, earned: prev?.earned || 0, debt: prev?.debt ?? START_DEBT, cleared: prev?.cleared || 0, continues: 0, act };
   return S.run;
 }
 
@@ -92,10 +103,10 @@ const STR = {
     place2: "해달마을 야간배달",
     jd_delivery: "사흘 밤 배달하기 · 보스는 준비 중",
     rule_floor4: "4층에는 배달하지 마시오", rule_opendoor: "노크 전에 문이 열리면 돌아서시오", rule_elevator: "02:00 이후 엘리베이터 금지",
-    cause_floor4: "4층에 배달했다", cause_opendoor: "먼저 열린 문 앞에 남았다", cause_elevator: "02:00 이후 엘리베이터를 탔다", cause_wrong: "엉뚱한 집 노크",
-    d_intro: ["배달 일이야. 오토바이 탈 줄 알지?", "해달마을 아파트. 주문서 호수 문 앞에 두면 돼.", "아, 4층 주문은 가지 마. 카운터에 반납해."],
-    d_brief2: ["노크하기 전에 문이 먼저 열리면...", "그냥 돌아서. 그 층을 나왔다가 나중에 다시 가."],
-    d_brief3: ["02:00 넘으면 엘리베이터 타지 마. 계단으로.", "...근데 그 주문들, 전부 같은 번호로 들어왔더라."],
+    cause_floor4: "4층에 배달했다", cause_opendoor: "먼저 열린 문 앞에 남았다", cause_elevator: "엘리베이터를 탔다", cause_wrong: "엉뚱한 집 노크",
+    d_intro: ["오늘은 배달이야. 오토바이 타지?", "해달마을 아파트로 가.", "주문서 호수 문 앞에 두면 돼.", "아, 4층 주문은 가지 마.", "카운터에 반납해."],
+    d_brief2: ["노크 전에 문이 먼저 열리면...", "돌아서. 그 층을 나갔다 다시 와."],
+    d_brief3: ["02:00 넘으면 엘리베이터 타지 마.", "...그 주문들, 전부 한 번호였어."],
     order: n => `주문 ${n}호`, noOrder: "주문 없음", dHint: "이동: ←→·터치   행동: Space·↑·터치",
     hint_pick: "Space: 주문 받기", hint_out: "→ 출발", hint_return: "4층 주문! 카운터에 반납", hint_f4: "4층... 노크 금지", hint_open: "문이 먼저 열렸다! 이 층을 떠나!",
     hint_elev: "02:00 이후 계단만", hint_back: "← 1층 아래로 나가 허브로", returned: "반납", wrongFlat: "엉뚱한 집!", tip: "팁",
@@ -103,7 +114,7 @@ const STR = {
     board_keys: "←→ 고르기 · Space 선택 · Esc 처음으로",
     start: "아무 키나 누르세요", best: n => `최고 기록 · ${n}번째 교대`, lang: "한국어", loading: "출근 준비 중",
     rule_door: "그것이 오면 문을 바라보시오", rule_clock: "03:33에는 움직이지 마시오", rule_regular: "단골은 계산해 주지 마시오", rule_fridge: "03:40 이후 냉장고를 열지 마시오", rule_knock: "철문이 두드리면 창고에서 나가시오", rule_lamp: "가로등 아래 그것을 쳐다보지 마시오", rule_disguise: "그림자 없는 손님은 단골이다",
-    rule: "규칙", rulePre: "규칙: ", place: "달빛마트 야간", wageLine: "₩12,400 + 수당",
+    rule: "규칙", rulePre: "규칙: ", place: "달빛마트 야간", wageLine: (m, w) => `${m}배 · ${Math.round(w / 10000)}만 원`, wagePaid: "시급",
     shiftN: n => `${n}번째 교대`, go: "출근", next: "▼",
     intro: ["어서 와. 일은 간단해.", "손님 계산하고, 물건 채우고.", "일당은 넉넉해. 규칙은 딱 하나."],
     again: ["...또 왔어?", "좋아. 한 번만 더."],
@@ -144,13 +155,13 @@ const STR = {
     job_store: "STORE", job_delivery: "DELIVERY", job_cinema: "CINEMA", job_cold: "FREEZER", job_office: "AGENCY",
     jd_store: "Survive three nights and beat the Rat King", jd_soon: "Opens in a future update", jd_locked: "Finish the job before it first",
     jd_keep: "Keep working: next shift at the store", board_clear: "Kwak: Junho? Never heard of him. Let's find your next job.", act_clear: "ACT 1 CLEAR",
-    place2: "Haedal Night Delivery",
+    place2: "Haedal Delivery",
     jd_delivery: "Deliver for three nights · boss coming soon",
     rule_floor4: "Never deliver to the 4th floor", rule_opendoor: "Door opens first? Walk away", rule_elevator: "No elevator after 02:00",
-    cause_floor4: "Delivered to the 4th floor", cause_opendoor: "Stayed at the open door", cause_elevator: "Took the elevator after 02:00", cause_wrong: "Knocked on the wrong door",
-    d_intro: ["Delivery work. You can ride a moped, right?", "Haedal Village apartments. Leave each bag at the flat on the slip.", "Oh, and 4th-floor orders... don't go. Hand them back at the counter."],
-    d_brief2: ["If a door opens before you knock...", "Turn around. Leave that floor and come back later."],
-    d_brief3: ["After 02:00, no elevator. Take the stairs.", "...Funny. Every one of those orders came from the same phone."],
+    cause_floor4: "Delivered to 4F", cause_opendoor: "Lingered at the door", cause_elevator: "Took the elevator", cause_wrong: "Knocked on the wrong door",
+    d_intro: ["Delivery tonight. You can ride?", "Haedal Village apartments.", "Leave bags at the flat on the slip.", "4th-floor orders? Don't go.", "Hand those back at the counter."],
+    d_brief2: ["If a door opens before you knock...", "Turn around. Come back later."],
+    d_brief3: ["After 02:00, stairs only.", "...Every order: the same phone."],
     order: n => `ORDER ${n}`, noOrder: "NO ORDER", dHint: "Move: ←→/tap   Act: Space/↑/tap",
     hint_pick: "Space: take an order", hint_out: "→ Ride", hint_return: "4th floor! Hand it back", hint_f4: "4th floor... don't knock", hint_open: "It opened first! Leave this floor!",
     hint_elev: "Stairs only after 02:00", hint_back: "← Down from floor 1 to ride back", returned: "Returned", wrongFlat: "Wrong flat!", tip: "Tip",
@@ -158,7 +169,7 @@ const STR = {
     board_keys: "←→ pick · Space choose · Esc title",
     start: "PRESS ANY KEY", best: n => `BEST · SHIFT ${n}`, lang: "ENGLISH", loading: "Clocking in",
     rule_door: "When it comes, face the door", rule_clock: "Do not move at 03:33", rule_regular: "Never ring up the Regular", rule_fridge: "Don't open the fridge after 03:40", rule_knock: "If the steel door knocks, leave the stockroom", rule_lamp: "Don't look at what stands under the streetlamp", rule_disguise: "No shadow? It's the Regular",
-    rule: "RULE", rulePre: "", place: "Dalbit Mart", wageLine: "₩12,400 +",
+    rule: "RULE", rulePre: "", place: "Dalbit Mart", wageLine: (m, w) => `${m}x · ₩${w >= 1e6 ? (w / 1e6).toFixed(2) + "M" : Math.round(w / 1000) + "K"}`, wagePaid: "Wage",
     shiftN: n => `SHIFT ${n}`, go: "CLOCK IN", next: "▼",
     intro: ["Come in. The job is simple.", "Ring up customers. Stock shelves.", "Pay is generous. One rule only."],
     again: ["...Back again?", "Fine. One more shift."],
@@ -184,7 +195,7 @@ const STR = {
     dailyShare: (n, ok, pay, cause) => `ONE MORE SHIFT · Daily #${n}\n${ok ? "🟩 Clocked out" : "🟥 " + cause}  ${pay}`,
     cont_btn: "CONTINUE", cont_cost: c => `Continue costs ${c}`, x3: "x3",
     hint: "Move: arrows/tap  Work: Space/tap  Look: ↑ or tap door",
-    quotaLine: q => `Tonight's quota ${q}`, lookHint: "▲ LOOK AT IT!",
+    quotaLine: q => `Quota ${q}`, lookHint: "▲ LOOK AT IT!",
     serve: "RING UP", restock: "RESTOCK", pickup: "PICK UP",
     strike: "Complaint!", clockout: "CLOCKED OUT", bonus: "Shift bonus",
     cause_door: "Looked away", cause_quota: "Missed the quota", cause_clock: "Moved at 03:33", cause_regular: "Served the Regular", cause_fridge: "Opened the fridge", cause_knock: "The door opened", cause_lamp: "Looked at the lamp",

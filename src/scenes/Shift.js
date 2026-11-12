@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
-import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily, clearAct } from "../state.js";
+import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily, clearAct, hourly } from "../state.js";
 import * as snd from "../audio.js";
 import { startReplay, endReplay, cancelReplay } from "../replay.js";
 import { RoomMixin, ROOM } from "./rooms.js";
@@ -690,19 +690,19 @@ export default class Shift extends Phaser.Scene {
     cancelReplay();
     if (this.run.daily) return this.dailyDone();
     this.freeze();
-    const bonus = 40000 + 10000 * this.run.shift;
+    const bonus = hourly(1);      // one hour at the gig's minimum-wage multiple
     this.bank(bonus);
     this.run.cleared++; this.run.shift++; recordBest();
     this.drawMoney();
     this.ent.setVisible(false); this.vigDark.setVisible(false); this.flick.setAlpha(0.35);
     snd.jingle("clockout");
     this.stamp("ui_stamp_success");
-    const b = txt(this, W / 2, H / 2 + 40, `${t("bonus")} +${won(bonus)}`, { ox: 0.5, color: C.yellow, depth: 960 });
+    const b = txt(this, W / 2, H / 2 + 40, `${t("wagePaid")} +${won(bonus)}`, { ox: 0.5, color: C.yellow, depth: 960 });
     b.setAlpha(0); this.tweens.add({ targets: b, alpha: 1, delay: 300, duration: 200 });
     this.p.anims.stop(); this.p.setFrame("face_smile");
     const win = this.run.debt <= 0;
     const actDone = this.boss?.phase === "done";      // the Rat King is beaten: Act 1 is over
-    if (actDone) clearAct(1);
+    if (actDone) clearAct(1, this.run);
     this.time.delayedCall(2100, () => this.cameras.main.fadeOut(300, 20, 16, 26));
     this.time.delayedCall(2450, () => win ? this.scene.start("Result", { cause: "win" })
       : actDone ? this.scene.start("Board", { context: "clear" }) : this.scene.start("Agency", { context: "next" }));

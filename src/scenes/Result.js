@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, button, soundToggle } from "../ui.js";
-import { S, t, won, WAGE, newRun, MAX_CONTINUES, continueCost, saveDaily } from "../state.js";
+import { S, t, won, hourly, newRun, MAX_CONTINUES, continueCost, saveDaily } from "../state.js";
 import * as snd from "../audio.js";
 import { sharePayStub } from "../share.js";
 import { hasReplay, replayGif } from "../replay.js";
@@ -21,7 +21,7 @@ export default class Result extends Phaser.Scene {
     this.add.image(0, 0, "bg_death_bg").setOrigin(0);
 
     const shiftNo = win ? run.cleared : run.cleared + 1;
-    this.rows = [t(run.act === 2 ? "place2" : "place"), daily ? t("dailyRow", daily) : t("shiftRow", shiftNo), won(WAGE), won(run.earned), t("cause_" + cause), daily ? "—" : won(run.debt)];
+    this.rows = [t(run.act === 2 ? "place2" : "place"), daily ? t("dailyRow", daily) : t("shiftRow", shiftNo), won(hourly(run.act || 1)), won(run.earned), t("cause_" + cause), daily ? "—" : won(run.debt)];
     this.stampKey = win ? "ui_stamp_success" : fired ? "ui_stamp_fired" : "ui_stamp_fail";
 
     // the stub (180x240) prints upward, then scrolls to show the bottom half

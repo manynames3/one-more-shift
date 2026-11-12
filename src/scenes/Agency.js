@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, C, txt, soundToggle } from "../ui.js";
-import { S, t, won, newRuleFor } from "../state.js";
+import { S, t, won, newRuleFor, MULT, hourly } from "../state.js";
 import { quotaFor } from "./Shift.js";
 import { dQuotaFor } from "./Delivery.js";
 import * as snd from "../audio.js";
@@ -81,7 +81,7 @@ export default class Agency extends Phaser.Scene {
     const c = this.add.container(100, -100).setDepth(50);
     c.add(this.add.image(0, 0, "ui_job_card").setOrigin(0));
     c.add(txt(this, 32, 23, t(this.act2 ? "place2" : "place"), { size: 9, color: C.ink, shadow: false }));
-    c.add(txt(this, 32, 37, t("wageLine"), { size: 9, color: C.ink, shadow: false }));
+    c.add(txt(this, 32, 37, t("wageLine", MULT[S.run.act || 1], hourly(S.run.act || 1)), { size: 9, color: C.ink, shadow: false }));
     c.add(txt(this, 13, 60, t("rule_" + this.newRule), { size: 9, color: C.red2, shadow: false, wrap: 94 }));
     this.card = c;
     this.tweens.add({ targets: c, y: 26, duration: 380, ease: "Back.easeOut" });
