@@ -244,9 +244,17 @@ export default class Park extends Phaser.Scene {
     if (b.phase === "idle") {
       s.setFrame((b.p2 ? "phase2_" : "idle_") + (Math.floor(this.time.now / 300) % 2));
       b.x += Math.sign(p.x - b.x) * Math.min(Math.abs(p.x - b.x), 26 * dt);
-      if (b.t <= 0) { b.phase = "tell"; b.t = 0.6; s.setFrame("tell_0"); snd.sfx("warn"); }
+      if (b.t <= 0) {
+        // he picks his spot as he winds up: just past where you stand. A red line on the ground shows it.
+        b.phase = "tell"; b.t = b.p2 ? 0.55 : 0.65; s.setFrame("tell_0"); snd.sfx("warn");
+        b.target = Phaser.Math.Clamp(p.x + (Math.sign(p.x - b.x) || 1) * 10, 20, W - 20);
+        b.line ||= this.add.rectangle(0, FY + 1, 1, 2, 0xef3b4a).setOrigin(0, 0.5).setDepth(94);
+        const x0 = Math.min(b.x, b.target), x1 = Math.max(b.x, b.target);
+        b.line.setPosition(x0, FY + 1).setSize(x1 - x0, 2).setVisible(true).setAlpha(1);
+        this.tweens.add({ targets: b.line, alpha: 0.35, duration: 110, yoyo: true, repeat: 2 });
+      }
     } else if (b.phase === "tell" && b.t <= 0) {
-      b.phase = "lunge"; b.target = Phaser.Math.Clamp(p.x, 20, W - 20); s.setFrame("lunge_0"); snd.sfx("dash");
+      b.phase = "lunge"; b.line?.setVisible(false); s.setFrame("lunge_0"); snd.sfx("dash");
     } else if (b.phase === "lunge") {
       const dx = b.target - b.x, step = (b.p2 ? 380 : 300) * dt;
       if (Math.abs(dx) <= step) { b.x = b.target; b.phase = "idle"; b.t = b.p2 ? rand(0.45, 0.8) : rand(0.9, 1.5); snd.sfx("clang"); }
@@ -262,7 +270,7 @@ export default class Park extends Phaser.Scene {
   }
 
   bossActive() { return !!this.boss && this.boss.phase !== "done"; }
-  endBossFx() { if (this.boss?.lives) this.boss.lives.setVisible(false); }
+  endBossFx() { if (this.boss?.lives) this.boss.lives.setVisible(false); this.boss?.line?.setVisible(false); }
 
   // ---- HUD hooks ---------------------------------------------------------------------
   hotRule() {
