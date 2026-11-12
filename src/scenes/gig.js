@@ -2,7 +2,7 @@
 // A scene using it sets this.clockBase (minutes past midnight at 00 of the shift) and may define
 // clockHot() (clock turns orange) and tickSlip() (update the top-left slip).
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, soundToggle, enHud, stampKey } from "../ui.js";
+import { W, H, BAR, C, txt, soundToggle, enHud, stampKey, artKey } from "../ui.js";
 import { S, t, won, START_DEBT, recordBest, markSeen, hourly, clearAct, saveNote } from "../state.js";
 import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
@@ -104,7 +104,7 @@ export const GigMixin = {
     const shade = this.add.rectangle(0, BAR, W, H - 2 * BAR, 0x14101a, 0.35).setOrigin(0).setDepth(D).setScrollFactor(0);
     // a big close-up behind the dialogue for the moments that matter
     const cu = closeup && this.textures.exists(closeup)
-      ? this.add.image(0, 0, closeup).setOrigin(0).setDepth(D).setScrollFactor(0).setAlpha(0) : null;
+      ? this.add.image(0, 0, artKey(closeup)).setOrigin(0).setDepth(D).setScrollFactor(0).setAlpha(0) : null;
     if (cu) this.tweens.add({ targets: cu, alpha: 1, duration: 400 });
     const pic = this.add.image(12, 106, "portraits_sora", "neutral").setOrigin(0).setDepth(D + 2).setScrollFactor(0).setCrop(2, 10, 60, 36);
     const box = this.add.image(10, 112, "ui_dialog_box").setOrigin(0).setDepth(D + 1).setScrollFactor(0);

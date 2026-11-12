@@ -113,6 +113,46 @@ export function makeEnglishStamps(scene) {
     cv.refresh();
   }
 }
+/** English versions of close-ups with words painted in: [x, y, w, h] to repaint, the sample point for its
+ *  fill (or a colour), the English, its ink. A dark fill gets the cream outlined look of the original label. */
+const ART_EN = {
+  cu_sora_desk: [
+    { r: [43, 112, 50, 11], fill: "#1c1724", text: "RULES 1-99", ink: "#fff3a8" },
+    { r: [224, 143, 51, 11], fill: "#ffd42a", text: "KWAK", ink: "#14101a" },
+  ],
+  cu_kwak_offer: [
+    { r: [55, 89, 36, 11], fill: [52, 92], text: "CONTRACT", ink: "#4a4458" },
+    { r: [222, 139, 45, 11], fill: "#ffd42a", text: "KWAK", ink: "#14101a" },
+  ],
+};
+function inkText(g, w, h, text, ink, font, cx, cy) {
+  const tc = document.createElement("canvas"); tc.width = w; tc.height = h;
+  const tg = tc.getContext("2d");
+  tg.font = font; tg.textAlign = "center"; tg.textBaseline = "middle"; tg.fillStyle = ink;
+  tg.fillText(text, cx, cy);
+  const d = tg.getImageData(0, 0, w, h), a = d.data;
+  for (let i = 3; i < a.length; i += 4) a[i] = a[i] >= 110 ? 255 : 0;
+  tg.putImageData(d, 0, 0);
+  g.drawImage(tc, 0, 0);
+}
+export function makeEnglishArt(scene) {
+  for (const [key, patches] of Object.entries(ART_EN)) {
+    if (!scene.textures.exists(key) || scene.textures.exists(key + "_en")) continue;
+    const src = scene.textures.get(key).getSourceImage();
+    const cv = scene.textures.createCanvas(key + "_en", src.width, src.height), g = cv.getContext();
+    g.imageSmoothingEnabled = false; g.drawImage(src, 0, 0);
+    for (const p of patches) {
+      let fill = p.fill;
+      if (Array.isArray(fill)) { const [r, gg, b] = g.getImageData(fill[0], fill[1], 1, 1).data; fill = `rgb(${r},${gg},${b})`; }
+      g.fillStyle = fill; g.fillRect(...p.r);
+      inkText(g, src.width, src.height, p.text, p.ink, '10px "Galmuri9"', p.r[0] + p.r[2] / 2, p.r[1] + p.r[3] / 2 + 1);
+    }
+    cv.refresh();
+  }
+}
+/** A texture in the current language: its _en version when playing in English and one exists. */
+export const artKey = key => (S.lang === "en" && texMgr?.exists(key + "_en") ? key + "_en" : key);
+
 let texMgr = null;
 /** The stamp texture for the current language. */
 export const stampKey = key => (S.lang === "en" && texMgr?.exists(key + "_en") ? key + "_en" : key);

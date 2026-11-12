@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, onAdvance, button } from "../ui.js";
+import { W, H, BAR, C, txt, onAdvance, button, artKey } from "../ui.js";
 import { S, t, won, clearAct, saveEnding } from "../state.js";
 import * as snd from "../audio.js";
 import { setActionLabel, showPad } from "../touchpad.js";
@@ -28,7 +28,7 @@ export default class Ending extends Phaser.Scene {
     this.add.image(0, 0, BG[key]).setOrigin(0);
     // the close-up comes in over the wide shot after the first line
     if (this.textures.exists(CU[key])) {
-      const cu = this.add.image(0, 0, CU[key]).setOrigin(0).setAlpha(0).setDepth(5);
+      const cu = this.add.image(0, 0, artKey(CU[key])).setOrigin(0).setAlpha(0).setDepth(5);
       this.tweens.add({ targets: cu, alpha: 1, delay: 2500, duration: 900 });
     }
     this.add.rectangle(0, 0, W, BAR, 0x14101a).setOrigin(0);

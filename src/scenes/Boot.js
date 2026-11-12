@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import manifest from "../../public/assets/manifest.json";
-import { W, H, C, txt, makeEnglishStamps } from "../ui.js";
+import { W, H, C, txt, makeEnglishStamps, makeEnglishArt } from "../ui.js";
 import { t } from "../state.js";
 
 // Only what the game uses is loaded; the rest of the pack stays on the server.
@@ -67,7 +67,7 @@ export default class Boot extends Phaser.Scene {
   }
 
   create() {
-    makeEnglishStamps(this);
+    makeEnglishStamps(this); makeEnglishArt(this);
     const mk = (key, name, n, rate, repeat = -1) => {
       if (!this.textures.get(key).has(`${name}_0`)) return;
       this.anims.create({
