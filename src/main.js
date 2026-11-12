@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { initTouchpad } from "./touchpad.js";
+import { initTouchpad, padGutters } from "./touchpad.js";
 import { FilmFX, applyFilm } from "./filmfx.js";
 import { W, H } from "./ui.js";
 import { S } from "./state.js";
@@ -39,17 +39,21 @@ async function start() {
   // Largest scale that fits the window and lands on whole device pixels.
   const fit = () => {
     const dpr = window.devicePixelRatio || 1;
-    const fitS = Math.min(window.innerWidth / W, window.innerHeight / H);
+    // landscape phones: keep the game between the d-pad and the A button
+    const [gl, gr] = padGutters();
+    const el = document.getElementById("game");
+    if (el) { el.style.paddingLeft = gl + "px"; el.style.paddingRight = gr + "px"; el.style.boxSizing = "border-box"; }
+    const fitS = Math.min((window.innerWidth - gl - gr) / W, window.innerHeight / H);
     let s = Math.max(1, Math.floor(fitS * dpr)) / dpr;
     // narrow portrait phones: whole-pixel scaling leaves the game tiny, so fill the width instead
     if (window.innerHeight > window.innerWidth && s < fitS * 0.9) s = fitS;
     game.scale.setZoom(s);
     game.scale.refresh();
   };
+  initTouchpad();
   fit();
   window.addEventListener("resize", fit);
   window.addEventListener("orientationchange", () => setTimeout(fit, 200));
-  initTouchpad();
   const rot = document.getElementById("rotate");
   if (rot) rot.textContent = S.lang === "ko" ? "화면을 가로로 돌리면 더 커집니다" : "Rotate your phone for a bigger view";
   applyFilm(game);

@@ -35,6 +35,11 @@ export function showPad(on) {
   padWanted = on;
   if (padEl) padEl.classList.toggle("menu", !on);
 }
+/** Pixels the pad needs at each side in landscape, so it never covers the game (0 when there's no pad). */
+export function padGutters() {
+  if (!padEl || padEl.classList.contains("off") || window.innerHeight >= window.innerWidth) return [0, 0];
+  return [170, 96];
+}
 /** Show what the A button does right now (a short word), or "A". */
 export function setActionLabel(s) {
   s = s || "A";
@@ -83,6 +88,7 @@ export function initTouchpad() {
     ev.preventDefault();
     off = !off; pad.classList.toggle("off", off); hide.textContent = off ? "🎮" : "×";
     try { localStorage.setItem("oms.pad", off ? "off" : "on"); } catch { /* private mode */ }
+    window.dispatchEvent(new Event("resize"));   // the game can use the freed space
   });
   pad.appendChild(hide);
   document.body.appendChild(pad);
