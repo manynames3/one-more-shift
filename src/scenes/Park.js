@@ -52,7 +52,7 @@ export default class Park extends Phaser.Scene {
 
     this.kids = []; this.kidT = 2;
     this.ev = { kind: null, t: rand(7, 9), left: 0, grace: 0 };
-    this.floatT = rand(3, 5);
+    this.floatT = rand(3, 5); this.floatN = 0;
     this.found = false;
 
     this.buildHud();
@@ -133,7 +133,7 @@ export default class Park extends Phaser.Scene {
     if (!this.float.visible) {
       this.floatT -= dt;
       if (this.floatT <= 0 && !this.ev.kind) {
-        const wrong = Math.random() < 0.45;
+        const wrong = this.floatN++ > 0 && Math.random() < 0.45;   // the first float is a normal one: meet the parade first
         this.float.setVisible(true).setX(-60).setFrame(wrong ? "f_wrong_0" : "f_0");
         this.floatWrong = wrong;
         if (wrong) { this.ev.kind = "float"; snd.sfx("warn"); this.hint("float", W / 2, 52); }

@@ -17,7 +17,7 @@ export const GigMixin = {
     this.boss = null; this.bossDone = false; this.note = null; this.meterState = null; this.meterEnd = null;
     this.talking = false; this.riding = null; this.chosen = null; this.choosing = false; this.opened = false;
     this.working = null; this.carry = false; this.order = null; this.floatWrong = false; this.moving = false;
-    this.dread = null;
+    this.dread = null; this.capObj = null;
   },
 
   /** Tell the on-screen A button what it would do here. */
@@ -166,7 +166,8 @@ export const GigMixin = {
   caption(line, secs = 4) {
     const c = txt(this, W / 2, 40, line, { ox: 0.5, size: 9, color: C.white, depth: 960, wrap: W - 40 });
     c.setBackgroundColor("#14101a").setPadding(4, 2, 4, 2);
-    this.tweens.add({ targets: c, alpha: 0, delay: secs * 1000, duration: 500, onComplete: () => c.destroy() });
+    this.tweens.add({ targets: c, alpha: 0, delay: secs * 1000, duration: 500, onComplete: () => { c.destroy(); if (this.capObj === c) this.capObj = null; } });
+    this.capObj = c;
     return c;
   },
 
@@ -237,6 +238,9 @@ export const GigMixin = {
     this.padLabel();
     if (!this.over) this.tickNote();
     this.tickDread(dt);
+    // a teaching hint under a caption waits for the caption to go
+    const cap = this.capObj?.active ? this.capObj.getBounds() : null;
+    for (const h of Object.values(this.hints)) if (h?.active) h.setVisible(!cap || !Phaser.Geom.Intersects.RectangleToRectangle(cap, h.getBounds()));
     this.blink += dt;
     const on = Math.floor(this.blink * 6) % 2 === 0;
     const hot = this.hotRule();
