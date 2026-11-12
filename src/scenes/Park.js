@@ -58,7 +58,7 @@ export default class Park extends Phaser.Scene {
     this.buildHud();
     this.bindInput();
     startReplay(this.game);
-    snd.music("park"); snd.ambience(false);
+    snd.music("park"); snd.ambience("wind");
     this.caption(t("parkStart"), 3.5);
   }
 

@@ -71,7 +71,7 @@ export class TitleCard extends Phaser.Scene {
     const a = ACTS[data.act - 1];
     const key = "tc_" + { store: "store", event: "event", delivery: "milk", cinema: "cinema", trial: "trial", site: "site", park: "park" }[a.key];
     this.cameras.main.fadeIn(500, 20, 16, 26);
-    snd.music("off"); snd.ambience(true);
+    snd.music("off"); snd.ambience({ store: "store", event: "wind", delivery: "hall", cinema: "cinema", trial: "ward", site: "wind", park: "wind" }[a.key]);
     this.add.image(0, 0, this.textures.exists(key) ? key : "bg_street_night").setOrigin(0);
     this.add.rectangle(0, 0, W, BAR, 0x14101a).setOrigin(0);
     this.add.rectangle(0, H - BAR, W, BAR, 0x14101a).setOrigin(0);

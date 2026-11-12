@@ -21,7 +21,9 @@ that is playable within one tap, readable on a phone, and gives the player somet
 |---|---|
 | **Game** | Seven gigs in a row (store, night event, dawn milk run, cinema, clinical trial, construction site, amusement park), 21 rules, a boss with two phases at the end of each gig, a story told in portrait scenes, three endings and six hidden notes. |
 | **Art** | 121 original pixel-art assets, all generated from code on a single locked 45-colour palette. |
-| **Audio** | Music and 13 sound effects synthesized in the browser. Zero audio files. |
+| **Audio** | Music, sound effects, a room tone for every location (wind, a ward's heart monitor, a projector through the wall, a stairwell drone) and a dread drone that builds through each night, all synthesized in the browser. Zero audio files. |
+| **Scares** | Once or twice a night something no rule covers happens: Sora's double at the edge of the frame, a blackout, a whisper, the clock reading 04:44, her heartbeat. They never punish you and never fake a real rule's trigger. |
+| **Accessibility** | A "Flashes: off" switch on the title screen drops camera flashes, softens shakes and replaces strobes with a steady dim. |
 | **Languages** | Korean and English, switchable in game. |
 | **Input** | Keyboard, mouse and touch from the same code path, plus an on-screen d-pad whose action button names what it will do. |
 | **Sharing** | The end-of-run pay stub renders to a 720×960 PNG; a death also shares a 4-second GIF replay of the scare, recorded from the canvas and encoded in the browser. |
@@ -31,7 +33,7 @@ that is playable within one tap, readable on a phone, and gives the player somet
 
 - **12 KB of fonts instead of 930 KB.** The Korean pixel font is subset at build time to only the characters the game draws.
 - **60 asset requests instead of 151.** The loader pulls only the files the current build uses.
-- **354 KB gzipped JavaScript, 2.4 MB total site.** It loads on a phone connection.
+- **About 415 KB gzipped JavaScript, 3.2 MB total site (about 1.2 MB over the wire).** It loads on a phone connection.
 - **Every rule, every ending, the share flow and touch input pass an automated browser run** (headless Chromium via Playwright) with no console errors.
 - **One command rebuilds any asset.** A palette change is a one-line edit, not a redraw.
 
@@ -123,7 +125,7 @@ Cloudflare Pages: build command `npm run build`, output directory `dist`.
 
 ## What's next
 
-- Hand playtests on phones to tune each gig's pay target.
+- Hand playtests on phones to tune each gig's pay target (pay targets are currently tuned by a human-speed bot).
 - A unique death animation per rule.
 - Launch posts for Korean and English communities.
 

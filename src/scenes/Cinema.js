@@ -72,7 +72,7 @@ export default class Cinema extends Phaser.Scene {
     this.bindInput();
     this.enter("lobby", LOBBY.window);
     startReplay(this.game);
-    snd.music("cinema"); snd.ambience(false);
+    snd.music("cinema"); snd.ambience("cinema");
 
     const plate = this.add.rectangle(W / 2, 70, 150, 34, 0x14101a, 0.85).setStrokeStyle(1, 0xffd42a).setDepth(879);
     const title = txt(this, W / 2, 56, t("shiftN", run.shift), { ox: 0.5, color: C.yellow, depth: 880 });
@@ -279,10 +279,11 @@ export default class Cinema extends Phaser.Scene {
   tickReel(dt) {
     const r = this.reel;
     if (!r.need) {
+      if (this.meterState && this.place === "booth") this.meterEnd(null);   // nothing left to thread
       r.t -= dt;
       if (r.t <= 0 && this.hall.phase === "screen") { r.need = true; r.left = 14; snd.sfx("task"); this.syncPlace(); }
     } else {
-      r.left -= dt;
+      if (!this.meterState) r.left -= dt;          // it won't snap while you're threading it
       if (r.left <= 0) { r.need = false; r.t = rand(12, 18); this.syncPlace(); this.strike(W / 2, t("filmBroke")); }
     }
   }

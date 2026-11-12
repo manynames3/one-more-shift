@@ -91,5 +91,11 @@ export function initTouchpad() {
     window.dispatchEvent(new Event("resize"));   // the game can use the freed space
   });
   pad.appendChild(hide);
+  // pause, top left
+  const pz = document.createElement("div");
+  pz.className = "b hide pz"; pz.textContent = "II";
+  pz.style.cssText = `left:${L}; top:max(10px, env(safe-area-inset-top));`;
+  pz.addEventListener("pointerdown", ev => { ev.preventDefault(); send("keydown", { key: "p", code: "KeyP", keyCode: 80 }); });
+  pad.appendChild(pz);
   document.body.appendChild(pad);
 }

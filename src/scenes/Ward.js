@@ -65,7 +65,7 @@ export default class Ward extends Phaser.Scene {
     if (this.run.shift === 1) this.time.delayedCall(2900, () => { if (!this.over) this.caption(t("how5"), 5); });
     this.bindInput();
     startReplay(this.game);
-    snd.music("ward"); snd.ambience(false);
+    snd.music("ward"); snd.ambience("ward");
 
     const plate = this.add.rectangle(W / 2, 70, 150, 34, 0x14101a, 0.85).setStrokeStyle(1, 0xffd42a).setDepth(879);
     const title = txt(this, W / 2, 56, t("shiftN", run.shift), { ox: 0.5, color: C.yellow, depth: 880 });

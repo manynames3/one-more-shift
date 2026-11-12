@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { initTouchpad, padGutters } from "./touchpad.js";
+import { installCalm } from "./calm.js";
+installCalm();
 import { FilmFX, applyFilm } from "./filmfx.js";
 import { W, H } from "./ui.js";
 import { S } from "./state.js";
@@ -17,6 +19,7 @@ import Site from "./scenes/Site.js";
 import Park from "./scenes/Park.js";
 import Ending from "./scenes/Ending.js";
 import Offer, { TitleCard } from "./scenes/Offer.js";
+import Pause, { installPause } from "./scenes/Pause.js";
 
 async function start() {
   // Text is drawn with the pixel fonts, so they must be ready before the first scene.
@@ -33,7 +36,7 @@ async function start() {
     scale: { mode: Phaser.Scale.NONE, width: W, height: H },
     input: { activePointers: 2 },
     pipeline: { FilmFX },
-    scene: [Boot, Title, Agency, Shift, Result, Board, Delivery, Event, Cinema, Ward, Site, Park, Ending, Offer, TitleCard],
+    scene: [Boot, Title, Agency, Shift, Result, Board, Delivery, Event, Cinema, Ward, Site, Park, Ending, Offer, TitleCard, Pause],
   });
 
   // Largest scale that fits the window and lands on whole device pixels.
@@ -57,6 +60,7 @@ async function start() {
   const rot = document.getElementById("rotate");
   if (rot) rot.textContent = S.lang === "ko" ? "화면을 가로로 돌리면 더 커집니다" : "Rotate your phone for a bigger view";
   applyFilm(game);
+  installPause(game);
   window.__game = game; window.__S = S;   // handy for debugging from the console
 }
 start();

@@ -45,12 +45,16 @@ export function init() {
   unlocked = true;
   document.addEventListener("visibilitychange", () => {
     if (!ctx) return;
-    if (document.hidden) ctx.suspend(); else ctx.resume();
+    if (document.hidden) ctx.suspend(); else if (!held) ctx.resume();
   });
   if (pending) { const p = pending; pending = null; music(p); }
 }
 
 /** Turn the music down (stockroom, outside) or back up. */
+/** Freeze all sound while the game is paused. */
+let held = false;
+export function hold(on) { held = on; if (!ctx) return; if (on) ctx.suspend(); else if (!document.hidden) ctx.resume(); }
+
 export function duck(level) { if (musicBus) musicBus.gain.setTargetAtTime(0.55 * level, ctx.currentTime, 0.12); }
 
 export function setMuted(m) { if (master) master.gain.setTargetAtTime(m ? 0 : MASTER, ctx.currentTime, 0.02); }
@@ -409,24 +413,66 @@ export function jingle(name, dest = null, t0 = null) {
   }
 }
 
-/** Fluorescent hum + fridge drone under the store. */
+/** A looping room tone under the play scenes, one per kind of place.
+ *  ambience(false) stops it; true is the store. Kinds: store, wind, ward, cinema, hall. */
+let ambKind = null;
 export function ambience(on) {
   if (!ctx) return;
-  if (!on) {
-    if (ambNodes) { const g = ambNodes.g; g.gain.setTargetAtTime(0, ctx.currentTime, 0.1); const n = ambNodes; ambNodes = null; setTimeout(() => n.stop(), 600); }
-    return;
+  const kind = on === true ? "store" : on || null;
+  if (kind === ambKind && ambNodes) return;
+  if (ambNodes) { const n = ambNodes; ambNodes = null; n.g.gain.setTargetAtTime(0, ctx.currentTime, 0.1); setTimeout(() => n.stop(), 600); }
+  ambKind = kind;
+  if (!kind) { dread(0); return; }
+  const t = ctx.currentTime, srcs = [], timers = [];
+  const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.8); g.connect(ambBus);
+  const loopNoise = (type, f, q, vol) => {
+    const n = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), ng = ctx.createGain();
+    n.buffer = noiseBuf; n.loop = true; fl.type = type; fl.frequency.value = f; fl.Q.value = q; ng.gain.value = vol;
+    n.connect(fl); fl.connect(ng); ng.connect(g); n.start(t, Math.random()); srcs.push(n); return { fl, ng };
+  };
+  const drone = (type, f, vol, lp = 0) => {
+    const o = osc(type, f, t), og = ctx.createGain(); og.gain.value = vol;
+    if (lp) { const fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = lp; o.connect(fl); fl.connect(og); } else o.connect(og);
+    og.connect(g); o.start(t); srcs.push(o); return og;
+  };
+  const lfo = (rate, depth, param) => { const l = ctx.createOscillator(), lg = ctx.createGain(); l.frequency.value = rate; lg.gain.value = depth; l.connect(lg); lg.connect(param); l.start(t); srcs.push(l); };
+  if (kind === "store") {
+    drone("sawtooth", 120, 0.02, 380);
+    loopNoise("bandpass", 2400, 3, 0.006);
+  } else if (kind === "wind") {            // outdoors at night: wind that rises and falls
+    const w = loopNoise("lowpass", 420, 0.8, 0.05);
+    lfo(0.07, 260, w.fl.frequency); lfo(0.05, 0.025, w.ng.gain);
+    loopNoise("bandpass", 1600, 6, 0.004);
+  } else if (kind === "ward") {            // vents, and somebody's heart monitor down the hall
+    drone("sawtooth", 100, 0.012, 300);
+    loopNoise("lowpass", 900, 0.5, 0.01);
+    timers.push(setInterval(() => tone(g, { type: "sine", f: 988, t: ctx.currentTime + 0.01, dur: 0.07, vol: 0.022, r: 0.04 }), 1150));
+  } else if (kind === "cinema") {          // the projector through the wall
+    const pr = loopNoise("bandpass", 1500, 1.2, 0.012);
+    lfo(24, 0.008, pr.ng.gain);
+    drone("sine", 58, 0.05);
+  } else if (kind === "hall") {            // an apartment stairwell: pipes and a slow beating drone
+    drone("sine", 55, 0.06); drone("sine", 55.8, 0.05);
+    loopNoise("lowpass", 260, 0.7, 0.03);
   }
-  if (ambNodes) return;
-  const t = ctx.currentTime;
-  const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.6); g.connect(ambBus);
-  const hum = osc("sawtooth", 120, t), hl = ctx.createBiquadFilter(), hg = ctx.createGain();
-  hl.type = "lowpass"; hl.frequency.value = 380; hg.gain.value = 0.02;
-  hum.connect(hl); hl.connect(hg); hg.connect(g);
-  const buzz = ctx.createBufferSource(), bf = ctx.createBiquadFilter(), bg = ctx.createGain();
-  buzz.buffer = noiseBuf; buzz.loop = true; bf.type = "bandpass"; bf.frequency.value = 2400; bf.Q.value = 3; bg.gain.value = 0.006;
-  buzz.connect(bf); bf.connect(bg); bg.connect(g);
-  hum.start(t); buzz.start(t);
-  ambNodes = { g, stop: () => { try { hum.stop(); buzz.stop(); } catch { /* stopped */ } g.disconnect(); } };
+  ambNodes = { g, stop: () => { timers.forEach(clearInterval); srcs.forEach(n => { try { n.stop(); } catch { /* stopped */ } }); g.disconnect(); } };
+}
+
+/** The dread bed: a sub-bass beat and a thin high whine whose loudness (0..1) the play scenes raise
+ *  as the night goes on and when something's wrong. */
+let dreadNodes = null;
+export function dread(level) {
+  if (!ctx) return;
+  if (!dreadNodes) {
+    if (level <= 0) return;
+    const t = ctx.currentTime, g = ctx.createGain(); g.gain.value = 0; g.connect(ambBus);
+    const a = osc("sine", 41, t), b = osc("sine", 41.6, t), hi = osc("sine", 3150, t), hg = ctx.createGain(), l = ctx.createOscillator(), lg = ctx.createGain();
+    hg.gain.value = 0.05; l.frequency.value = 0.3; lg.gain.value = 18; l.connect(lg); lg.connect(hi.frequency);
+    a.connect(g); b.connect(g); hi.connect(hg); hg.connect(g);
+    [a, b, hi, l].forEach(o => o.start(t));
+    dreadNodes = { g, stop: () => [a, b, hi, l].forEach(o => { try { o.stop(); } catch { /* stopped */ } }) };
+  }
+  dreadNodes.g.gain.setTargetAtTime(0.16 * Math.max(0, Math.min(1, level)), ctx.currentTime, level > 0.6 ? 0.15 : 1.2);
 }
 
 // ------------------------------------------------------------------ sfx
@@ -484,6 +530,9 @@ const SFX = {
   moped: (d, t) => { tone(d, { type: "sawtooth", f: 62, slide: 1.9, t, dur: 1.2, vol: 0.07, vib: 0.06, s: 0.9, r: 0.3 }); noise(d, { t, dur: 1.2, vol: 0.05, f: 300, type: "lowpass", a: 0.1 }); },
   ding: (d, t) => { tone(d, { type: "sine", f: 1568, t, dur: 0.5, vol: 0.12, s: 0.4, r: 0.4 }); tone(d, { type: "sine", f: 1175, t: t + 0.25, dur: 0.7, vol: 0.12, s: 0.4, r: 0.5 }); },
   slide: (d, t) => noise(d, { t, dur: 0.5, vol: 0.08, f: 1200, sweep: 0.5, type: "bandpass", q: 1.5, a: 0.08 }),
+  // breath-like filtered noise, two syllables
+  whisper: (d, t) => { noise(d, { t, dur: 0.55, vol: 0.09, f: 2600, sweep: 0.6, type: "bandpass", q: 6, a: 0.12 }); noise(d, { t: t + 0.5, dur: 0.8, vol: 0.07, f: 1900, sweep: 1.4, type: "bandpass", q: 7, a: 0.2 }); },
+  glitch: (d, t) => { for (let i = 0; i < 6; i++) tone(d, { type: "square", f: 200 + Math.random() * 1800, t: t + i * 0.04, dur: 0.03, vol: 0.06, r: 0.01 }); noise(d, { t, dur: 0.3, vol: 0.15, f: 4000, type: "bandpass", q: 0.8 }); },
   hop: (d, t) => { tone(d, { type: "p25", f: 330, slide: 2.2, t, dur: 0.14, vol: 0.1 }); noise(d, { t: t + 0.26, dur: 0.06, vol: 0.12, f: 500, type: "lowpass" }); },
 };
 

@@ -7,14 +7,17 @@ import { S, t, won, START_DEBT, recordBest, markSeen, hourly, clearAct, saveNote
 import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
 import { setActionLabel, showPad } from "../touchpad.js";
+import { DreadMixin } from "./dread.js";
 
 export const GigMixin = {
+  ...DreadMixin,
   /** Phaser reuses scene objects: clear everything a previous night left on `this`. */
   resetGig() {
     showPad(true);
     this.boss = null; this.bossDone = false; this.note = null; this.meterState = null; this.meterEnd = null;
     this.talking = false; this.riding = null; this.chosen = null; this.choosing = false; this.opened = false;
     this.working = null; this.carry = false; this.order = null; this.floatWrong = false; this.moving = false;
+    this.dread = null;
   },
 
   /** Tell the on-screen A button what it would do here. */
@@ -173,6 +176,7 @@ export const GigMixin = {
     this.hintsShown.add(pre + key);
     const h = txt(this, x, y, t("hint_" + key), { ox: 0.5, size: 9, color: C.yellow, depth: 630 });
     h.setBackgroundColor("#14101a").setPadding(2, 1, 2, 1);
+    h.setX(Phaser.Math.Clamp(x, h.width / 2 + 2, W - h.width / 2 - 2));   // keep it on screen
     this.tweens.add({ targets: h, alpha: 0.4, duration: 300, yoyo: true, repeat: -1 });
     this.hints[key] = h;
   },
@@ -195,6 +199,7 @@ export const GigMixin = {
   pop(s, x, y, color) {
     const p = txt(this, x, y, s, { ox: 0.5, size: 9, color, depth: 630 });
     p.setBackgroundColor("#14101a").setPadding(2, 1, 2, 1);
+    p.setX(Phaser.Math.Clamp(x, p.width / 2 + 2, W - p.width / 2 - 2));
     this.tweens.add({ targets: p, y: y - 12, alpha: 0, delay: 500, duration: 700, onComplete: () => p.destroy() });
   },
 
@@ -231,6 +236,7 @@ export const GigMixin = {
     if (!this.over) this.meterTick(dt);
     this.padLabel();
     if (!this.over) this.tickNote();
+    this.tickDread(dt);
     this.blink += dt;
     const on = Math.floor(this.blink * 6) % 2 === 0;
     const hot = this.hotRule();

@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle, enHud } from "../ui.js";
 import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily, clearAct, hourly, saveNote } from "../state.js";
 import * as snd from "../audio.js";
+import { DreadMixin } from "./dread.js";
+import { CALM } from "../calm.js";
 import { setActionLabel, showPad } from "../touchpad.js";
 import { startReplay, endReplay, cancelReplay } from "../replay.js";
 import { RoomMixin, ROOM } from "./rooms.js";
@@ -69,6 +71,7 @@ export default class Shift extends Phaser.Scene {
 
     // player
     this.p = this.makeChar("sora", 160, 142);
+    this.dread = null;
     this.face = "up"; this.moving = false; this.target = null; this.intent = null; this.working = null;
     this.behind = false; this.vaulting = false; this.stepT = 0; this.scanT = 0;
     this.bang = this.add.sprite(0, 0, "props_exclaim", "exclaim_0").setDepth(620).setVisible(false);
@@ -118,6 +121,7 @@ export default class Shift extends Phaser.Scene {
     this.hintsShown.add(key);
     const h = txt(this, x, y, t("hint_" + key), { ox: 0.5, size: 9, color: C.yellow, depth: 630 });
     h.setBackgroundColor("#14101a").setPadding(2, 1, 2, 1);
+    h.setX(Phaser.Math.Clamp(x, h.width / 2 + 2, W - h.width / 2 - 2));   // keep it on screen
     this.tweens.add({ targets: h, alpha: 0.4, duration: 300, yoyo: true, repeat: -1 });
     this.hints[key] = h;
     return h;
@@ -185,6 +189,7 @@ export default class Shift extends Phaser.Scene {
   }
 
   tickHud(dt) {
+    this.tickDread(dt);
     if (this.note && this.room === "floor" && Phaser.Math.Distance.Between(this.p.x, this.p.y, this.note.x, 150) < 12) {
       this.note.destroy(); this.note = null; saveNote(1); snd.sfx("coin");
       const c = txt(this, W / 2, 40, t("note1"), { ox: 0.5, size: 9, depth: 960, wrap: W - 40 }).setBackgroundColor("#14101a").setPadding(4, 2, 4, 2);
@@ -564,7 +569,7 @@ export default class Shift extends Phaser.Scene {
       }
     } else if (w.state === "warn") {
       w.t -= dt;
-      this.flick.setAlpha(Math.floor(w.t * 14) % 2 ? 0.32 : 0);
+      this.flick.setAlpha(CALM.on ? 0.18 : Math.floor(w.t * 14) % 2 ? 0.32 : 0);
       if (w.t <= 0) {
         w.state = "watch"; w.t = rand(2.2, 3.4) + Math.min(1.5, this.d * 0.25); w.back = 0;
         w.limit = Math.max(0.3, 0.6 - this.d * 0.05);   // time to turn around once it is in the doorway
@@ -767,4 +772,4 @@ export default class Shift extends Phaser.Scene {
   }
 }
 
-Object.assign(Shift.prototype, RoomMixin, BossMixin);
+Object.assign(Shift.prototype, RoomMixin, BossMixin, DreadMixin);

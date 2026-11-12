@@ -72,7 +72,7 @@ export const RoomMixin = {
     this.cancelWork();
     snd.sfx(name === "out" || from === "out" ? "door" : "creak");
     snd.duck(name === "floor" ? 1 : name === "stock" ? 0.35 : 0.2);
-    snd.ambience(name === "floor");
+    snd.ambience(name === "floor" ? "store" : name === "out" ? "wind" : false);
     if (from === "stock") { this.knock = { active: false, t: rand(2.5, 5), left: 0 }; this.knockFx.setAlpha(0); this.knockTxt.setText(""); }
     if (from === "out") { this.lamp = { state: "idle", t: rand(1, 2.5), back: 0 }; this.lampMan.setVisible(false); this.lampEyes.setVisible(false); this.lampFlick.setAlpha(0); }
     if (name === "stock") this.hint("box", ROOM.stock.boxes.x, ROOM.stock.oy + 100);

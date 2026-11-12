@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { W, H, C, txt, soundToggle } from "../ui.js";
+import { CALM, setCalm } from "../calm.js";
 import { S, t, saveSettings, newRun, newDailyRun, today, dailyRecord, notesFound } from "../state.js";
 import * as snd from "../audio.js";
 import { setActionLabel, showPad } from "../touchpad.js";
@@ -26,6 +27,9 @@ export default class Title extends Phaser.Scene {
     this.input.keyboard.on("keydown-L", () => this.flipLang());
     this.drawLang();
     soundToggle(this);
+    this.calm = txt(this, W - 24, H - 16, "", { size: 9, color: C.grey, ox: 1 }).setInteractive({ useHandCursor: true });
+    this.calm.on("pointerdown", (p, x, y, ev) => { ev.stopPropagation(); setCalm(!CALM.on); snd.sfx("ui"); this.drawCalm(); });
+    this.drawCalm();
 
     // daily shift: same night for everyone, once a day
     this.daily = txt(this, W / 2, 112, t("daily", today()), { color: C.yellow, ox: 0.5 }).setInteractive({ useHandCursor: true });
@@ -69,6 +73,7 @@ export default class Title extends Phaser.Scene {
     this.time.delayedCall(280, () => this.scene.start("Agency", { context: "dailyIntro" }));
   }
 
-  flipLang() { S.lang = S.lang === "ko" ? "en" : "ko"; saveSettings(); snd.init(); snd.sfx("ui"); this.drawLang(); this.prompt.setText(t("start")); this.daily.setText(t("daily", today())); }
+  flipLang() { S.lang = S.lang === "ko" ? "en" : "ko"; saveSettings(); snd.init(); snd.sfx("ui"); this.drawLang(); this.drawCalm(); this.prompt.setText(t("start")); this.daily.setText(t("daily", today())); }
+  drawCalm() { this.calm.setText(t(CALM.on ? "flashOff" : "flashOn")); }
   drawLang() { this.lang.setText((S.lang === "ko" ? "[한국어]  EN" : "한국어  [EN]")); }
 }
