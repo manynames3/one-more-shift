@@ -60,6 +60,7 @@ export default class Ward extends Phaser.Scene {
     this.lights = { state: "on", t: rand(14, 20), left: 0 };
 
     this.buildHud();
+    this.initNote(220);
     this.bindInput();
     startReplay(this.game);
     snd.music("store"); snd.ambience(false);

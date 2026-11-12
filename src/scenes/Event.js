@@ -67,6 +67,7 @@ export default class Event extends Phaser.Scene {
     this.call = { on: false, t: rand(14, 20), left: 0 };
 
     this.buildHud();
+    this.initNote(120);
     this.bindInput();
     startReplay(this.game);
     snd.music("store"); snd.ambience(false);

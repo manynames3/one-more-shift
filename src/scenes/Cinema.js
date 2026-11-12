@@ -66,6 +66,7 @@ export default class Cinema extends Phaser.Scene {
     this.walkers = [];
 
     this.buildHud();
+    this.initNote(200, "lobby");
     this.bindInput();
     this.enter("lobby", LOBBY.window);
     startReplay(this.game);

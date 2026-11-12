@@ -47,6 +47,10 @@ export default class Boot extends Phaser.Scene {
     this.load.atlas("props_resident", "props/resident.png", "props/resident.json");
     this.load.atlas("props_screen_film", "props/screen_film.png", "props/screen_film.json");
     this.load.atlas("props_usher", "props/usher.png", "props/usher.json");
+    this.load.atlas("characters_junho", "characters/junho.png", "characters/junho.json");
+    ["float", "kwak_boss"].forEach(k => this.load.atlas("props_" + k, `props/${k}.png`, `props/${k}.json`));
+    [["bg_park", "bg/park.png"], ["bg_ending_dawn", "bg/ending_dawn.png"], ["bg_ending_desk", "bg/ending_desk.png"], ["bg_ending_note", "bg/ending_note.png"],
+      ["props_note", "props/note.png"]].forEach(([k, f]) => this.load.image(k, f));
     ["nurse", "nurse_notag", "subject", "pill", "foreman"].forEach(k => this.load.atlas("props_" + k, `props/${k}.png`, `props/${k}.json`));
     [["bg_ward", "bg/ward.png"], ["bg_site", "bg/site.png"], ["props_hoist_closed", "props/hoist_closed.png"], ["props_hoist_rider", "props/hoist_rider.png"],
       ["props_load", "props/load.png"], ["props_brick", "props/brick.png"]].forEach(([k, f]) => this.load.image(k, f));

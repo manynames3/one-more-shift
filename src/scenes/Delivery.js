@@ -70,6 +70,7 @@ export default class Delivery extends Phaser.Scene {
     this.workBar = this.add.graphics().setDepth(620);
 
     this.buildHud();
+    this.initNote(40, "stairs");
     this.bindInput();
     this.enter("hub", HUB.arrive - 40);
     startReplay(this.game);

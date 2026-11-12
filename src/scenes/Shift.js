@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
-import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily, clearAct, hourly } from "../state.js";
+import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily, clearAct, hourly, saveNote } from "../state.js";
 import * as snd from "../audio.js";
 import { startReplay, endReplay, cancelReplay } from "../replay.js";
 import { RoomMixin, ROOM } from "./rooms.js";
@@ -88,6 +88,11 @@ export default class Shift extends Phaser.Scene {
     this.buildHud();
     this.initRooms();
     this.initBoss();
+    // the Regular's first note, on the shop floor on the second night
+    if (run.shift === 2 && !S.notes[1] && !run.daily) {
+      this.note = this.add.image(128, 150, "props_note").setDepth(149);
+      this.tweens.add({ targets: this.note, y: 147, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    }
     this.bindInput();
     startReplay(this.game);
     snd.music("store"); snd.ambience(true);
@@ -176,6 +181,12 @@ export default class Shift extends Phaser.Scene {
   }
 
   tickHud(dt) {
+    if (this.note && this.room === "floor" && Phaser.Math.Distance.Between(this.p.x, this.p.y, this.note.x, 150) < 12) {
+      this.note.destroy(); this.note = null; saveNote(1); snd.sfx("coin");
+      const c = txt(this, W / 2, 40, t("note1"), { ox: 0.5, size: 9, depth: 960, wrap: W - 40 }).setBackgroundColor("#14101a").setPadding(4, 2, 4, 2);
+      this.tweens.add({ targets: c, alpha: 0, delay: 4000, duration: 500, onComplete: () => c.destroy() });
+    }
+    if (this.note) this.note.setVisible(this.room === "floor");
     this.blink += dt;
     const on = Math.floor(this.blink * 6) % 2 === 0;
     const hot = this.hotRule();

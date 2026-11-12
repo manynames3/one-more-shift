@@ -58,6 +58,7 @@ export default class Site extends Phaser.Scene {
     this.drawBoard();
 
     this.buildHud();
+    this.initNote(230);
     this.bindInput();
     startReplay(this.game);
     snd.music("store"); snd.ambience(true);

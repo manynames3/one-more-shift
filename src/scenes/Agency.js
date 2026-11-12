@@ -7,7 +7,7 @@ import { eQuotaFor } from "./Event.js";
 import { cQuotaFor } from "./Cinema.js";
 import { wQuotaFor } from "./Ward.js";
 import { sQuotaFor } from "./Site.js";
-const QUOTA = { 1: quotaFor, 2: eQuotaFor, 3: dQuotaFor, 4: cQuotaFor, 5: wQuotaFor, 6: sQuotaFor };
+const QUOTA = { 1: quotaFor, 2: eQuotaFor, 3: dQuotaFor, 4: cQuotaFor, 5: wQuotaFor, 6: sQuotaFor, 7: () => 0 };
 import * as snd from "../audio.js";
 
 // Briefing: the manager talks, then hands over tonight's job card.
@@ -86,7 +86,7 @@ export default class Agency extends Phaser.Scene {
     const c = this.add.container(100, -100).setDepth(50);
     c.add(this.add.image(0, 0, "ui_job_card").setOrigin(0));
     c.add(txt(this, 32, 23, t(this.gig.place), { size: 9, color: C.ink, shadow: false }));
-    c.add(txt(this, 32, 37, t("wageLine", MULT[S.run.act || 1], hourly(S.run.act || 1)), { size: 9, color: C.ink, shadow: false }));
+    c.add(txt(this, 32, 37, (S.run.act === 7 ? t("wageAll") : t("wageLine", MULT[S.run.act || 1], hourly(S.run.act || 1))), { size: 9, color: C.ink, shadow: false }));
     c.add(txt(this, 13, 60, t("rule_" + this.newRule), { size: 9, color: C.red2, shadow: false, wrap: 94 }));
     this.card = c;
     this.tweens.add({ targets: c, y: 26, duration: 380, ease: "Back.easeOut" });

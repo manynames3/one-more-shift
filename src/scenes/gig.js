@@ -3,11 +3,31 @@
 // clockHot() (clock turns orange) and tickSlip() (update the top-left slip).
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, soundToggle } from "../ui.js";
-import { S, t, won, START_DEBT, recordBest, markSeen, hourly, clearAct } from "../state.js";
+import { S, t, won, START_DEBT, recordBest, markSeen, hourly, clearAct, saveNote } from "../state.js";
 import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
 
 export const GigMixin = {
+  /** The Regular's note for this act: lies somewhere on the second night until you walk over it. */
+  initNote(x, place = null) {
+    const act = this.run.act;
+    if (this.run.shift !== 2 || S.notes[act] || this.run.daily) return;
+    const spr = this.add.image(x, 146, "props_note").setDepth(98);
+    this.tweens.add({ targets: spr, y: 143, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.note = { spr, place, act, got: false };
+  },
+
+  tickNote() {
+    const n = this.note;
+    if (!n || n.got) return;
+    const here = !n.place || this.place === n.place;
+    n.spr.setVisible(here);
+    if (here && Math.abs(this.p.x - n.spr.x) < 10) {
+      n.got = true; n.spr.destroy(); saveNote(n.act);
+      snd.sfx("coin"); this.caption(t("note" + n.act), 4);
+    }
+  },
+
   /** A line of story text across the top of the play area. */
   caption(line, secs = 4) {
     const c = txt(this, W / 2, 40, line, { ox: 0.5, size: 9, color: C.white, depth: 960, wrap: W - 40 });
@@ -75,6 +95,7 @@ export const GigMixin = {
   },
 
   tickHud(dt) {
+    if (!this.over) this.tickNote();
     this.blink += dt;
     const on = Math.floor(this.blink * 6) % 2 === 0;
     const hot = this.hotRule();
