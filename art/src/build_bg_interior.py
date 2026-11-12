@@ -443,14 +443,14 @@ def store_back_stuff(img):
     xb, yb = pt(1.75, 150, -22)
     rct(img, xa, ya, xb - xa + 1, yb - ya + 1, "blue1", "ink")
     hl(img, xa + 1, xb - 1, ya + 1, "blue2")
-    text(img, xa + 3, ya, "달빛마트", "yellow", 9, edge="ink")
+    text(img, (xa + xb) // 2 + 1, ya + 1, "달빛마트", "yellow", 9, edge="ink", align="center")
     # posters
-    for (X0, X1, c1, c2, s, tc) in [(70, 104, "red2", "yellow", "신상", "white"), (112, 146, "green1", "wall1", "컵라면", "ink")]:
+    for (X0, X1, c1, c2, s, tc) in [(64, 106, "red2", "yellow", "신상", "white"), (110, 150, "green1", "wall1", "라면", "ink")]:
         xa, ya = pt(1.75, X0, -14)
         xb, yb = pt(1.75, X1, 30)
         rct(img, xa, ya, xb - xa + 1, yb - ya + 1, c2, "ink")
         rect(img, xa + 1, ya + 1, xb - xa - 1, 9, c1)
-        text(img, xa + 3, ya + 1, s, tc, 9)
+        text(img, (xa + xb) // 2 + 1, ya + 1, s, tc, 9, align="center")
         rect(img, xa + 3, ya + 13, xb - xa - 5, 8, LIGHT.get(c1, c1), "ink")
         rect(img, xa + 3, ya + 24, xb - xa - 5, 3, DARK.get(c2, c2))
     # ice-cream chest freezer
@@ -460,8 +460,8 @@ def store_back_stuff(img):
     rect(img, xa + 1, ya + 1, xb - xa - 1, 3, "blue3")
     rect(img, xa + 1, yb - 4, xb - xa - 1, 4, "grey3")
     vl(img, (xa + xb) // 2, ya + 4, yb - 4, "grey3")
-    text(img, xa + 3, ya + 3, "아이스", "red2", 9)
     dither_grad(img, (xa + 1, ya + 4, xb, yb - 4), "white", "grey4", "x", 4, 0.0, 0.8)
+    text(img, xa + 3, ya + 3, "빙과", "red2", 9)      # the counter hides the rest of the freezer
     # gum / small shelf items skipped; clutter: leaning mop sign (wet floor) left of chest
     return
 
@@ -578,8 +578,8 @@ def cig_wall(img):
         q3(img, [(1.0, X, Yb), (ZW, X, Yb), (ZW, X, Yb + 2), (1.0, X, Yb + 2)], "grey2", "ink")
     # lit header sign
     q3(img, [(1.1, X, -46), (1.7, X, -46), (1.7, X, -37), (1.1, X, -37)], "ink2", "ink")
-    x, y = pt(1.45, X, -45)
-    text(img, x - 14, y - 1, "담배", "red3", 9)
+    x, y = pt(1.25, X, -45)
+    text(img, x, y - 1, "담배", "red3", 9, align="center")
     # lower: dark cabinet doors behind the counter
     q3(img, [(1.0, X, 27), (ZW, X, 27), (ZW, X, FLOOR), (1.0, X, FLOOR)], "grey2", "ink")
     for z in [1.15 + 0.15 * k for k in range(5)]:
@@ -617,10 +617,10 @@ def counter_body(img, near):
         rect(img, xa + 1, yb - 7, xb - xa - 1, 7, "grey1", "ink")
         # end-panel poster
         rect(img, xa + 6, ya + 8, 18, 18, "wall1", "ink")
-        rect(img, xa + 8, ya + 10, 14, 6, "red2")
-        text(img, xa + 8, ya + 9, "마트", "white", 9)
-        rect(img, xa + 8, ya + 19, 14, 2, "grey3")
-        rect(img, xa + 8, ya + 23, 8, 2, "grey3")
+        rect(img, xa + 8, ya + 10, 14, 10, "red2")
+        text(img, xa + 15, ya + 10, "24", "white", 9, align="center")
+        rect(img, xa + 8, ya + 22, 14, 1, "grey3")
+        rect(img, xa + 8, ya + 24, 8, 1, "grey3")
 
 
 def register(img):
@@ -632,7 +632,7 @@ def register(img):
     rect(img, xa + 2, ya + 2, xb - xa - 4, 4, "blue3", "ink")
     rect(img, xa + 3, yb - 4, xb - xa - 6, 2, "grey2")
     # customer display on a stalk
-    xs, ys = pt(1.6, 123, -2)
+    xs, ys = pt(1.6, 137, -2)      # right end of the register, clear of the ramen poster behind it
     rect(img, xs, ys, 8, 6, "ink2", "ink")
     rect(img, xs + 1, ys + 1, 6, 3, "green2")
     vl(img, xs + 4, ys + 6, ys + 9, "grey2")
@@ -657,7 +657,6 @@ def snack_bag(img):
         px(img, xx, y - 1, "ink")
     rect(img, x - 6, y - 14, 13, 7, "yellow", "ink")
     ellipse(img, x - 4, y - 13, x + 3, y - 8, "red2", "ink")
-    text(img, x - 4, y - 14, "새", "yellow2", 9)
     vl(img, x - 6, y - 17, y - 3, "orange3")
     hl(img, x - 6, x + 6, y - 3, "orange1")
     hl(img, x - 6, x + 6, y - 2, "orange1")
@@ -668,7 +667,7 @@ def snack_bag(img):
 
 
 def hanging_signs(img):
-    for (X0, X1, z, s, bg) in [(-168, -92, 1.3, "라면·과자", "blue1"), (64, 112, 1.3, "계산대", "red1")]:
+    for (X0, X1, z, s, bg) in [(-168, -92, 1.3, "과자", "blue1"), (64, 112, 1.3, "계산대", "red1")]:
         xa, ya = pt(z, X0, -47)
         xb, yb = pt(z, X1, -31)
         yc = pt(z, 0, CEIL)[1]
@@ -676,7 +675,8 @@ def hanging_signs(img):
         vl(img, xb - 3, yc, ya, "ink")
         rct(img, xa, ya, xb - xa + 1, yb - ya + 1, bg, "ink")
         hl(img, xa + 1, xb - 1, ya + 1, LIGHT.get(bg, bg))
-        text(img, (xa + xb) // 2, ya + 1, s, "white", 9, align="center")
+        # the near shelf's top edge cuts across the left end of the snack sign: centre on the part you can see
+        text(img, (max(xa, 62) + xb) // 2 + 1, ya + 1, s, "white", 9, align="center")
 
 
 def store_extras_day(img):
