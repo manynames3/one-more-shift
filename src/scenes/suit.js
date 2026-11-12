@@ -52,17 +52,17 @@ export const SuitMixin = {
       b.dir = Math.sign(dx) || -1;
       b.x += b.dir * Math.min(Math.abs(dx), (34 + 6 * b.ties) * dt);
       s.setFrame("idle_" + (Math.floor(this.time.now / 300) % 2)).setFlipX(b.dir > 0);
-      if (Math.abs(dx) < 90 && b.t <= 0) { b.phase = "crouch"; b.t = Math.max(0.5, 0.85 - 0.06 * b.ties); s.setFrame("crouch_0"); snd.sfx("warn"); }
+      if (Math.abs(dx) < 90 && b.t <= 0) { b.phase = "crouch"; b.t = Math.max(0.6, 0.9 - 0.06 * b.ties); s.setFrame("crouch_0"); snd.sfx("warn"); this.aimSuit(); }
     } else if (b.phase === "crouch") {
       s.setFrame("crouch_0");
-      if (b.t <= 0) { b.phase = "dash"; b.target = Phaser.Math.Clamp(p.x + Math.sign(p.x - b.x) * 40, 20, W - 20); snd.sfx("dash"); }
+      if (b.t <= 0) { b.phase = "dash"; b.line?.setVisible(false); snd.sfx("dash"); }
     } else if (b.phase === "dash") {
       const dx = b.target - b.x, step = 250 * dt;
       s.setFrame("dash_" + (Math.floor(this.time.now / 80) % 2)).setFlipX(dx > 0);
       if (Math.abs(dx) <= step) {
         b.x = b.target;
         // phase 2 (3+ balloons): a second lunge straight back at you before it reels
-        if (b.ties >= 3 && !b.second) { b.second = true; b.phase = "crouch"; b.t = 0.35; s.setFrame("crouch_0"); snd.sfx("warn"); }
+        if (b.ties >= 3 && !b.second) { b.second = true; b.phase = "crouch"; b.t = 0.58; s.setFrame("crouch_0"); snd.sfx("warn"); this.aimSuit(); }
         else { b.second = false; b.phase = "stun"; b.t = b.ties >= 3 ? 1.35 : 1.7; snd.sfx("clang"); this.cameras.main.shake(100, 0.004); }
       }
       else b.x += Math.sign(dx) * step;
@@ -74,6 +74,16 @@ export const SuitMixin = {
     s.x = Math.round(b.x);
     if (this.over) return;
     if (b.phase === "stun") this.hint("tieNow", Math.round(b.x), 100); else this.unhint("tieNow");
+  },
+
+  /** It picks where it'll lunge as it crouches: just past where you stand now. A red line on the floor shows it. */
+  aimSuit() {
+    const b = this.boss, p = this.p;
+    b.target = Phaser.Math.Clamp(p.x + (Math.sign(p.x - b.x) || 1) * 20, 20, W - 20);
+    b.line ||= this.add.rectangle(0, FY + 1, 1, 2, 0xef3b4a).setOrigin(0, 0.5).setDepth(94);
+    const x0 = Math.min(b.x, b.target), x1 = Math.max(b.x, b.target);
+    b.line.setPosition(x0, FY + 1).setSize(x1 - x0, 2).setVisible(true).setAlpha(1);
+    this.tweens.add({ targets: b.line, alpha: 0.35, duration: 120, yoyo: true, repeat: 3 });
   },
 
   suitHit() {
@@ -111,7 +121,7 @@ export const SuitMixin = {
     this.unhint("tieNow"); this.unhint("tie");
     this.tweens.add({ targets: b.spr, y: -40, duration: 3000, ease: "Quad.easeIn",
       onUpdate: () => b.spr.setFrame("float_" + (Math.floor(this.time.now / 250) % 2)) });
-    b.tiesTxt.setVisible(false); b.hpTxt.setVisible(false);
+    b.tiesTxt.setVisible(false); b.hpTxt.setVisible(false); b.line?.setVisible(false);
     this.bossDone = true;
     // the clue: a laundry tag inside the head left on the stage
     this.time.delayedCall(2800, () => this.talk("talk_suit", () => this.clockOut()));
