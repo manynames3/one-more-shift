@@ -15,6 +15,7 @@ export default class Ending extends Phaser.Scene {
 
   create(data) {
     setActionLabel("");
+    this.rolling = false; this.leaving = false;
     const key = this.key = data?.ending || "walk";
     const run = S.run;
     if (key === "sign" && run) { run.earned += run.debt; run.debt = 0; }

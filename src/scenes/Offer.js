@@ -13,6 +13,7 @@ export default class Offer extends Phaser.Scene {
 
   create(data) {
     setActionLabel("");
+    this.done = false;      // scenes are reused: clear last time's state
     this.act = data.act; this.next = data.next;
     const a = ACTS[this.act - 1];
     this.cameras.main.fadeIn(400, 20, 16, 26);
@@ -66,6 +67,7 @@ export class TitleCard extends Phaser.Scene {
 
   create(data) {
     setActionLabel("");
+    this.done = false;
     const a = ACTS[data.act - 1];
     const key = "tc_" + { store: "store", event: "event", delivery: "milk", cinema: "cinema", trial: "trial", site: "site", park: "park" }[a.key];
     this.cameras.main.fadeIn(500, 20, 16, 26);

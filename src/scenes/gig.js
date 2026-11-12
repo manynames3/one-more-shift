@@ -9,6 +9,13 @@ import { cancelReplay } from "../replay.js";
 import { setActionLabel } from "../touchpad.js";
 
 export const GigMixin = {
+  /** Phaser reuses scene objects: clear everything a previous night left on `this`. */
+  resetGig() {
+    this.boss = null; this.bossDone = false; this.note = null; this.meterState = null; this.meterEnd = null;
+    this.talking = false; this.riding = null; this.chosen = null; this.choosing = false; this.opened = false;
+    this.working = null; this.carry = false; this.order = null; this.floatWrong = false; this.moving = false;
+  },
+
   /** Tell the on-screen A button what it would do here. */
   padLabel() {
     let k = null;
@@ -290,7 +297,7 @@ export const GigMixin = {
     const b = txt(this, W / 2, H / 2 + 40, `${t("wagePaid")} +${won(bonus)}`, { ox: 0.5, color: C.yellow, depth: 960 });
     b.setAlpha(0); this.tweens.add({ targets: b, alpha: 1, delay: 300, duration: 200 });
     this.p.setVisible(true); this.p.anims.stop(); this.p.setFrame("face_smile");
-    const win = this.run.debt <= 0;
+    const win = this.run.debt <= 0 && !this.run.act;     // in the story the finale decides how it ends
     // until this gig's boss is built, surviving its third night clears the act
     const act = this.run.act, actDone = this.run.shift === 4 && !S.acts[act];
     if (actDone) clearAct(act, this.run);

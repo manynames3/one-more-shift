@@ -30,6 +30,7 @@ export default class Event extends Phaser.Scene {
   create() {
     const run = S.run;
     this.run = run;
+    this.resetGig();
     this.rules = erulesFor(run.shift);
     this.d = run.shift - 1;
     this.over = false; this.pay = 0; this.strikes = 0; this.quota = eQuotaFor(run.shift);

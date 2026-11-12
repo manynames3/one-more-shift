@@ -22,6 +22,7 @@ export default class Park extends Phaser.Scene {
   create() {
     const run = S.run;
     this.run = run;
+    this.resetGig();
     this.rules = ["float", "answer", "still"];
     this.d = 2;
     this.over = false; this.pay = 0; this.strikes = 0; this.quota = 0;

@@ -91,6 +91,7 @@ export default class Shift extends Phaser.Scene {
     this.initRooms();
     this.initBoss();
     // the Regular's first note, on the shop floor on the second night
+    this.note = null;
     if (run.shift === 2 && !S.notes[1] && !run.daily) {
       this.note = this.add.image(128, 150, "props_note").setDepth(149);
       this.tweens.add({ targets: this.note, y: 147, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
