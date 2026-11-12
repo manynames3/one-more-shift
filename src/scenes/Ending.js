@@ -23,7 +23,13 @@ export default class Ending extends Phaser.Scene {
     snd.music("off"); snd.ambience(false);
     snd.jingle(key === "sign" ? "gameover" : "debtfree");
     this.cameras.main.fadeIn(800, 20, 16, 26);
+    const CU = { sign: "cu_sora_desk", walk: "cu_sora_relief", note: "cu_regular" };
     this.add.image(0, 0, BG[key]).setOrigin(0);
+    // the close-up comes in over the wide shot after the first line
+    if (this.textures.exists(CU[key])) {
+      const cu = this.add.image(0, 0, CU[key]).setOrigin(0).setAlpha(0).setDepth(5);
+      this.tweens.add({ targets: cu, alpha: 1, delay: 2500, duration: 900 });
+    }
     this.add.rectangle(0, 0, W, BAR, 0x14101a).setOrigin(0);
     this.add.rectangle(0, H - BAR, W, BAR, 0x14101a).setOrigin(0);
     txt(this, W / 2, 6, t("end_" + key), { ox: 0.5, size: 9, color: key === "sign" ? C.red : C.yellow });
@@ -48,7 +54,12 @@ export default class Ending extends Phaser.Scene {
   credits() {
     this.rolling = true;
     this.box.destroy(); this.line.destroy();
-    const shade = this.add.rectangle(0, BAR, W, H - 2 * BAR, 0x14101a, 0.8).setOrigin(0).setDepth(20).setAlpha(0);
+    const pics = ["tc_store", "tc_event", "tc_milk", "tc_cinema", "tc_trial", "tc_site", "tc_park"].filter(k => this.textures.exists(k));
+    pics.forEach((k, i) => {
+      const im = this.add.image(0, 0, k).setOrigin(0).setDepth(19).setAlpha(0);
+      this.tweens.add({ targets: im, alpha: 1, delay: 300 + i * 1200, duration: 500, yoyo: i < pics.length - 1, hold: 700 });
+    });
+    const shade = this.add.rectangle(0, BAR, W, H - 2 * BAR, 0x14101a, pics.length ? 0.45 : 0.8).setOrigin(0).setDepth(20).setAlpha(0);
     this.tweens.add({ targets: shade, alpha: 1, duration: 600 });
     const roll = this.add.container(0, H).setDepth(21);
     t("credits").forEach((s, i) => roll.add(txt(this, W / 2, i * 16, s, { ox: 0.5, size: i === 0 ? 11 : 9, color: i === 0 ? C.yellow : C.white })));

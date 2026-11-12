@@ -18,7 +18,7 @@ const LIVES = 3, FOREMAN_HP = 3;
 export const FOREMAN_NIGHT = 3, FOREMAN_MIN = 45;
 
 /** Pay you must earn on a site night. */
-export const sQuotaFor = shift => 30000 + 5000 * (shift - 1);
+export const sQuotaFor = shift => 30000 + 4000 * (shift - 1);
 
 export default class Site extends Phaser.Scene {
   constructor() { super("Site"); }
@@ -119,9 +119,9 @@ export default class Site extends Phaser.Scene {
       if (this.hoist.rider) return this.fail("hoist");
       // set the stack square on the pallet; off-centre and it comes down
       this.face = "up"; snd.sfx("work");
-      this.meter({ mode: "tap", zone: [0.38, 0.62], speed: 1.5 + 0.2 * this.d, label: t("m_stack"), done: ok => {
+      this.meter({ mode: "tap", zone: [0.36, 0.64], speed: 1.2 + 0.15 * this.d, label: t("m_stack"), done: ok => {
         this.carry = false; this.unhint("hoistGo");
-        if (ok) { this.earn(5000 + 1000 * this.d, HOIST, 76); snd.sfx("stock"); this.sendHoist(); }
+        if (ok) { this.earn(7000 + 1000 * this.d, HOIST, 76); snd.sfx("stock"); this.sendHoist(); }
         else { snd.sfx("stamp"); this.cameras.main.shake(120, 0.005); this.pop(t("bricksFell"), HOIST, 76, C.red); }
       } });
     }

@@ -86,11 +86,15 @@ export const GigMixin = {
    * A short scene: portrait, speaker, typed line, one line per press. Gameplay pauses until it ends.
    * key names a list of [who, face, text] in the strings table.
    */
-  talk(key, done) {
+  talk(key, done, closeup) {
     const lines = t(key);
     this.talking = true; this.target = null; this.intent = null;
     const D = 940;
     const shade = this.add.rectangle(0, BAR, W, H - 2 * BAR, 0x14101a, 0.35).setOrigin(0).setDepth(D).setScrollFactor(0);
+    // a big close-up behind the dialogue for the moments that matter
+    const cu = closeup && this.textures.exists(closeup)
+      ? this.add.image(0, 0, closeup).setOrigin(0).setDepth(D).setScrollFactor(0).setAlpha(0) : null;
+    if (cu) this.tweens.add({ targets: cu, alpha: 1, duration: 400 });
     const pic = this.add.image(12, 106, "portraits_sora", "neutral").setOrigin(0).setDepth(D + 2).setScrollFactor(0).setCrop(2, 10, 60, 36);
     const box = this.add.image(10, 112, "ui_dialog_box").setOrigin(0).setDepth(D + 1).setScrollFactor(0);
     const name = txt(this, 80, 116, "", { size: 9, color: C.yellow, depth: D + 3 }).setScrollFactor(0);
@@ -118,7 +122,7 @@ export const GigMixin = {
       if (typing) { typing.remove(); typing = null; body.setText(full); return; }
       if (i < lines.length) return show();
       kb.off("keydown-SPACE", adv); kb.off("keydown-ENTER", adv); kb.off("keydown-Z", adv); this.input.off("pointerdown", adv);
-      [shade, pic, box, name, body, more].forEach(o => o.destroy());
+      [shade, pic, box, name, body, more, cu].forEach(o => o?.destroy());
       this.talking = false;
       done?.();
     };

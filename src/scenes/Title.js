@@ -44,7 +44,9 @@ export default class Title extends Phaser.Scene {
       // once Act 1 is done, the job board comes first
       if (S.acts[1]) return this.time.delayedCall(280, () => this.scene.start("Board"));
       newRun();
-      this.time.delayedCall(280, () => this.scene.start("Agency", { context: S.runs > 1 ? "again" : "intro" }));
+      const ctx = S.runs > 1 ? "again" : "intro";
+      // the very first night starts the way every gig does: on the phone
+      this.time.delayedCall(280, () => S.runs > 1 ? this.scene.start("Agency", { context: ctx }) : this.scene.start("Offer", { act: 1, next: { scene: "Agency", data: { context: ctx } } }));
     };
     this.input.keyboard.on("keydown", e => { if (!["KeyL", "KeyM", "KeyD"].includes(e.code)) go(); });
     this.input.on("pointerdown", go);

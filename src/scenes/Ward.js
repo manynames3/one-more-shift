@@ -19,7 +19,7 @@ const LIVES = 3;
 export const SUBJECT_NIGHT = 3, SUBJECT_MIN = 45;
 
 /** Pay you must earn on a trial night. */
-export const wQuotaFor = shift => 30000 + 5000 * (shift - 1);
+export const wQuotaFor = shift => 36000 + 3000 * (shift - 1);
 
 export default class Ward extends Phaser.Scene {
   constructor() { super("Ward"); }

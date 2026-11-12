@@ -22,7 +22,7 @@ const ADULTS = ["halmae", "daeri", "jisu"];
 const SCREEN_SECS = 26, BREAK_SECS = 12, WATCH_MAX = 3;
 
 /** Pay you must earn on a cinema night. */
-export const cQuotaFor = shift => 32000 + 5000 * (shift - 1);
+export const cQuotaFor = shift => 46000 + 6000 * (shift - 1);
 
 export default class Cinema extends Phaser.Scene {
   constructor() { super("Cinema"); }

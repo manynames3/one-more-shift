@@ -106,7 +106,7 @@ export default class Park extends Phaser.Scene {
     if (what === "junho" && this.junho.visible && !this.found) {
       this.found = true; this.unhint("junho");
       snd.sfx("bell");
-      this.talk("talk_junho");
+      this.talk("talk_junho", null, "cu_junho");
       this.junho.setFrame("down_idle_0");
     }
   }
@@ -179,7 +179,7 @@ export default class Park extends Phaser.Scene {
     this.kwak.setVisible(true).play("characters_kwak_left_walk");
     this.tweens.add({ targets: this.kwak, x: this.p.x + 40, duration: 1600, onComplete: () => {
       this.kwak.play("characters_kwak_down_idle");
-      this.talk("talk_offer", () => { this.choosing = true; this.showChoices(); });
+      this.talk("talk_offer", () => { this.choosing = true; this.showChoices(); }, "cu_kwak_offer");
     } });
   }
 

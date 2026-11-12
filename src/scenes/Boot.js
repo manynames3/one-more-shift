@@ -49,6 +49,10 @@ export default class Boot extends Phaser.Scene {
     this.load.atlas("props_usher", "props/usher.png", "props/usher.json");
     this.load.atlas("characters_junho", "characters/junho.png", "characters/junho.json");
     this.load.atlas("portraits_junho", "portraits/junho.png", "portraits/junho.json");
+    // close-ups and title cards
+    ["cu_sora_phone", "cu_kwak_offer", "cu_junho", "cu_regular", "cu_sora_relief", "cu_sora_desk",
+      "tc_store", "tc_event", "tc_milk", "tc_cinema", "tc_trial", "tc_site", "tc_park"].forEach(k => this.load.image(k, `cutscenes/${k}.png`));
+    this.load.image("bg_crossing", "bg/crossing.png");
     ["float", "kwak_boss"].forEach(k => this.load.atlas("props_" + k, `props/${k}.png`, `props/${k}.json`));
     [["bg_park", "bg/park.png"], ["bg_ending_dawn", "bg/ending_dawn.png"], ["bg_ending_desk", "bg/ending_desk.png"], ["bg_ending_note", "bg/ending_note.png"],
       ["props_note", "props/note.png"]].forEach(([k, f]) => this.load.image(k, f));

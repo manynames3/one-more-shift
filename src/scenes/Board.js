@@ -106,9 +106,10 @@ export default class Board extends Phaser.Scene {
     if (this.ctx !== "clear" && saved && saved.act === a.n && saved.shift > 1 && !S.acts[a.n]) {
       S.run = saved; return this.leave("Agency", { context: "resume" });
     }
-    if (a.n > 1) { newRun(a.n); return this.leave("Agency", { context: GIG[a.n].intro }); }
-    newRun();
-    this.leave("Agency", { context: S.runs > 1 ? "again" : "intro" });
+    // a new job arrives on Sora's phone first, then the place, then the briefing
+    newRun(a.n);
+    const ctx = a.n > 1 ? GIG[a.n].intro : S.runs > 1 ? "again" : "intro";
+    this.leave("Offer", { act: a.n, next: { scene: "Agency", data: { context: ctx } } });
   }
 
   leave(scene, data) {

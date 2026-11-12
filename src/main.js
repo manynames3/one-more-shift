@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { initTouchpad } from "./touchpad.js";
+import { FilmFX, applyFilm } from "./filmfx.js";
 import { W, H } from "./ui.js";
 import { S } from "./state.js";
 import Boot from "./scenes/Boot.js";
@@ -15,6 +16,7 @@ import Ward from "./scenes/Ward.js";
 import Site from "./scenes/Site.js";
 import Park from "./scenes/Park.js";
 import Ending from "./scenes/Ending.js";
+import Offer, { TitleCard } from "./scenes/Offer.js";
 
 async function start() {
   // Text is drawn with the pixel fonts, so they must be ready before the first scene.
@@ -30,7 +32,8 @@ async function start() {
     pixelArt: true, roundPixels: true, antialias: false,
     scale: { mode: Phaser.Scale.NONE, width: W, height: H },
     input: { activePointers: 2 },
-    scene: [Boot, Title, Agency, Shift, Result, Board, Delivery, Event, Cinema, Ward, Site, Park, Ending],
+    pipeline: { FilmFX },
+    scene: [Boot, Title, Agency, Shift, Result, Board, Delivery, Event, Cinema, Ward, Site, Park, Ending, Offer, TitleCard],
   });
 
   // Largest scale that fits the window and lands on whole device pixels.
@@ -44,6 +47,7 @@ async function start() {
   window.addEventListener("resize", fit);
   window.addEventListener("orientationchange", () => setTimeout(fit, 200));
   initTouchpad();
+  applyFilm(game);
   window.__game = game; window.__S = S;   // handy for debugging from the console
 }
 start();

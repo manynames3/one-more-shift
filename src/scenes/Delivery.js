@@ -21,11 +21,11 @@ const TOPF = 5;
 const HUB = { counter: 170, exit: 290, arrive: 276 };
 const HALL = { elev: 38, doors: [110, 170, 230], stair: 293 };
 const STAIR = { door: 162, up: 306, down: 12 };
-const RIDE_MIN = 3, CLIMB_MIN = 1;
+const RIDE_MIN = 2, CLIMB_MIN = 1;
 const NO_ELEV_MIN = 30;         // 02:00
 
 /** Pay you must earn in a delivery shift. */
-export const dQuotaFor = shift => 20000 + 5000 * (shift - 1);
+export const dQuotaFor = shift => 18000 + 4000 * (shift - 1);
 
 export default class Delivery extends Phaser.Scene {
   constructor() { super("Delivery"); }
