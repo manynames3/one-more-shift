@@ -129,6 +129,7 @@ export default class Board extends Phaser.Scene {
       const s = txt(this, store.x + CW / 2, store.y + 30, t("st_clear"), { ox: 0.5, size: 9, color: C.green, depth: 20 });
       s.setBackgroundColor("#14101a").setPadding(2, 1, 2, 1).setScale(2).setAlpha(0);
       this.tweens.add({ targets: s, scale: 1, alpha: 1, duration: 180, ease: "Quad.easeIn" });
+      this.tweens.add({ targets: s, alpha: 0, delay: 1500, duration: 400, onComplete: () => s.destroy() });   // the card's own tag stays
       snd.sfx("stamp"); this.cameras.main.shake(120, 0.006);
     });
     this.time.delayedCall(1800, () => {

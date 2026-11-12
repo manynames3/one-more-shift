@@ -446,7 +446,7 @@ export function ambience(on) {
   } else if (kind === "ward") {            // vents, and somebody's heart monitor down the hall
     drone("sawtooth", 100, 0.012, 300);
     loopNoise("lowpass", 900, 0.5, 0.01);
-    timers.push(setInterval(() => tone(g, { type: "sine", f: 988, t: ctx.currentTime + 0.01, dur: 0.07, vol: 0.022, r: 0.04 }), 1150));
+    timers.push(setInterval(() => ctx.state === "running" && tone(g, { type: "sine", f: 988, t: ctx.currentTime + 0.01, dur: 0.07, vol: 0.022, r: 0.04 }), 1150));
   } else if (kind === "cinema") {          // the projector through the wall
     const pr = loopNoise("bandpass", 1500, 1.2, 0.012);
     lfo(24, 0.008, pr.ng.gain);
