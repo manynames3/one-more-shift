@@ -108,8 +108,7 @@ export const SuitMixin = {
     b.tiesTxt.setVisible(false); b.hpTxt.setVisible(false);
     this.bossDone = true;
     // the clue: a laundry tag inside the head left on the stage
-    this.time.delayedCall(2600, () => this.caption(t("clue_suit"), 3.5));
-    this.time.delayedCall(6500, () => { if (!this.over) this.clockOut(); });
+    this.time.delayedCall(2800, () => this.talk("talk_suit", () => this.clockOut()));
   },
 
   endBossFx() { if (this.boss?.tiesTxt) { this.boss.tiesTxt.setVisible(false); this.boss.hpTxt.setVisible(false); } },

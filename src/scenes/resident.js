@@ -125,9 +125,8 @@ export const ResidentMixin = {
     b.phase = "done"; this.bossDone = true;
     this.ringEv?.remove(); b.glow.setAlpha(0); this.unhint("phone");
     snd.sfx("ui"); snd.jingle("clockout");
-    this.caption(t("clue_phone"), 4.5);
+    this.time.delayedCall(600, () => this.talk("talk_phone", () => this.clockOut()));
     b.hp.setVisible(false); b.floorTxt.setVisible(false);
-    this.time.delayedCall(5200, () => { if (!this.over) this.clockOut(); });
     return true;
   },
 

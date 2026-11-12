@@ -89,6 +89,7 @@ export default class Site extends Phaser.Scene {
   spots() { return [[PILE, 18, "pile"], [BOARD, 16, "board"], [HOIST, 20, "hoist"]]; }
 
   act() {
+    if (this.talking) return;
     if (this.over || this.busy || this.working) return;
     if (this.bossActive?.()) return this.signal();
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
@@ -96,6 +97,7 @@ export default class Site extends Phaser.Scene {
   }
 
   tap(x, y) {
+    if (this.talking) return;
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.bossActive?.()) { if (y < 80) return this.signal(); this.target = Phaser.Math.Clamp(x, 10, W - 10); return; }
     if (this.working) this.cancelWork();
@@ -269,8 +271,7 @@ export default class Site extends Phaser.Scene {
     b.phase = "done"; this.bossDone = true; this.clearHints();
     b.hpTxt.setVisible(false); b.lives.setVisible(false);
     snd.music("off"); snd.jingle("clockout");
-    this.time.delayedCall(1200, () => this.caption(t("clue_site"), 4));
-    this.time.delayedCall(5600, () => { if (!this.over) this.clockOut(); });
+    this.time.delayedCall(1400, () => this.talk("talk_site", () => this.clockOut()));
   }
 
   endBossFx() { if (this.boss?.hpTxt) { this.boss.hpTxt.setVisible(false); this.boss.lives.setVisible(false); } }
@@ -344,7 +345,7 @@ export default class Site extends Phaser.Scene {
 
   update(time, ms) {
     for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
-    if (this.over) return;
+    if (this.over || this.talking) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
     if (this.boss) {
       this.tickPlayer(dt);

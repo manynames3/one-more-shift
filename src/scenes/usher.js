@@ -110,8 +110,7 @@ export const UsherMixin = {
     snd.music("off"); snd.jingle("clockout");
     b.hpTxt.setVisible(false); b.lives.setVisible(false);
     this.screen.setFrame("cctv_1");
-    this.time.delayedCall(1200, () => this.caption(t("clue_cctv"), 4));
-    this.time.delayedCall(5600, () => { if (!this.over) this.clockOut(); });
+    this.time.delayedCall(1400, () => this.talk("talk_cctv", () => this.clockOut()));
   },
 
   endBossFx() { if (this.boss?.hpTxt) { this.boss.hpTxt.setVisible(false); this.boss.lives.setVisible(false); } },

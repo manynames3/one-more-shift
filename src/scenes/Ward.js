@@ -85,12 +85,14 @@ export default class Ward extends Phaser.Scene {
   spots() { return [[HATCH, 16, "hatch"], [BED, 16, "bed"], [DOOR, 16, "door"]]; }
 
   act() {
+    if (this.talking) return;
     if (this.over || this.busy || this.working) return;
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
     if (s) this.use(s[2]);
   }
 
   tap(x, y) {
+    if (this.talking) return;
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.working) this.cancelWork();
     const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 60);
@@ -246,8 +248,7 @@ export default class Ward extends Phaser.Scene {
     this.clearHints(); b.lives.setVisible(false);
     snd.music("off"); snd.jingle("clockout");
     this.p.setVisible(false); this.dark.setAlpha(0);
-    this.caption(t("clue_trial"), 4);
-    this.time.delayedCall(4800, () => { if (!this.over) this.clockOut(); });
+    this.time.delayedCall(800, () => this.talk("talk_trial", () => this.clockOut()));
   }
 
   // ---- HUD hooks ---------------------------------------------------------------------
@@ -321,7 +322,7 @@ export default class Ward extends Phaser.Scene {
 
   update(time, ms) {
     for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
-    if (this.over) return;
+    if (this.over || this.talking) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
     if (this.boss) {
       this.tickPlayer(dt);

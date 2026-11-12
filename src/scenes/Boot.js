@@ -11,7 +11,7 @@ const USED = new Set([
   "bg_backroom", "bg_street_night", "props_door_staff", "props_box_stack", "props_box_closed", "props_trash_bag",
   "characters_sora", "characters_kwak", "characters_halmae", "characters_daeri", "characters_jisu",
   "characters_deokgu", "characters_regular",
-  "portraits_kwak", "portraits_regular",
+  "portraits_kwak", "portraits_regular", "portraits_sora",
   "props_icons", "props_items", "props_exclaim", "props_red_eyes", "props_shadow_blob", "props_static_overlay",
   "props_coin_spin", "props_sweat", "props_register", "props_cctv", "props_wet_floor_sign", "props_time_clock",
   "ui_logo", "ui_dialog_box", "ui_job_card", "ui_rule_banner", "ui_hud_bottom", "ui_debt_meter_fill",
@@ -48,6 +48,7 @@ export default class Boot extends Phaser.Scene {
     this.load.atlas("props_screen_film", "props/screen_film.png", "props/screen_film.json");
     this.load.atlas("props_usher", "props/usher.png", "props/usher.json");
     this.load.atlas("characters_junho", "characters/junho.png", "characters/junho.json");
+    this.load.atlas("portraits_junho", "portraits/junho.png", "portraits/junho.json");
     ["float", "kwak_boss"].forEach(k => this.load.atlas("props_" + k, `props/${k}.png`, `props/${k}.json`));
     [["bg_park", "bg/park.png"], ["bg_ending_dawn", "bg/ending_dawn.png"], ["bg_ending_desk", "bg/ending_desk.png"], ["bg_ending_note", "bg/ending_note.png"],
       ["props_note", "props/note.png"]].forEach(([k, f]) => this.load.image(k, f));

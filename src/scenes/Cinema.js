@@ -131,6 +131,7 @@ export default class Cinema extends Phaser.Scene {
   }
 
   act() {
+    if (this.talking) return;
     if (this.over || this.busy || this.working) return;
     if (this.bossActive?.()) return this.bossAct();
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
@@ -138,6 +139,7 @@ export default class Cinema extends Phaser.Scene {
   }
 
   tap(x, y) {
+    if (this.talking) return;
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.bossActive?.()) { if (Math.abs(x - this.p.x) < 20) return this.bossAct(); this.target = Phaser.Math.Clamp(x, 10, W - 10); return; }
     if (this.working) this.cancelWork();
@@ -366,7 +368,7 @@ export default class Cinema extends Phaser.Scene {
 
   update(time, ms) {
     for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
-    if (this.over) return;
+    if (this.over || this.talking) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
     if (this.boss) {
       this.tickPlayer(dt);

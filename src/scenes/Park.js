@@ -74,12 +74,14 @@ export default class Park extends Phaser.Scene {
   spots() { return [[BOOTH, 16, "booth"], [FRONT, 14, "front"], [JUNHO, 18, "junho"]]; }
 
   act() {
+    if (this.talking) return;
     if (this.over || this.busy || this.working || this.choosing) return;
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
     if (s) this.use(s[2]);
   }
 
   tap(x, y) {
+    if (this.talking) return;
     if (this.over || this.busy || this.choosing || y < BAR || y > H - BAR) return;
     if (this.working) this.cancelWork();
     const s = this.boss ? null : this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 60);
@@ -104,7 +106,7 @@ export default class Park extends Phaser.Scene {
     if (what === "junho" && this.junho.visible && !this.found) {
       this.found = true; this.unhint("junho");
       snd.sfx("bell");
-      this.caption(t("junhoLine"), 4.5);
+      this.talk("talk_junho");
       this.junho.setFrame("down_idle_0");
     }
   }
@@ -177,7 +179,7 @@ export default class Park extends Phaser.Scene {
     this.kwak.setVisible(true).play("characters_kwak_left_walk");
     this.tweens.add({ targets: this.kwak, x: this.p.x + 40, duration: 1600, onComplete: () => {
       this.kwak.play("characters_kwak_down_idle");
-      this.offerLines(t("offer"), () => this.showChoices());
+      this.talk("talk_offer", () => { this.choosing = true; this.showChoices(); });
     } });
   }
 
@@ -317,7 +319,7 @@ export default class Park extends Phaser.Scene {
 
   update(time, ms) {
     for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
-    if (this.over) return;
+    if (this.over || this.talking) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
     if (this.choosing) return this.tickHud(dt);
     // the clock runs in the fight too: it ends at 05:00

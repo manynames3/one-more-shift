@@ -8,6 +8,51 @@ import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
 
 export const GigMixin = {
+  /**
+   * A short scene: portrait, speaker, typed line, one line per press. Gameplay pauses until it ends.
+   * key names a list of [who, face, text] in the strings table.
+   */
+  talk(key, done) {
+    const lines = t(key);
+    this.talking = true; this.target = null; this.intent = null;
+    const D = 940;
+    const shade = this.add.rectangle(0, BAR, W, H - 2 * BAR, 0x14101a, 0.35).setOrigin(0).setDepth(D).setScrollFactor(0);
+    const pic = this.add.image(12, 106, "portraits_sora", "neutral").setOrigin(0).setDepth(D + 2).setScrollFactor(0).setCrop(2, 10, 60, 36);
+    const box = this.add.image(10, 112, "ui_dialog_box").setOrigin(0).setDepth(D + 1).setScrollFactor(0);
+    const name = txt(this, 80, 116, "", { size: 9, color: C.yellow, depth: D + 3 }).setScrollFactor(0);
+    const body = txt(this, 80, 129, "", { size: 9, color: C.white, depth: D + 3, wrap: 222 }).setScrollFactor(0);
+    const more = txt(this, 298, 142, "▼", { size: 9, color: C.grey, depth: D + 3 }).setScrollFactor(0);
+    this.tweens.add({ targets: more, y: 144, duration: 300, yoyo: true, repeat: -1 });
+    let i = 0, typing = null, full = "", guard = 0;
+    const show = () => {
+      const [who, face, text] = lines[i++];
+      const tex = "portraits_" + who;
+      if (this.textures.exists(tex)) pic.setTexture(tex, this.textures.get(tex).has(face) ? face : undefined).setVisible(true).setCrop(2, 10, 60, 36);
+      else pic.setVisible(false);
+      name.setText(t("who_" + who)); full = text; body.setText("");
+      let n = 0;
+      typing?.remove();
+      typing = this.time.addEvent({ delay: 26, loop: true, callback: () => {
+        n++; body.setText(full.slice(0, n)); if (n % 2 === 0) snd.sfx("type");
+        if (n >= full.length) { typing.remove(); typing = null; }
+      } });
+    };
+    const adv = () => {
+      if (this.time.now < guard) return;
+      guard = this.time.now + 180;
+      snd.init();
+      if (typing) { typing.remove(); typing = null; body.setText(full); return; }
+      if (i < lines.length) return show();
+      kb.off("keydown-SPACE", adv); kb.off("keydown-ENTER", adv); kb.off("keydown-Z", adv); this.input.off("pointerdown", adv);
+      [shade, pic, box, name, body, more].forEach(o => o.destroy());
+      this.talking = false;
+      done?.();
+    };
+    const kb = this.input.keyboard;
+    this.time.delayedCall(250, () => { kb.on("keydown-SPACE", adv); kb.on("keydown-ENTER", adv); kb.on("keydown-Z", adv); this.input.on("pointerdown", adv); });
+    show();
+  },
+
   /** The Regular's note for this act: lies somewhere on the second night until you walk over it. */
   initNote(x, place = null) {
     const act = this.run.act;

@@ -96,6 +96,7 @@ export default class Event extends Phaser.Scene {
   spots() { return [[STAGE, 22, "stage"], [CART, 16, "cart"], [FRONT, 16, "front"]]; }
 
   act() {
+    if (this.talking) return;
     if (this.over || this.busy || this.working) return;
     if (this.bossActive() && this.tryTie()) return;
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
@@ -103,6 +104,7 @@ export default class Event extends Phaser.Scene {
   }
 
   tap(x, y) {
+    if (this.talking) return;
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.working) this.cancelWork();
     const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 60);
@@ -335,7 +337,7 @@ export default class Event extends Phaser.Scene {
 
   update(time, ms) {
     for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
-    if (this.over) return;
+    if (this.over || this.talking) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
     if (this.bossActive() || this.bossDone) {
       this.tickPlayer(dt);

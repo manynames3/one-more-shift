@@ -191,6 +191,7 @@ export default class Delivery extends Phaser.Scene {
 
   /** Do whatever is within reach. */
   act() {
+    if (this.talking) return;
     if (this.over || this.busy || this.working || this.place === "ride") return;
     if (this.place === "roof") { this.pickPhone(); return; }
     if (this.boss) return;
@@ -199,6 +200,7 @@ export default class Delivery extends Phaser.Scene {
   }
 
   tap(x, y) {
+    if (this.talking) return;
     if (this.over || this.busy || this.place === "ride" || y < BAR || y > H - BAR) return;
     if (this.place === "chase") { this.target = x < W / 2 ? 0 : W; this.intent = null; return; }
     if (this.place === "roof") { this.target = Phaser.Math.Clamp(x, 12, W - 12); this.intent = Math.abs(x - 250) < 24 ? "phone" : null; return; }
@@ -418,7 +420,7 @@ export default class Delivery extends Phaser.Scene {
 
   update(time, ms) {
     for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
-    if (this.over) return;
+    if (this.over || this.talking) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
     if (this.boss) {
       this.tickPlayer(dt);
