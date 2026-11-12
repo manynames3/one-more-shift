@@ -44,7 +44,7 @@ export const ResidentMixin = {
     this.elevOpen.setVisible(false); this.doorOpen.setVisible(false);
     this.bigFloor.setText(`${this.floor}F`).setColor(C.grey).setX(160);
     this.p.x = x; this.p.y = FY; this.p.setVisible(true); this.target = null; this.intent = null;
-    b.side = Math.random() < 0.5 ? "L" : "R"; b.wait = 0; b.lim = Math.max(1.8, 3.6 - 0.35 * (this.floor - 1));
+    b.side = Math.random() < 0.5 ? "L" : "R"; b.wait = 0; b.lim = Math.max(2.5, 3.6 - 0.25 * (this.floor - 1));
     b.glow.setPosition(BULB[b.side].x, BULB[b.side].y);
     b.peek.setPosition(PEEK[b.side].x, PEEK[b.side].y).setFlipX(b.side === "R").setVisible(true).setAlpha(0);
     this.tweens.add({ targets: b.peek, alpha: 1, delay: 250, duration: 300 });
@@ -83,7 +83,7 @@ export const ResidentMixin = {
     this.cut(() => {
       this.floor++;
       if (this.floor >= ROOF) return this.toRoof();
-      this.toLanding(side === "L" ? 40 : 280);
+      this.toLanding(160);      // always the middle of the landing, so either flight is a fair run
     }, 180);
   },
 
