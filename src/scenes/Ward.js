@@ -58,6 +58,8 @@ export default class Ward extends Phaser.Scene {
     this.hatch = { open: false, t: rand(4, 6), left: 0, red: false };
     this.diary = { need: false, t: rand(8, 12), left: 0 };
     this.visit = { state: "away", t: rand(12, 16), left: 0, notag: false };
+    // first night: the three jobs arrive one at a time, after the how-to caption
+    if (this.run.shift === 1) { this.hatch.t = rand(6, 7); this.diary.t = rand(17, 20); this.visit.t = rand(26, 30); }
     this.lights = { state: "on", t: rand(14, 20), left: 0 };
 
     this.buildHud();
