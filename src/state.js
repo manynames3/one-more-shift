@@ -10,9 +10,9 @@ const store = {
 // the show; 100x is what the agency offers after the first job), construction 500x (set by design).
 // A shift is one in-game hour, so a cleared shift pays one hour at that rate.
 export const MIN_WAGE = 10320;
-export const MULT = { 1: 50, 2: 75, 3: 200, 4: 100, 6: 500 };
+export const MULT = { 1: 50, 2: 75, 3: 200, 4: 100, 5: 150, 6: 500 };
 export const hourly = act => MIN_WAGE * (MULT[act] || 50);
-export const START_DEBT = 20000000;
+export const START_DEBT = 40000000;
 
 export const S = {
   lang: store.get("oms.lang", (navigator.language || "en").toLowerCase().startsWith("ko") ? "ko" : "en"),
@@ -50,8 +50,8 @@ export const ACTS = [
   { n: 2, key: "event", built: true },
   { n: 3, key: "delivery", built: true },
   { n: 4, key: "cinema", built: true },
-  { n: 5, key: "trial" },
-  { n: 6, key: "site" },
+  { n: 5, key: "trial", built: true },
+  { n: 6, key: "site", built: true },
   { n: 7, key: "park" },
 ];
 export function clearAct(n, run) {
@@ -101,12 +101,20 @@ export const drulesFor = shift => DRULES.slice(0, Math.min(shift, DRULES.length)
 // Act 4, the cinema: the screen (1), the audience count (2), the film that isn't on the schedule (3).
 export const CRULES = ["screen", "count", "unscheduled"];
 export const crulesFor = shift => CRULES.slice(0, Math.min(shift, CRULES.length));
+// Act 5, the trial: blue pills only (1), stay in bed after lights-out (2), no name tag, no arm (3).
+export const WRULES = ["pill", "bed", "nurse"];
+export const wrulesFor = shift => WRULES.slice(0, Math.min(shift, WRULES.length));
+// Act 6, the site: the occupied hoist (1), the pour (2), roll call (3).
+export const SRULES = ["hoist", "pit", "rollcall"];
+export const srulesFor = shift => SRULES.slice(0, Math.min(shift, SRULES.length));
 
 /** Per-act setup: which scene runs the shift, the place on the job card, the manager's lines. */
 export const GIG = {
   1: { scene: "Shift", place: "place", intro: "intro", briefs: { 2: "brief2", 3: "brief3", 4: "brief4", 5: "brief5", 6: "brief6", 7: "brief7" } },
   2: { scene: "Event", place: "place2", intro: "e_intro", briefs: { 2: "e_brief2", 3: "e_brief3" }, rules: ERULES },
   3: { scene: "Delivery", place: "place3", intro: "d_intro", briefs: { 2: "d_brief2", 3: "d_brief3" }, rules: DRULES },
+  5: { scene: "Ward", place: "place5", intro: "w_intro", briefs: { 2: "w_brief2", 3: "w_brief3" }, rules: WRULES },
+  6: { scene: "Site", place: "place6", intro: "s_intro", briefs: { 2: "s_brief2", 3: "s_brief3" }, rules: SRULES },
   4: { scene: "Cinema", place: "place4", intro: "c_intro", briefs: { 2: "c_brief2", 3: "c_brief3" }, rules: CRULES },
 };
 
@@ -146,6 +154,25 @@ const STR = {
     hallIn: n => `3관 입장 ${n}명`, nowShowing: "상영 중", intermission: "휴식", filmBroke: "필름 끊김!",
     usherStart: "영사기가 저절로 켜졌다. 빛 속에서 누가 걸어 나온다.", usherHp: n => `안내원 ${n}`, hint_lamp: "Space: 영사기 끄기", hint_hit: "지금! 어둠 속에서 쳐!",
     clue_cctv: "화면 속 CCTV, 계산대 뒤에 선 남자. 명찰: 준호.",
+    place5: "해맑음병원 임상시험", place6: "새벽 공사장",
+    jd_trial: "사흘 밤 임상시험 · 3번 침대를 조심", jd_site: "사흘 밤 공사장 · 감독관을 조심",
+    rule_pill: "파란 약만 드시오", rule_bed: "소등 후에는 침대에서 나오지 마시오", rule_nurse: "이름표 없는 간호사에게 팔을 내밀지 마시오",
+    rule_boss5: "등을 돌렸을 때만 움직여 문으로", cause_pill: "빨간 약을 먹었다", cause_bed: "소등 중에 침대를 나왔다", cause_nurse: "이름표 없는 간호사", cause_subject: "3번 피험자에게 붙잡혔다",
+    w_intro: ["이번엔 임상시험이야. 누워만 있으면 돼.", "주는 약 먹고, 일지 쓰고, 피 뽑고.", "아, 파란 약만 먹어. 빨간 건 돌려보내."],
+    w_brief2: ["불 꺼지면 침대에서 나오지 마.", "화장실? 참아."],
+    w_brief3: ["이름표 없는 간호사가 오면...", "팔 내밀지 마. 그 병원엔 그런 간호사 없어."],
+    hint_pill: "Space: 약 먹기", hint_red: "빨간 약! 먹지 말고 기다려", hint_bed: "소등! 침대로, 가만히!", hint_arm: "침대에서 Space: 채혈", hint_notag: "이름표가 없다... 팔 내밀지 마",
+    missedDose: "투약 누락!", subjectNo: "피험자 9번",
+    subjectStart: "3번 침대가 일어났다. 문 앞에 서 있다.", hint_sneak: "돌아보면 멈춰! 문에서 Space",
+    clue_trial: "문 옆 피험자 명단: 7번 준호 · 상태 '진행 중'.",
+    rule_hoist: "누가 탄 호이스트엔 싣지 마시오", rule_pit: "타설 중엔 구덩이를 건너지 마시오", rule_rollcall: "점호가 하나 많으면 판을 뒤집으시오",
+    rule_boss6: "갈고리 밑으로 유인해 신호하시오", cause_hoist: "누가 탄 호이스트에 실었다", cause_pit: "타설 중 구덩이 위에 섰다", cause_rollcall: "점호판을 안 뒤집었다", cause_foreman: "감독관에게 맞았다",
+    s_intro: ["공사장이야. 벽돌 날라서 호이스트에.", "시급이 제일 세. 그만큼 위험하고.", "호이스트에 누가 타고 내려오면... 싣지 마."],
+    s_brief2: ["타설할 땐 구덩이 건너지 마.", "콘크리트가 뭘 덮는지는 묻지 말고."],
+    s_brief3: ["점호판 숫자가 명단보다 하나 많으면,", "판을 뒤집어. 그 하나는 세지 마."],
+    hint_pile: "Space: 벽돌 들기", hint_hoistGo: "→ 호이스트에 싣기", hint_rider: "안에 누가 있다! 싣지 마", hint_pour: "타설! 구덩이에서 떨어져", hint_roll: "하나 많다! 판 뒤집기 (Space)",
+    rollBoard: (n, m) => `점호 ${n}\n명단 ${m}`, holdBrick: "벽돌", foremanStart: "감독관이 망치를 들었다.", foremanHp: n => `감독관 ${n}`, hint_crane: "갈고리 밑으로 유인, Space: 낙하",
+    clue_site: "감독관의 사원증. 사진 속 얼굴: 준호.",
     place2: "그랜드 오픈 행사", banner: "만두군 쇼",
     rule_balloon: "풍선은 아이에게만 주시오", rule_head: "탈이 벗겨지면 무대를 보지 마시오", rule_answer: "탈이 부르면 대답하지 마시오",
     cause_balloon: "어른에게 풍선을 줬다", cause_head: "탈 속을 봤다", cause_answer: "이름에 대답했다",
@@ -226,6 +253,25 @@ const STR = {
     hallIn: n => `HALL 3 IN: ${n}`, nowShowing: "SHOWING", intermission: "BREAK", filmBroke: "Film broke!",
     usherStart: "The projector came on by itself. Someone walks out of the light.", usherHp: n => `USHER ${n}`, hint_lamp: "Space: cut the lamp", hint_hit: "NOW! Hit it in the dark!",
     clue_cctv: "On the CCTV film, a man behind a counter. Name tag: JUNHO.",
+    place5: "Haemalgeum Trial", place6: "Dawn Site",
+    jd_trial: "Three nights in a drug trial · watch bed 3", jd_site: "Three nights on site · watch the Foreman",
+    rule_pill: "Blue pills only", rule_bed: "After lights-out, stay in bed", rule_nurse: "No name tag? Don't give your arm",
+    rule_boss5: "Move only while its back is turned", cause_pill: "Took the red pill", cause_bed: "Left bed after lights-out", cause_nurse: "The nurse with no tag", cause_subject: "Caught by subject 3",
+    w_intro: ["A clinical trial this time. Just lie there.", "Take the pills, fill the diary, give blood.", "Oh, blue pills only. Send the red ones back."],
+    w_brief2: ["When the lights go out, stay in bed.", "Bathroom? Hold it."],
+    w_brief3: ["If a nurse with no name tag comes...", "don't give your arm. They have no such nurse."],
+    hint_pill: "Space: take the pill", hint_red: "Red pill! Don't take it, wait", hint_bed: "Lights out! To bed, stay still!", hint_arm: "Space at your bed: blood draw", hint_notag: "No name tag... keep your arm",
+    missedDose: "Missed dose!", subjectNo: "SUBJECT 9",
+    subjectStart: "Bed 3 got up. It's standing at the door.", hint_sneak: "Freeze when it turns! Space at the door",
+    clue_trial: "Subject list by the door: No. 7 JUNHO · status 'ongoing'.",
+    rule_hoist: "Never load a hoist with a rider", rule_pit: "During a pour, stay off the pit", rule_rollcall: "One too many at roll call? Flip it",
+    rule_boss6: "Lure it under the hook, signal", cause_hoist: "Loaded the occupied hoist", cause_pit: "On the pit during a pour", cause_rollcall: "Didn't flip the board", cause_foreman: "Hit by the Foreman",
+    s_intro: ["Construction tonight. Bricks to the hoist.", "Best pay you'll ever see. Worst risk too.", "If the hoist comes down with someone in it... don't load it."],
+    s_brief2: ["During a pour, don't cross the pit.", "Don't ask what the concrete covers."],
+    s_brief3: ["If roll call shows one more than the list,", "flip the board. Don't count the extra one."],
+    hint_pile: "Space: pick up bricks", hint_hoistGo: "→ Load the hoist", hint_rider: "Someone's inside! Don't load", hint_pour: "Pour! Off the pit", hint_roll: "One too many! Flip it (Space)",
+    rollBoard: (n, m) => `ROLL ${n}\nLIST ${m}`, holdBrick: "BRICKS", foremanStart: "The Foreman picks up his hammer.", foremanHp: n => `FOREMAN ${n}`, hint_crane: "Lure under the hook, Space: drop",
+    clue_site: "The Foreman's staff ID. The photo is JUNHO.",
     place2: "Grand Opening", banner: "MANDU SHOW",
     rule_balloon: "Balloons for kids only", rule_head: "Head off? Don't look at the stage", rule_answer: "If it calls your name, don't answer",
     cause_balloon: "Balloon to an adult", cause_head: "Saw inside the suit", cause_answer: "Answered its call",

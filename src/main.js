@@ -10,6 +10,8 @@ import Board from "./scenes/Board.js";
 import Delivery from "./scenes/Delivery.js";
 import Event from "./scenes/Event.js";
 import Cinema from "./scenes/Cinema.js";
+import Ward from "./scenes/Ward.js";
+import Site from "./scenes/Site.js";
 
 async function start() {
   // Text is drawn with the pixel fonts, so they must be ready before the first scene.
@@ -25,7 +27,7 @@ async function start() {
     pixelArt: true, roundPixels: true, antialias: false,
     scale: { mode: Phaser.Scale.NONE, width: W, height: H },
     input: { activePointers: 2 },
-    scene: [Boot, Title, Agency, Shift, Result, Board, Delivery, Event, Cinema],
+    scene: [Boot, Title, Agency, Shift, Result, Board, Delivery, Event, Cinema, Ward, Site],
   });
 
   // Largest scale that fits the window and lands on whole device pixels.

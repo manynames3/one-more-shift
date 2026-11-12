@@ -47,6 +47,9 @@ export default class Boot extends Phaser.Scene {
     this.load.atlas("props_resident", "props/resident.png", "props/resident.json");
     this.load.atlas("props_screen_film", "props/screen_film.png", "props/screen_film.json");
     this.load.atlas("props_usher", "props/usher.png", "props/usher.json");
+    ["nurse", "nurse_notag", "subject", "pill", "foreman"].forEach(k => this.load.atlas("props_" + k, `props/${k}.png`, `props/${k}.json`));
+    [["bg_ward", "bg/ward.png"], ["bg_site", "bg/site.png"], ["props_hoist_closed", "props/hoist_closed.png"], ["props_hoist_rider", "props/hoist_rider.png"],
+      ["props_load", "props/load.png"], ["props_brick", "props/brick.png"]].forEach(([k, f]) => this.load.image(k, f));
     [["bg_cinema_lobby", "bg/cinema_lobby.png"], ["bg_cinema_hall", "bg/cinema_hall.png"], ["bg_cinema_booth", "bg/cinema_booth.png"],
       ["props_beam", "props/beam.png"], ["props_reel", "props/reel.png"]].forEach(([k, f]) => this.load.image(k, f));
     [["bg_stairwell_scissor", "bg/stairwell_scissor.png"], ["bg_roof", "bg/roof.png"], ["bg_milk_depot", "bg/milk_depot.png"],

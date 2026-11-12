@@ -24,10 +24,10 @@ export const ResidentMixin = {
     snd.music("boss"); snd.sfx("warn"); snd.sfx("knock", 0.3);
     this.cameras.main.shake(250, 0.006);
     const b = this.boss;
-    b.glow = this.add.rectangle(0, 0, 22, 14, 0xef3b4a).setDepth(4).setAlpha(0);
+    b.glow = this.add.rectangle(0, 0, 34, 22, 0xef3b4a).setDepth(4).setAlpha(0);
     b.peek = this.add.sprite(0, 0, "props_resident", "peek_0").setOrigin(0.5, 1).setDepth(5).setVisible(false);
     b.hp = txt(this, W - 6, 34, "", { ox: 1, size: 9, color: C.red, depth: 895 });
-    b.floorTxt = txt(this, 6, 34, "", { size: 9, color: C.yellow, depth: 895 });
+    b.floorTxt = txt(this, W / 2, 80, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 });
     this.cut(() => {
       this.floor = Math.max(1, Math.min(this.floor, 5));
       this.toLanding(160);
@@ -42,7 +42,7 @@ export const ResidentMixin = {
     this.bg.setTexture("bg_stairwell_scissor").clearTint(); this.dim.setAlpha(0);
     this.floorTxt.setText(""); this.plates.forEach(p => p.setVisible(false)); this.navL.setText("▲"); this.navR.setText("▲");
     this.elevOpen.setVisible(false); this.doorOpen.setVisible(false);
-    this.bigFloor.setText(`${this.floor}F`).setColor(C.grey);
+    this.bigFloor.setText(`${this.floor}F`).setColor(C.grey).setX(160);
     this.p.x = x; this.p.y = FY; this.p.setVisible(true); this.target = null; this.intent = null;
     b.side = Math.random() < 0.5 ? "L" : "R"; b.wait = 0; b.lim = Math.max(1.8, 3.6 - 0.35 * (this.floor - 1));
     b.glow.setPosition(BULB[b.side].x, BULB[b.side].y);
@@ -58,7 +58,7 @@ export const ResidentMixin = {
     if (b.phase === "roof") return this.tickRoof(dt);
     if (this.busy) return;
     b.wait += dt;
-    b.glow.setAlpha(Math.floor(this.time.now / 90) % 3 ? 0.55 : 0);
+    b.glow.setAlpha(Math.floor(this.time.now / 90) % 3 ? 0.7 : 0);
     // too slow: it comes down anyway
     if (b.wait >= b.lim) return this.residentHit(b.side);
     const p = this.p;

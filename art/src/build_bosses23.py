@@ -87,8 +87,8 @@ def boss_frame(kind):
     if kind in ("dash_0", "dash_1"):
         a = kind == "dash_0"
         lift = (0, 6) if a else (6, 0)
-        legs = std_legs(31, lift=lift, spread=4 if a else 3)
-        im = body_parts(31, 1, legs, arms=("down", "down"), swing=(3, 6) if a else (6, 3))
+        legs = std_legs(29, lift=lift, spread=4 if a else 3)
+        im = body_parts(29, 1, legs, arms=("down", "down"), swing=(3, 6) if a else (6, 3))
         im = lean(im, 0.3)
         # motion lines trailing to the right
         for (y, x0, l) in ((22, 36, 10), (29, 40, 7), (36, 41, 6), (43, 43, 5), (50, 41, 6), (57, 43, 4), (26, 33, 3)):
@@ -549,10 +549,10 @@ def build_roof():
     floor_band(im, 150, 158, "grey1", "ink2", "ink2", "grey2", 24, 51)
     hline(im, 0, W - 1, 150, "ink")
     # puddle reflecting the pale sky
-    for x in range(120, 190):
-        if (x // 3) % 2 == 0:
-            px(im, x, 153, "blue3")
-        px(im, x, 154, "blue2") if x % 4 == 0 else None
+    ellipse(im, 112, 152, 178, 156, "blue1")
+    for (x0_, x1_, y_) in ((120, 140, 153), (146, 168, 154), (126, 134, 155)):
+        hline(im, x0_, x1_, y_, "blue3")
+    px(im, 118, 153, "blue4"); px(im, 150, 153, "blue4")
 
     # ---- stair hut (left) with the rooftop door x20..56
     rect(im, 8, 78, 66, 72, "grey2", "ink")
@@ -666,7 +666,7 @@ def build_roof():
     px(im, 245, 137, "blue1"); px(im, 246, 138, "blue1")
     hline(im, 245, 141, 141, "grey3") if False else None
     # key half
-    rect(im, 250, 136, 7, 7, "grey3", "ink")
+    rect(im, 250, 136, 7, 7, "grey4", "ink")
     for ky in (138, 140):
         for kx in (252, 254):
             px(im, kx, ky, "ink2")
@@ -679,8 +679,457 @@ def build_roof():
     return im
 
 
+# ====================================================================== MILK DEPOT
+def carton(im, x, y, c="blue2", label="white"):
+    """6x10 milk carton: gable top, coloured label band."""
+    rect(im, x, y + 2, 6, 8, "white", "ink")
+    for gx in (x + 1, x + 4):
+        px(im, gx, y + 1, "ink")
+    px(im, x + 2, y, "ink"); px(im, x + 3, y, "ink"); px(im, x + 2, y + 1, "grey4"); px(im, x + 3, y + 1, "grey4")
+    rect(im, x + 1, y + 5, 4, 3, c)
+    px(im, x + 1, y + 3, "white"); px(im, x + 4, y + 9, "grey3")
+
+
+def milk_crate(im, x, y, flavours, empty=False):
+    """20x7 plastic crate with 3 cartons poking out above (cartons first, crate in front)."""
+    if not empty:
+        for i, c in enumerate(flavours[:3]):
+            carton(im, x + 1 + i * 6, y - 9, c)
+    rect(im, x, y, 20, 8, "blue2", "ink")
+    hline(im, x + 1, x + 18, y + 1, "blue3")
+    for sx in range(x + 3, x + 18, 5):
+        rect(im, sx, y + 3, 3, 2, "blue0")
+    hline(im, x + 1, x + 18, y + 6, "blue1")
+
+
+def cooler(im):
+    ux, uy, uw, uh = 14, 50, 99, 78
+    obox(im, ux + 14, 37, 70, 12, "blue1", "blue2")
+    text(im, ux + 14 + 35, 38, "냉장 선반", "white", 9, align="center")
+    line(im, [(ux + 18, 49), (ux + 18, 50)], "ink")
+    line(im, [(ux + 79, 49), (ux + 79, 50)], "ink")
+    rect(im, ux, uy, uw, uh, "grey4", "ink")
+    rect(im, ux + 1, uy + 1, uw - 2, 1, "white")
+    vline(im, ux + 1, uy + 1, uy + uh - 2, "white")
+    vline(im, ux + uw - 2, uy + 2, uy + uh - 2, "grey3")
+    dither_grad(im, (ux + 2, uy + 2, ux + uw - 2, uy + uh - 1), "grey4", "blue3", "y", 4, 0.0, 0.4)
+    cw, ch, gp = 95, 23, 3
+    fl = [["blue2", "blue2", "blue2", "blue2"], ["red3", "red3", "blue2", "blue2"], ["yellow", "yellow", "blue2", "orange2"],
+          ["brown1", "brown1", "blue2", "blue2"], ["blue2", "red3", "yellow", "brown1"], ["blue2", "blue2", "blue2", "blue2"]]
+    for r in range(3):
+        cx = ux + 2
+        cy = uy + 2 + r * (ch + gp) + (1 if r else 0)
+        rect(im, cx, cy, cw, ch, "blue0", "ink")
+        dither_grad(im, (cx + 1, cy + 1, cx + cw - 1, cy + ch - 1), "blue1", "blue0", "y", 2, 0.0, 0.45)
+        hline(im, cx + 1, cx + cw - 2, cy + 1, "blue4")              # LED strip
+        glow(im, cx + 1, cy + 2, cx + cw - 1, cy + 9, "blue3", 0.45, 4, 6)
+        hline(im, cx + 1, cx + cw - 2, cy + ch - 2, "grey3")        # shelf lip
+        for k in range(4):
+            x0 = cx + 3 + k * 23
+            n = r * 4 + k
+            milk_crate(im, x0, cy + ch - 10, fl[(n + r) % 6], empty=(n == 5 or n == 10))
+        # frost on the glass front (dither)
+        ovl(im, (cx + 1, cy + 1, cx + cw - 1, cy + ch - 1), "white", 0.10, 4)
+        # price tag on lip
+        rect(im, cx + 6 + r * 11, cy + ch - 3, 7, 2, "yellow", "ink")
+    # little temperature LED
+    rect(im, ux + 88, 38, 10, 8, "ink", "ink")
+    for k in range(3):
+        px(im, ux + 90 + k * 2, 41, "green2")
+    px(im, ux + 90, 43, "red3")
+    # legs / kickplate
+    rect(im, ux + 2, uy + uh, 6, 8, "grey2", "ink")
+    rect(im, ux + uw - 8, uy + uh, 6, 8, "grey2", "ink")
+    hline(im, ux + 3, ux + 6, uy + uh + 1, "grey3")
+    ovl(im, (ux + 2, FLOOR_TOP + 1, ux + uw + 6, FLOOR_TOP + 7), "ink", 0.45, 2)
+
+
+def depot_counter(im):
+    dither_radial(im, 169, 96, 48, "wall1", None, 4, box=(124, 38, 214, 118))
+    for chx in (138, 200):
+        vline(im, chx, 34, 55, "grey1")
+        for yy in range(36, 55, 3):
+            px(im, chx - 1, yy, "grey2")
+    obox(im, 128, 55, 83, 24, "blue1", "blue2", "blue0")
+    rect(im, 130, 57, 79, 20, "blue0", "ink")
+    dither_grad(im, (131, 58, 208, 76), "blue1", "blue0", "y", 4, 0.0, 0.8)
+    text(im, 170, 61, "해달우유 대리점", "white", 9, shadow="ink", align="center")
+    hline(im, 133, 206, 74, "blue3")
+    for sx in range(137, 206, 9):
+        px(im, sx, 75, "white")
+    # counter body
+    rect(im, 132, 118, 75, 24, "brown2", "ink")
+    rect(im, 133, 119, 73, 4, "white", None)
+    hline(im, 133, 205, 119, "white")
+    hline(im, 133, 205, 122, "grey3")
+    hline(im, 132, 206, 123, "ink")
+    dither_grad(im, (133, 124, 206, 141), "brown2", "brown1", "y", 4, 0.0, 0.7)
+    for vx in range(144, 206, 12):
+        vline(im, vx, 124, 138, "brown1")
+        px(im, vx - 1, 125, "brown3")
+    rect(im, 133, 138, 73, 3, "ink2")
+    hline(im, 133, 205, 138, "grey1")
+    rect(im, 150, 128, 20, 6, "brown1", "ink")
+    hline(im, 151, 168, 129, "brown2")
+    rect(im, 158, 131, 4, 2, "orange3")
+    rect(im, 186, 127, 8, 10, "white", "ink")
+    hline(im, 188, 192, 130, "grey3"); hline(im, 188, 192, 132, "grey3"); hline(im, 188, 191, 134, "grey3")
+    # order printer
+    rect(im, 139, 108, 20, 10, "grey4", "ink")
+    hline(im, 140, 157, 109, "white")
+    rect(im, 141, 111, 12, 2, "ink2")
+    rect(im, 155, 111, 2, 2, "red3")
+    rect(im, 144, 104, 10, 4, "white", "ink")
+    hline(im, 145, 152, 106, "grey3")
+    rect(im, 143, 118, 9, 6, "white", "ink")
+    hline(im, 145, 150, 120, "grey3"); hline(im, 145, 148, 122, "grey3")
+    hline(im, 143, 151, 123, "grey2")
+    # monitor
+    rect(im, 175, 114, 10, 4, "grey2", "ink")
+    rect(im, 178, 111, 4, 4, "grey1", "ink")
+    rect(im, 164, 94, 32, 19, "grey4", "ink")
+    hline(im, 165, 193, 95, "white")
+    rect(im, 166, 96, 28, 14, "blue0", "ink")
+    rect(im, 167, 97, 26, 3, "blue1")
+    for ry in (102, 105, 108):
+        hline(im, 168, 191, ry, "blue1")
+    vline(im, 177, 100, 109, "blue1")
+    px(im, 169, 98, "green2"); px(im, 171, 98, "grey3")
+    px(im, 192, 112, "green2")
+    glow(im, 164, 114, 197, 119, "blue3", 0.3, 4, 4)
+    # milk cartons stacked on the counter + pen cup
+    carton(im, 196, 108, "blue2"); carton(im, 201, 108, "red3"); carton(im, 198, 99, "blue2")
+    rect(im, 160, 112, 3, 6, "white", "ink")
+    px(im, 161, 110, "red2"); px(im, 162, 109, "blue2")
+    rect(im, 196, 96, 5, 5, "yellow2", "ink")
+    ovl(im, (130, FLOOR_TOP + 4, 211, FLOOR_TOP + 9), "ink", 0.5, 2)
+    ovl(im, (130, FLOOR_TOP + 4, 211, FLOOR_TOP + 7), "ink", 0.5, 4)
+
+
+def clock4(im, cx, cy, r):
+    ellipse(im, cx - r, cy - r, cx + r, cy + r, "grey1", "ink")
+    ellipse(im, cx - r + 1, cy - r + 1, cx + r - 1, cy + r - 1, "white", "grey3")
+    for k in range(12):
+        a = k * math.pi / 6
+        px(im, round(cx + math.sin(a) * (r - 2)), round(cy - math.cos(a) * (r - 2)), "ink")
+    line(im, [(cx, cy), (cx, cy - (r - 3))], "ink")                       # minute: 12
+    a = math.radians(120)
+    line(im, [(cx, cy), (cx + round(math.sin(a) * (r - 4)), cy - round(math.cos(a) * (r - 4)))], "ink")  # hour: 4
+    px(im, cx, cy, "red2")
+
+
+def hang_bag(im, hx, y, c, cs, ch):
+    """insulated delivery bag hanging from a hook at hx (16x14)."""
+    line(im, [(hx - 4, y + 3), (hx - 4, y), (hx + 4, y), (hx + 4, y + 3)], "ink")
+    rect(im, hx - 8, y + 3, 17, 12, c, "ink")
+    rect(im, hx - 7, y + 4, 15, 2, ch)
+    hline(im, hx - 7, hx + 7, y + 7, cs)
+    rect(im, hx - 7, y + 11, 15, 3, cs)
+    rect(im, hx - 2, y + 8, 5, 4, "white", "ink")
+    px(im, hx, y + 9, "blue2"); px(im, hx, y + 10, "blue2")
+
+
+def build_depot():
+    im = new(W, H, "ink")
+    dither_ramp(im, (0, 34, W, FLOOR_TOP), ["grey4", "wall3", "wall3", "grey3"], "y", 4)
+    for sx in range(6, W, 38):
+        vline(im, sx, 36, FLOOR_TOP - 1, "grey3")
+        vline(im, sx + 1, 36, FLOOR_TOP - 1, "grey4")
+    # steel wainscot with blue milk-tile band
+    rect(im, 0, 120, W, 18, "grey2")
+    dither_grad(im, (0, 121, W, 137), "grey3", "grey1", "y", 4, 0.0, 0.8)
+    hline(im, 0, W - 1, 120, "ink"); hline(im, 0, W - 1, 121, "grey4")
+    for sx in range(0, W, 19):
+        vline(im, sx, 122, 137, "grey1"); px(im, sx + 1, 124, "grey3")
+    hline(im, 0, W - 1, 137, "ink2")
+    # ceiling
+    rect(im, 0, Y0, W, 13, "ink2")
+    dither_grad(im, (0, Y0, W, 35), "ink", "ink2", "y", 4, 0.0, 1.0)
+    for sx in range(0, W, 32):
+        vline(im, sx, Y0, 34, "ink")
+    hline(im, 0, W - 1, 35, "ink"); hline(im, 0, W - 1, 36, "grey2")
+    tube(im, 22, 104, 29); tube(im, 126, 212, 29); tube(im, 232, 262, 29, on=False)
+    for vx in range(268, 306, 4):
+        vline(im, vx, 26, 33, "ink")
+    # floor
+    floor_band(im, FLOOR_TOP, 158, "grey2", "grey3", "grey1", "grey4", 20, 5)
+    glow(im, 10, FLOOR_TOP + 1, 118, 156, "grey4", 0.35, 4, 16)
+    glow(im, 130, FLOOR_TOP + 1, 214, 156, "wall1", 0.4, 4, 16)
+    ovl(im, (0, 150, W, 158), "grey1", 0.25, 4)
+    glow(im, 232, 140, 316, 158, "blue3", 0.4, 4, 12)
+    # spilled milk puddle at the cooler's foot
+    ellipse(im, 40, 152, 66, 156, "white")
+    hline(im, 44, 58, 153, "grey4")
+
+    cooler(im)
+    depot_counter(im)
+
+    # clock (4:00), notice board, bag hooks
+    clock4(im, 237, 47, 8)
+    obox(im, 216, 60, 48, 30, "brown3", "brown3", "brown2", ol="ink")
+    rect(im, 217, 61, 46, 28, "brown3")
+    dither_grad(im, (218, 62, 262, 88), "brown3", "brown2", "y", 4, 0.0, 0.5)
+    rect(im, 216, 60, 48, 1, "brown1")
+    rect(im, 221, 63, 20, 24, "white", "ink")                         # route sheet
+    rect(im, 223, 65, 16, 3, "blue2")
+    for ly in range(70, 85, 3):
+        hline(im, 223, 237 - (ly % 2) * 3, ly, "grey2")
+    px(im, 231, 63, "red3"); px(im, 231, 62, "red3")
+    rect(im, 244, 64, 8, 9, "yellow2", "ink"); hline(im, 246, 250, 67, "grey2"); hline(im, 246, 249, 69, "grey2")
+    rect(im, 253, 70, 8, 10, "blue4", "ink"); hline(im, 255, 259, 73, "grey2"); hline(im, 255, 258, 75, "grey2")
+    rect(im, 244, 76, 7, 8, "wall4", "ink"); hline(im, 245, 249, 79, "grey2")
+    for pxx, pyy in ((231, 64), (248, 65), (257, 71), (247, 77)):
+        px(im, pxx, pyy, "red3")
+    # hooks + delivery bags
+    rect(im, 212, 98, 51, 3, "brown1", "ink")
+    hline(im, 213, 261, 99, "brown2")
+    hang_bag(im, 222, 98, "orange2", "orange1", "orange3")
+    hang_bag(im, 240, 98, "blue2", "blue1", "blue3")
+    hang_bag(im, 257, 98, "white", "grey3", "grey4")
+    # crates + bin at the wall base
+    for (cx, cy) in ((214, 124), (214, 130)):
+        rect(im, cx, cy, 24, 7, "blue2", "ink")
+        hline(im, cx + 1, cx + 22, cy + 1, "blue3")
+        for sx in range(cx + 3, cx + 21, 5):
+            rect(im, sx, cy + 3, 3, 2, "blue0")
+    carton(im, 218, 115, "blue2"); carton(im, 223, 115, "blue2"); carton(im, 228, 115, "red3")
+    rect(im, 216, 122, 18, 2, "ink")
+    rect(im, 247, 124, 14, 14, "grey3", "ink")
+    hline(im, 248, 259, 125, "grey4"); hline(im, 246, 261, 123, "ink")
+    rect(im, 249, 128, 10, 4, "blue2"); hline(im, 248, 259, 133, "grey2")
+    # A-frame sign + polystyrene ice box left of the counter
+    poly(im, [(114, 138), (128, 138), (124, 122), (118, 122)], "yellow", "ink")
+    rect(im, 119, 126, 4, 6, "ink"); px(im, 121, 134, "ink")
+    hline(im, 115, 127, 137, "orange2")
+    rect(im, 120, 96, 6, 9, "white", "ink") if False else None
+    # thermostat / outlet
+    rect(im, 120, 86, 6, 9, "white", "ink"); px(im, 122, 89, "ink"); px(im, 123, 89, "ink"); px(im, 122, 92, "red3")
+    glass_door(im)
+    line(im, [(212, 36), (212, 44), (268, 44), (268, 58)], "ink2")
+    letterbox(im)
+    return im
+
+
+# ====================================================================== OFFICETEL HALL
+DOOR_GREY = ("grey3", "grey2", "grey4", "ink2")
+DOOR_BLUE = ("blue2", "blue1", "blue3", "blue0")
+
+
+def flat_leaf(img, x, y, lw, h, pal, slant=0):
+    base, shade, hi, deep = pal
+    pts = [(x, y + slant), (x + lw - 1, y), (x + lw - 1, y + h - 1), (x, y + h - 1 - slant)]
+    poly(img, pts, base, "ink")
+    dpoly(img, [(a + (1 if a == x else 0), b) for a, b in pts], base, shade, 0.0, 0.7, "x", 4)
+    poly(img, pts, None, "ink")
+    hline(img, x + 1, x + lw - 3, y + 1 + slant // 2, hi)
+    vline(img, x + 1, y + 2 + slant, y + h - 3 - slant, hi)
+    if lw >= 14:
+        # flat laminated panel: faint brushed grain + kick strip + frame groove
+        for gy in range(y + 6, y + h - 10, 4):
+            hline(img, x + 3, x + lw - 4, gy + slant // 2, shade) if False else None
+        rect(img, x + 3, y + 5, lw - 6, h - 16, None, deep)
+        hline(img, x + 4, x + lw - 5, y + 6, hi)
+        rect(img, x + 1, y + h - 8 - slant, lw - 2, 7, shade, "ink")
+        hline(img, x + 2, x + lw - 3, y + h - 7 - slant, hi)
+        ellipse(img, x + lw // 2 - 1, y + 13, x + lw // 2 + 1, y + 15, "grey4", "ink")
+        px(img, x + lw // 2, y + 14, "blue2")
+    return base, shade, hi, deep
+
+
+def milk_box(im, x, y):
+    """small white insulated milk box with two bottle necks and a blue lid, 12x9, bottom y."""
+    rect(im, x + 2, y - 12, 2, 4, "yellow", "ink"); rect(im, x + 7, y - 12, 2, 4, "red2", "ink")
+    rect(im, x, y - 9, 12, 9, "white", "ink")
+    rect(im, x + 1, y - 8, 10, 3, "blue2")
+    hline(im, x + 2, x + 9, y - 3, "grey3")
+    px(im, x + 1, y - 7, "blue3")
+
+
+def parcel(im, x, y, w=11, h=8):
+    rect(im, x, y - h, w, h, "brown3", "ink")
+    hline(im, x + 1, x + w - 2, y - h + 2, "brown2")
+    rect(im, x + w // 2 - 1, y - h, 3, h, "white", None)
+    vline(im, x + w // 2 - 1, y - h, y - 1, "ink") if False else None
+
+
+def off_door(im, cx, pal, extra=None):
+    x, y = cx - 14, 92
+    rect(im, x - 2, y - 2, 32, 60, "grey2", "ink")
+    vline(im, x - 1, y - 1, y + 56, "grey3")
+    hline(im, x - 1, x + 28, y - 1, "grey3")
+    flat_leaf(im, x, y, 28, 58, pal)
+    digital_lock(im, x + 19, y + 29, "grey4")
+    if extra == "pouch":
+        line(im, [(x + 6, y + 30), (x + 6, y + 34)], "ink")
+        rect(im, x + 2, y + 34, 9, 10, "white", "ink")
+        rect(im, x + 3, y + 35, 7, 3, "blue2")
+        rect(im, x + 4, y + 30, 2, 4, "yellow", "ink") if False else None
+        px(im, x + 5, y + 31, "red2")
+        hline(im, x + 3, x + 9, y + 41, "grey3")
+    if extra == "slip":
+        rect(im, x + 5, y + 20, 8, 10, "yellow2", "ink")
+        hline(im, x + 6, x + 11, y + 23, "grey2"); hline(im, x + 6, x + 10, y + 25, "grey2"); hline(im, x + 6, x + 11, y + 27, "grey2")
+        px(im, x + 8, y + 20, "red3")
+    rect(im, x - 2, 150, 32, 2, "grey1", "ink")
+    rect(im, x + 2, 151, 24, 3, "ink2", "ink")
+    for mx in range(x + 3, x + 26, 3):
+        px(im, mx, 152, "grey1")
+    # blank LED plaque (x cx-9..cx+9, y80..88)
+    rect(im, cx - 9, 80, 19, 9, "grey4", "ink")
+    hline(im, cx - 8, cx + 8, 81, "white")
+    hline(im, cx - 8, cx + 8, 87, "grey3")
+
+
+def fire_door_dark(im):
+    x, y, w, h = 276, 88, 35, 63
+    rect(im, x - 2, y - 2, w + 4, h + 2, "grey2", "ink")
+    rect(im, x, y, w, h - 1, "grey3", "ink")
+    dither_grad(im, (x + 1, y + 1, x + w - 1, y + h - 2), "grey3", "grey1", "x", 4, 0.0, 0.8)
+    hline(im, x + 1, x + w - 2, y + 1, "grey4")
+    rect(im, x + 10, y + 8, 14, 22, "blue0", "ink")
+    dither_grad(im, (x + 11, y + 9, x + 23, y + 29), "blue1", "blue0", "d", 4, 0.0, 1.0)
+    for gy in range(y + 11, y + 29, 4):
+        hline(im, x + 11, x + 22, gy, "grey1")
+    for gx in range(x + 13, x + 23, 4):
+        vline(im, gx, y + 9, y + 29, "grey1")
+    rect(im, x + 4, y + 34, 27, 4, "grey4", "ink")
+    rect(im, x + 5, y + 40, 6, 12, "grey2", "ink")
+    rect(im, x, y + h - 9, w, 8, "grey2", "ink")
+    hline(im, x + 1, x + w - 2, y + h - 8, "grey3")
+    line(im, [(x + 4, y - 1), (x + 12, y - 5), (x + 20, y - 1)], "ink")
+    rect(im, x + 12, y - 7, 8, 3, "grey1", "ink")
+    for sx in range(x + 2, x + w - 2, 4):
+        px(im, sx, y + 3, "red2")
+    glow(im, 268, 70, 316, 100, "green2", 0.28, 4, 8)
+    rect(im, 279, 71, 29, 15, "green0", "ink")
+    rect(im, 280, 72, 27, 13, "green1", "ink")
+    text(im, 299, 73, "계단", "white", 9, align="center")
+    px(im, 283, 82, "green3"); px(im, 284, 81, "green3"); px(im, 285, 80, "green3")
+    rect(im, x - 2, 150, w + 4, 2, "grey1", "ink")
+
+
+def build_hall():
+    im = new(W, H, "ink")
+    # ceiling: dark slab with recessed LED panels
+    rect(im, 0, Y0, W, 18, "ink2")
+    dither_grad(im, (0, Y0, W, 40), "ink", "ink2", "y", 4, 0.0, 1.0)
+    for sx in range(0, W, 24):
+        vline(im, sx, Y0, 39, "ink")
+    hline(im, 0, W - 1, 40, "ink"); hline(im, 0, W - 1, 41, "grey2"); hline(im, 0, W - 1, 42, "grey1")
+    # wall: cool dark grey, lit under the panels
+    dither_ramp(im, (0, 43, W, 108), ["grey1", "grey2", "grey2"], "y", 4)
+    ovl(im, (0, 43, W, 108), "blue0", 0.14, 4)
+    for sx in (92, 152, 212, 272):
+        vline(im, sx, 43, 107, "grey1")
+    # dark metal dado
+    rect(im, 0, 108, W, 30, "grey1")
+    dither_grad(im, (0, 109, W, 138), "grey1", "ink2", "y", 4, 0.0, 0.85)
+    ovl(im, (0, 109, W, 138), "blue0", 0.15, 4)
+    hline(im, 0, W - 1, 107, "ink"); hline(im, 0, W - 1, 108, "grey3"); hline(im, 0, W - 1, 109, "grey2")
+    hline(im, 0, W - 1, 137, "ink")
+    for sx in range(0, W, 3):
+        px(im, sx, 111, "ink2")
+    streaks(im, (0, 44, W, 106), "grey1", 20, 31, 16, 0.5, "grey2")
+    # glossy dark floor with reflected light
+    floor_band(im, FLOOR_TOP, 158, "grey1", "ink2", "ink", "grey2", 24, 27)
+    for (a, b) in ((30, 118), (136, 244)):
+        glow(im, a, 141, b, 158, "grey2", 0.35, 4, 18)
+    for rx in (60, 160, 240):
+        for yy in range(142, 156, 2):
+            px(im, rx + (yy % 4), yy, "grey3")
+    # LED panels (one failing)
+    tube(im, 34, 96, 30); tube(im, 124, 200, 30); tube(im, 224, 262, 30, on=False)
+    px(im, 262, 33, "white"); px(im, 263, 33, "white")
+    cctv_dome(im, 122, 41)
+    rect(im, 0, 24, W, 3, "grey1", "ink")
+    for bx in range(18, W, 52):
+        rect(im, bx, 23, 3, 5, "grey2", "ink")
+
+    elevator_closed(im)
+    ovl(im, (15, 83, 62, 152), "ink2", 0.22, 4)
+    # elevator: re-blank the indicator after the tint (stays dark)
+    rect(im, 22, 70, 32, 13, "ink")
+    hline(im, 23, 52, 71, "ink2")
+
+    off_door(im, 110, DOOR_GREY, "pouch")
+    off_door(im, 170, DOOR_BLUE, "slip")
+    off_door(im, 230, DOOR_GREY)
+
+    # --- gap A: floor directory board + parcel
+    rect(im, 72, 92, 20, 26, "blue1", "ink")
+    rect(im, 73, 93, 18, 24, "blue0")
+    for ly in range(96, 116, 4):
+        hline(im, 75, 88 - (ly % 8) // 2, ly, "blue3")
+        px(im, 74, ly, "yellow")
+    hline(im, 73, 90, 93, "blue2")
+    parcel(im, 72, 150, 14, 9); parcel(im, 75, 141, 10, 7)
+    # --- gap B: smoke detector, milk box + parcels by door
+    ellipse(im, 138, 56, 144, 61, "grey4", "ink"); px(im, 141, 58, "red3")
+    milk_box(im, 130, 150)
+    parcel(im, 143, 150, 9, 6)
+    # --- gap C: wall sensor panel, milk boxes
+    rect(im, 195, 98, 8, 12, "grey4", "ink"); px(im, 197, 101, "green2"); px(im, 197, 104, "ink2"); px(im, 200, 104, "ink2"); px(im, 197, 107, "ink2"); px(im, 200, 107, "red3")
+    milk_box(im, 191, 150); milk_box(im, 203, 150)
+    rect(im, 203, 136, 10, 4, "white", None) if False else None
+    # --- gap D: extinguisher + recycling
+    fire_ext_box(im, 248, 100)
+    rect(im, 247, 130, 17, 1, "ink")
+    rect(im, 254, 136, 14, 14, "green1", "ink"); hline(im, 255, 266, 137, "green2")
+    rect(im, 252, 143, 16, 7, "brown3", "ink"); hline(im, 253, 266, 146, "brown2")
+    milk_box(im, 250, 141) if False else None
+    # fire door + sign
+    fire_door_dark(im)
+    # vignette
+    ovl(im, (0, 43, 12, 138), "ink2", 0.3, 2)
+    ovl(im, (0, 138, 12, 158), "ink2", 0.25, 2)
+    ovl(im, (308, 43, 320, 138), "ink2", 0.3, 2)
+    letterbox(im)
+    return im
+
+
+# ====================================================================== SMALL PROPS
+def build_milk_carrier():
+    im = new(14, 14)
+    # two bottles poking out of the top
+    for bx, cc in ((1, "red2"), (8, "yellow")):
+        rect(im, bx + 1, 0, 4, 3, cc, "ink")
+        rect(im, bx, 2, 6, 6, "white", "ink")
+        px(im, bx + 1, 3, "grey4")
+        rect(im, bx + 2, 5, 3, 2, "blue2")
+    # insulated bag body
+    rect(im, 0, 7, 14, 7, "grey3", "ink")
+    rect(im, 1, 8, 12, 2, "grey4")
+    hline(im, 1, 12, 10, "grey2")
+    rect(im, 1, 11, 12, 2, "blue2")
+    hline(im, 1, 12, 12, "blue1")
+    px(im, 6, 11, "white"); px(im, 7, 11, "white")
+    return im
+
+
+def build_open_office_door():
+    im = new(28, 58)
+    poly(im, [(0, 0), (11, 2), (11, 55), (0, 57)], "ink")
+    flat_leaf(im, 10, 0, 18, 58, DOOR_GREY, slant=2)
+    vline(im, 10, 3, 54, "grey2")
+    vline(im, 11, 4, 53, "grey4")
+    rect(im, 12, 30, 4, 11, "grey4", "ink")
+    px(im, 13, 32, "ink2"); px(im, 14, 32, "ink2"); px(im, 13, 35, "ink2"); px(im, 13, 38, "red3")
+    for hy in (6, 28, 46):
+        rect(im, 26, hy, 2, 5, "grey1", "ink")
+    rect(im, 2, 18, 2, 2, "pale1")
+    rect(im, 6, 18, 2, 2, "pale1")
+    return im
+
+
+def build_props():
+    for nm, im in (("milk_carrier", build_milk_carrier()), ("officetel_door_open", build_open_office_door())):
+        assert not off_palette(im), nm
+        save(im, f"props/{nm}.png", 8)
+
+
 def build_bgs():
-    for nm, fn in (("stairwell_scissor", build_scissor), ("roof", build_roof)):
+    for nm, fn in (("stairwell_scissor", build_scissor), ("roof", build_roof),
+                   ("milk_depot", build_depot), ("officetel_hall", build_hall)):
         im = fn()
         assert not off_palette(im), nm
         save(im, f"bg/{nm}.png")
@@ -692,4 +1141,10 @@ if __name__ == "__main__":
         build_sprites()
     if "bgs" in parts:
         build_bgs()
+    if "props" in parts:
+        build_props()
+    if set(parts) >= {"sprites", "bgs", "props"}:
+        contact(["props/suit_boss.png", "props/resident.png", "bg/stairwell_scissor.png", "bg/roof.png",
+                 "bg/milk_depot.png", "bg/officetel_hall.png", "props/milk_carrier.png",
+                 "props/officetel_door_open.png"], "_contact/bosses23.png", cols=2, scale=2)
     print("done")

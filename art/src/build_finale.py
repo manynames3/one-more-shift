@@ -481,7 +481,7 @@ def kwak_defeat():
         arm = new(64, 64); limb(arm, [a, b], "green0"); rect(arm, b[0] - 1, b[1] - 1, 3, 3, SKIN[0])
         im.alpha_composite(outline(arm))
     # glasses on top
-    gx, gy = 25, 16
+    gx, gy = 25, 19
     rect(im, gx, gy, 7, 6, "grey4", "ink2"); rect(im, gx + 9, gy + 1, 7, 6, "grey4", "ink2")
     line(im, [(gx + 7, gy + 3), (gx + 8, gy + 3)], "ink2")
     px(im, gx + 1, gy + 1, "white"); px(im, gx + 2, gy + 1, "white")
@@ -854,3 +854,483 @@ def build_park():
     BI.ov(im, (0, 22, 320, 40), "ink", 0.5, 0.0, "y", 4)
     letterbox(im)
     return im
+
+
+# ======================================================================
+#  ENDING 1: dawn outside the agency
+# ======================================================================
+def vtext(img, cx, y, s, c, f=11, step=12, edge=None):
+    for i, ch in enumerate(s):
+        text(img, cx, y + i * step, ch, c, f, edge=edge, align="center")
+
+
+def shadow_of(sprite, fx, fy, k=1.25):
+    """long ground shadow lying to the left of a sprite (sun on the right): 'L' mask."""
+    m = Image.new("L", (W, H), 0)
+    for y in range(sprite.height):
+        for x in range(sprite.width):
+            if sprite.getpixel((x, y))[3]:
+                d = (fy - (y + (fy - 45 - 0)) + 0) if False else (45 - y)
+                sx = int(fx + (x - 16) - d * k)
+                th = 2 if d < 14 else (3 if d < 30 else 5)
+                for dy in range(th):
+                    sy = fy - 1 + dy
+                    if 0 <= sx < W and 0 <= sy < H:
+                        m.putpixel((sx, sy), 255)
+    return m
+
+
+def rim_light(spr, c="orange3", level=0.8):
+    """sun is on the right: tint the lit right edge of a sprite (the pixel left of the ink outline)."""
+    out = spr.copy()
+    ink = col("ink")
+    for y in range(spr.height):
+        for x in range(spr.width - 1):
+            p = spr.getpixel((x, y))
+            if p[3] and p != ink and spr.getpixel((x + 1, y)) in (ink, (0, 0, 0, 0)) and level > _thr(x, y, 2):
+                out.putpixel((x, y), col(c))
+    return out
+
+
+def dawn_sky(im):
+    dither_ramp(im, (0, Y0, W, 134), ["purple1", "purple2", "red4", "orange3", "orange4"], "y", 4)
+    # sun glow centred where the sun rises between the far blocks
+    sx, sy = 262, 120
+    dither_radial(im, sx, sy, 62, "yellow2", None, 4, box=(sx - 62, 60, sx + 63, 134))
+    dither_radial(im, sx, sy, 34, "white", None, 4, box=(sx - 34, 84, sx + 35, 134))
+    # cloud banks (flat, dithered edges)
+    rnd = random.Random(31)
+    for (cx0, cy0, wd) in ((30, 44, 84), (150, 36, 70), (212, 62, 90), (74, 78, 64), (14, 100, 70)):
+        for yy in range(cy0, cy0 + 5):
+            ww = wd - abs(yy - cy0 - 2) * 12
+            for xx in range(cx0 - ww // 2, cx0 + ww // 2):
+                if 0 < xx < W:
+                    t = (yy - cy0) / 4
+                    c = "red3" if t > 0.55 else "red4"
+                    if (1 - abs(2 * (xx - cx0) / max(1, wd))) > _thr(xx, yy, 4) * 1.2:
+                        px(im, xx, yy, c)
+                    if t < 0.3 and (xx + yy) % 2 == 0 and abs(xx - cx0) < wd // 4:
+                        px(im, xx, yy, "orange4")
+    for _ in range(14):                                          # fading stars
+        px(im, rnd.randint(0, 200), rnd.randint(Y0 + 1, 50), "white")
+    # sun disc, partly hidden by far buildings
+    ellipse(im, sx - 11, sy - 11, sx + 11, sy + 11, "yellow2", "orange4")
+    ellipse(im, sx - 8, sy - 8, sx + 8, sy + 8, "white", None)
+
+
+def far_blocks(im):
+    """distant silhouettes (purple haze) with a few early lit windows."""
+    rnd = random.Random(5)
+    x = 150
+    while x < W:
+        w = rnd.randint(14, 26)
+        h = rnd.randint(18, 52)
+        if 232 < x < 288:
+            x += w
+            continue
+        rect(im, x, 134 - h, w, h, "purple1", "purple0")
+        dither_grad(im, (x + 1, 135 - h, x + w - 1, 134), "purple1", "red1", "y", 4, 0.0, 0.9)
+        for yy in range(136 - h, 130, 6):
+            for xx in range(x + 3, x + w - 3, 5):
+                if rnd.random() < 0.16:
+                    rect(im, xx, yy, 2, 2, "yellow2")
+                elif rnd.random() < 0.5:
+                    rect(im, xx, yy, 2, 2, "purple0")
+        x += w - 1
+
+
+def agency_front(im):
+    x0, x1, top, base = 0, 150, 46, 132
+    # facade: cool shade on the left, sun-kissed on the right
+    rect(im, x0, top, x1 - x0, base - top, "wall4", "ink")
+    dither_grad(im, (x0 + 1, top + 1, x1 - 1, base), "wall3", "wall4", "x", 4, 0.0, 0.8)
+    dither_grad(im, (x0 + 60, top + 1, x1 - 1, base), "wall4", "orange4", "x", 4, 0.0, 0.75)
+    # parapet + roof junk
+    rect(im, x0, top - 6, x1 - x0 + 2, 7, "grey3", "ink")
+    hline(im, x0 + 1, x1, top - 5, "grey4")
+    hline(im, x0 + 1, x1, top, "grey2")
+    rect(im, 104, top - 16, 24, 10, "grey2", "ink")                 # rooftop water tank
+    rect(im, 106, top - 14, 20, 2, "grey3")
+    rect(im, 110, top - 20, 2, 4, "ink"); rect(im, 122, top - 20, 2, 4, "ink")
+    rect(im, 18, top - 12, 16, 6, "grey3", "ink")                    # AC box
+    for k in range(4):
+        vline(im, 20 + k * 4, top - 11, top - 8, "grey2")
+    # upper floor windows (dark, with dawn reflection at the top right)
+    for wx in (14, 56, 98):
+        rect(im, wx - 2, 56, 30, 26, "grey4", "ink")
+        rect(im, wx, 58, 26, 22, "blue0", "ink")
+        dither_grad(im, (wx + 1, 59, wx + 25, 79), "blue0", "blue1", "y", 4, 0.0, 0.7)
+        dither_grad(im, (wx + 13, 59, wx + 25, 70), "blue1", "orange3", "d", 4, 0.1, 0.9)
+        vline(im, wx + 13, 58, 79, "ink")
+        hline(im, wx, wx + 25, 69, "ink")
+        rect(im, wx - 3, 82, 32, 3, "grey2", "ink")
+        hline(im, wx - 2, wx + 28, 83, "grey3")
+    # ground floor: roll shutter (closed) + glass door; blank fascia band
+    rect(im, 4, 90, 142, 8, "grey2", "ink")
+    dither_grad(im, (5, 91, 145, 97), "grey3", "grey2", "x", 4, 0.0, 1.0)
+    rect(im, 46, 100, 56, 32, "grey3", "ink")
+    for y in range(102, 131, 3):
+        hline(im, 47, 100, y, "grey2")
+    dither_grad(im, (47, 100, 101, 132), "grey3", "grey2", "x", 4, 0.0, 0.4)
+    rect(im, 44, 98, 60, 3, "grey1", "ink")
+    rect(im, 72, 124, 4, 3, "ink2", "ink")                            # handle
+    rect(im, 8, 100, 30, 32, "grey3", "ink")                          # door
+    rect(im, 11, 103, 24, 22, "blue0", "ink")
+    dither_grad(im, (12, 104, 34, 124), "blue0", "blue1", "y", 4, 0.0, 0.8)
+    rect(im, 14, 106, 7, 4, "wall1", "ink")                            # taped paper: HELP WANTED (blank)
+    line(im, [(15, 108), (19, 108)], "grey2")
+    rect(im, 30, 112, 2, 4, "grey1")
+    rect(im, 108, 104, 34, 26, "wall1", "ink")                        # shuttered notice board
+    for k in range(4):
+        hline(im, 111, 138 - (k % 2) * 6, 109 + k * 5, "grey2")
+    # building base
+    rect(im, 0, 128, 150, 4, "grey1", "ink")
+    # vertical agency sign: bracket, panel, text - switched OFF
+    rect(im, 128, 60, 22, 3, "grey1", "ink")
+    rect(im, 131, 62, 16, 54, "blue1", "ink")
+    dither_grad(im, (132, 63, 146, 115), "blue1", "blue0", "y", 4, 0.0, 0.9)
+    vtext(im, 139, 65, "새벽인력", "grey3", 11, 12, edge="ink")
+    # dead tube bulbs along the sign edge
+    for y in range(66, 114, 8):
+        px(im, 132, y, "grey1"); px(im, 145, y, "grey1")
+
+
+def street_dawn_scene():
+    im = new(fill="ink")
+    dawn_sky(im)
+    far_blocks(im)
+    # mid block (right) closer than the far silhouettes
+    rect(im, 150, 80, 78, 52, "wall4", "ink")
+    dither_grad(im, (151, 81, 227, 132), "wall3", "orange4", "x", 4, 0.1, 1.0)
+    rect(im, 150, 74, 78, 6, "grey3", "ink")
+    for wx in (160, 190):
+        rect(im, wx, 88, 20, 14, "blue0", "ink")
+        dither_grad(im, (wx + 1, 89, wx + 19, 101), "blue0", "orange3", "d", 4, 0.1, 0.8)
+        vline(im, wx + 10, 88, 101, "ink")
+    rect(im, 164, 108, 44, 24, "grey3", "ink")                       # closed shop shutter
+    for y in range(110, 131, 3):
+        hline(im, 165, 207, y, "grey2")
+    rect(im, 162, 106, 48, 3, "red2", "ink")
+    for x in range(164, 210, 6):
+        px(im, x, 107, "red3")
+    rect(im, 150, 128, 78, 4, "grey1", "ink")
+    agency_front(im)
+    # right-most low shop (partial)
+    rect(im, 284, 104, 40, 28, "wall1", "ink")
+    dither_grad(im, (285, 105, 323, 131), "wall3", "orange4", "x", 4, 0.0, 0.8)
+    rect(im, 284, 100, 40, 5, "grey2", "ink")
+    rect(im, 290, 110, 16, 12, "blue0", "ink")
+    dither_grad(im, (291, 111, 305, 121), "blue0", "orange2", "d", 4, 0.0, 0.8)
+    rect(im, 284, 128, 40, 4, "grey1", "ink")
+    # sidewalk
+    dither_grad(im, (0, 132, W, 151), "grey4", "wall4", "y", 4, 0.0, 0.8)
+    hline(im, 0, W - 1, 132, "ink")
+    for x in range(0, W, 16):
+        vline(im, x + (x // 16 % 2) * 8, 133, 150, "grey3")
+    hline(im, 0, W - 1, 141, "grey3")
+    dither_grad(im, (150, 133, W, 151), "orange4", "wall4", "x", 4, 0.0, 0.2) if False else None
+    # warm sun streak over the pavement (right side)
+    for y in range(133, 151):
+        for x in range(120, W):
+            t = (x - 120) / 200
+            if t * 0.65 > _thr(x, y, 4):
+                px(im, x, y, "orange4" if (y + x) % 3 else "yellow2")
+    speckle(im, (0, 134, W, 150), "grey2", 40, 14)
+    # curb + road
+    rect(im, 0, 150, W, 2, "grey2")
+    hline(im, 0, W - 1, 150, "ink"); hline(im, 0, W - 1, 151, "grey3")
+    dither_grad(im, (0, 152, W, 158), "purple0", "ink2", "y", 4, 0.0, 1.0)
+    for x in range(10, W, 40):
+        rect(im, x, 155, 16, 1, "orange3")
+    # lamp posts, unlit
+    for lx in (170, 292):
+        rect(im, lx, 92, 3, 58, "ink2", "ink")
+        rect(im, lx - 3, 148, 9, 3, "ink2", "ink")
+        rect(im, lx - 6, 88, 14, 5, "grey1", "ink")
+        hline(im, lx - 5, lx + 6, 89, "grey2")
+        rect(im, lx - 4, 93, 10, 2, "grey3")
+    # power pole + wires
+    rect(im, 307, 50, 3, 100, "brown1", "ink")
+    rect(im, 299, 54, 20, 3, "brown1", "ink")
+    rect(im, 301, 62, 16, 2, "brown1", "ink")
+    for (ya, yb, sag) in ((55, 66, 6), (56, 60, 5), (63, 72, 7)):
+        catenary(im, (318, ya), (319, yb), 0, 1, ["grey1"], 1, wire="ink2")
+        catenary(im, (300, ya), (150, ya + 4), sag + 3, 1, ["grey1"], 1, wire="ink2")
+    # litter and a newspaper
+    rect(im, 182, 144, 6, 3, "white", "ink"); px(im, 184, 145, "grey3")
+    # birds
+    for (bx, by) in ((84, 34), (96, 30), (106, 36)):
+        px(im, bx, by, "ink"); px(im, bx + 1, by + 1, "ink"); px(im, bx + 2, by, "ink")
+        px(im, bx - 1, by + 1, "ink") if False else None
+    return im
+
+
+def build_dawn():
+    im = street_dawn_scene()
+    # the two figures walking away to the right
+    sora = rim_light(chibi(CAST["sora"], "side", "walk", 1))
+    jun = rim_light(chibi(JUNHO, "side", "walk", 3))
+    sora = frost(rim_light(flip(chibi(CAST["sora"], "side", "walk", 1))), 2) if False else rim_light(flip(chibi(CAST["sora"], "side", "walk", 1)))
+    jun = rim_light(flip(junho_frame("side", "walk", 3)))
+    fy = 146
+    for (spr, fx) in ((sora, 204), (jun, 240)):
+        top_y = fy - 45
+        # long shadow, left, dither on the paving
+        m = shadow_of(spr, fx, fy)
+        ovl_mask = m
+        for y in range(H):
+            for x in range(W):
+                if m.getpixel((x, y)) and 133 <= y <= 150 and x < fx - 6:
+                    im.putpixel((x, y), col("purple0") if (x + y) % 3 else col("purple1"))
+        paste(im, spr, fx - 16, top_y)
+    letterbox(im)
+    return im
+
+
+# ======================================================================
+#  ENDINGS 2 + 3: the agency desk, visitor's side
+# ======================================================================
+SICK = {   # bleak night: cold green-grey wall, no warmth anywhere
+    "orange0": "ink2", "orange1": "green0", "orange2": "green1", "orange3": "pale1", "orange4": "pale2",
+    "brown0": "ink", "brown1": "ink2", "brown2": "grey1", "brown3": "grey2",
+    "yellow2": "pale2", "yellow": "pale2", "wall1": "pale2", "wall3": "grey3", "wall4": "grey4",
+    "red2": "grey2", "red3": "grey3",
+}
+SOFT = {   # dawn: pastel, soft light
+    "orange0": "brown3", "orange1": "wall4", "orange2": "wall1", "orange3": "white", "orange4": "white",
+    "brown0": "brown1", "brown1": "brown2", "brown2": "brown3", "brown3": "wall1",
+}
+
+
+def office_base(variant):
+    img = new(fill="ink")
+    BI.office_wall(img)
+    BI.filing_cabinets(img)
+    BI.wall_calendar(img)
+    if variant == "sick":
+        BI.dying_plant(img)
+    img = swap(img, SICK if variant == "sick" else SOFT)
+    return img
+
+
+def office_window(img, variant):
+    x0, y0, w, h = 226, 34, 66, 52
+    rect(img, x0 - 3, y0 - 3, w + 6, h + 6, "grey3" if variant == "sick" else "wall1", "ink")
+    rect(img, x0 - 1, y0 - 1, w + 2, h + 2, "grey1" if variant == "sick" else "brown2", "ink")
+    if variant == "sick":
+        # black glass, a faint reflection of the tube light and one dead red dot far away
+        rect(img, x0, y0, w, h, "ink")
+        dither_grad(img, (x0, y0, x0 + w, y0 + h), "ink", "blue0", "y", 4, 0.0, 0.5)
+        for k in range(3):
+            hline(img, x0 + 6, x0 + 22 - k * 3, y0 + 8 + k * 2, "grey1")
+        px(img, x0 + 50, y0 + 18, "red2"); px(img, x0 + 50, y0 + 19, "red1")
+        px(img, x0 + 12, y0 + 38, "grey1")
+        vline(img, x0 + w // 2, y0, y0 + h - 1, "ink2")
+        # blinds fully up but one slat bent
+        rect(img, x0, y0, w, 3, "grey2", "ink")
+    else:
+        dither_ramp(img, (x0, y0, x0 + w, y0 + h), ["purple2", "red4", "orange3", "orange4"], "y", 4)
+        for (bx, bw, bh) in ((2, 10, 20), (14, 14, 28), (30, 12, 18), (44, 18, 24)):      # skyline
+            rect(img, x0 + bx, y0 + h - bh, bw, bh, "purple1", "purple0")
+        dither_radial(img, x0 + 52, y0 + 40, 14, "yellow2", None, 4, box=(x0, y0, x0 + w, y0 + h))
+        vline(img, x0 + w // 2, y0, y0 + h - 1, "brown2")
+        vline(img, x0 + w // 2 + 1, y0, y0 + h - 1, "ink")
+        rect(img, x0, y0, w, 3, "wall1", "ink")
+        hline(img, x0, x0 + w - 1, y0 + 3, "grey3")
+    rect(img, x0 - 5, y0 + h + 3, w + 10, 4, "grey3" if variant == "sick" else "wall1", "ink")
+
+
+def wall_clock(img, cx, cy, hour, minute, variant):
+    ellipse(img, cx - 10, cy - 10, cx + 10, cy + 10, "grey3" if variant == "sick" else "brown3", "ink")
+    ellipse(img, cx - 8, cy - 8, cx + 8, cy + 8, "pale2" if variant == "sick" else "white", "grey2")
+    for k in range(12):
+        a = k * math.pi / 6
+        px(img, int(round(cx + 6.2 * math.sin(a))), int(round(cy - 6.2 * math.cos(a))), "ink2")
+    ah = (hour % 12 + minute / 60) * math.pi / 6
+    am = minute * math.pi / 30
+    line(img, [(cx, cy), (int(round(cx + 4 * math.sin(ah))), int(round(cy - 4 * math.cos(ah))))], "ink", 2)
+    line(img, [(cx, cy), (int(round(cx + 7 * math.sin(am))), int(round(cy - 7 * math.cos(am))))], "ink")
+    px(img, cx, cy, "red2")
+
+
+def chair_back(img, variant):
+    cx = 160
+    c1, c2 = ("ink2", "ink") if variant == "sick" else ("brown2", "brown1")
+    rect(img, cx - 25, 64, 50, 50, c1, "ink")
+    dither_grad(img, (cx - 24, 65, cx + 24, 113), c1, c2, "x", 4, 0.0, 0.9)
+    ellipse(img, cx - 25, 58, cx + 24, 76, c1, "ink")
+    dither_grad(img, (cx - 24, 59, cx + 24, 75), c1, c2, "x", 4, 0.0, 0.9)
+    rect(img, cx - 26, 70, 3, 40, c2, "ink"); rect(img, cx + 24, 70, 3, 40, c2, "ink")       # side rails
+    for y in range(74, 110, 9):                                                              # tufting
+        for x in range(cx - 18, cx + 20, 12):
+            px(img, x, y, "ink" if variant == "sick" else "brown0")
+    hline(img, cx - 20, cx + 20, 62, "grey1" if variant == "sick" else "brown3")
+
+
+def desk_front(img, variant):
+    sick = variant == "sick"
+    top_c = ("grey2", "grey1") if sick else ("brown3", "brown2")
+    body_c = ("grey1", "ink2") if sick else ("brown2", "brown1")
+    dx0, dx1 = 84, 236
+    ty, tb = 106, 119
+    rect(img, dx0 - 2, ty, dx1 - dx0 + 4, tb - ty, top_c[0], "ink")             # desktop (seen from above)
+    dither_grad(img, (dx0 - 1, ty + 1, dx1 + 1, tb), top_c[0], top_c[1], "y", 4, 0.0, 0.8)
+    hline(img, dx0 - 1, dx1 + 1, ty + 1, "pale2" if sick else "white")
+    rect(img, dx0 - 4, tb, dx1 - dx0 + 8, 4, top_c[1], "ink")                    # front lip
+    rect(img, dx0, tb + 4, dx1 - dx0, 150 - tb - 4, body_c[0], "ink")
+    dither_grad(img, (dx0 + 1, tb + 5, dx1 - 1, 149), body_c[0], body_c[1], "x", 4, 0.0, 0.8)
+    for sx in (dx0 + 5, dx1 - 45):                                                # drawer stacks
+        rect(img, sx, tb + 8, 40, 26, body_c[1], "ink")
+        for d in range(3):
+            yy = tb + 10 + d * 8
+            rect(img, sx + 3, yy, 34, 7, body_c[0], "ink")
+            hline(img, sx + 4, sx + 36, yy + 1, top_c[0])
+            rect(img, sx + 14, yy + 3, 12, 2, "grey3" if sick else "orange3", "ink")
+    rect(img, dx0 + 52, tb + 8, dx1 - dx0 - 104, 26, "ink", "ink")                # knee well
+    dither_grad(img, (dx0 + 53, tb + 9, dx1 - 53, tb + 33), "ink", "ink2", "y", 2, 0.2, 0.6)
+    rect(img, dx0 + 2, 146, 8, 4, "ink"); rect(img, dx1 - 10, 146, 8, 4, "ink")
+
+
+def rule_stack(img, x, y, n, variant):
+    """stack of rule sheets seen from the front edge; y = bottom of the stack."""
+    for k in range(n):
+        off = (k * 7) % 3 - 1
+        yy = y - k * 2
+        rect(img, x + off, yy - 2, 24, 3, "pale2" if variant == "sick" else "white", "ink")
+        hline(img, x + off + 1, x + off + 22, yy - 1, "grey3")
+    top = y - n * 2
+    rect(img, x, top - 1, 24, 3, "white", "ink")
+    for k in range(2):
+        hline(img, x + 3, x + 20 - k * 6, top, "grey2")
+    px(img, x + 20, top, "red2")
+
+
+def job_card(img, x, y, variant):
+    """new job card lying on the desk facing the visitor: blank (empty fields, no writing)."""
+    pts = [(x + 4, y), (x + 33, y), (x + 37, y + 10), (x, y + 10)]
+    poly(img, pts, "pale2" if variant == "sick" else "white", "ink")
+    poly(img, [(x + 4, y + 1), (x + 33, y + 1), (x + 34, y + 3), (x + 3, y + 3)], "red2" if variant != "sick" else "red1")
+    for k, yy in enumerate((y + 5, y + 7)):
+        hline(img, x + 5 - k, x + 32 + k, yy, "grey3")
+    rect(img, x + 3, y + 8, 6, 1, "grey3")                       # empty box for a name
+    px(img, x + 35, y + 9, "grey3")
+
+
+def office_scene(variant, who):
+    sick = variant == "sick"
+    img = office_base(variant)
+    office_window(img, variant)
+    if sick:
+        wall_clock(img, 156, 48, 3, 0, variant)
+        BI.corkboard(img) if False else None
+        # a sheet of rules taped up: empty bulletin shadow
+        rect(img, 182, 40, 26, 32, "pale2", "ink")
+        for k in range(7):
+            hline(img, 185, 204 - (k % 3) * 3, 44 + k * 4, "grey2")
+        px(img, 195, 40, "red2")
+        px(img, 183, 72, "ink")
+        # long fluorescent tube, one end dead, with a cold cone of light
+        rect(img, 118, 28, 84, 5, "grey2", "ink")
+        rect(img, 121, 30, 56, 2, "pale2")
+        rect(img, 180, 30, 19, 2, "grey1")
+        cone = [(118, 33), (202, 33), (232, 120), (88, 120)]
+        m = cmask((W, H), [("p", cone)])
+        for y in range(33, 121):
+            for x in range(80, 240):
+                if m.getpixel((x, y)):
+                    t = 1 - (y - 33) / 87
+                    if t * 0.38 > _thr(x, y, 4):
+                        c = img.getpixel((x, y))
+                        if c != col("ink"):
+                            img.putpixel((x, y), col("pale1"))
+    else:
+        wall_clock(img, 156, 48, 6, 0, variant)
+        rect(img, 182, 40, 26, 32, "wall1", "ink")                 # tidy corkboard, almost empty
+        rect(img, 184, 42, 22, 28, "brown3", "ink")
+        rect(img, 190, 46, 10, 8, "white", "ink")
+        px(img, 195, 46, "red2")
+        # window light spilling over wall and floor (soft stripes)
+        for i in range(5):
+            y = 91 + i * 6
+            BI.ov(img, (176 - i * 6, y, 300, y + 3), "orange4", 0.55 - i * 0.08, 0.1, "x", 4)
+        for i in range(4):
+            fy = 126 + i * 7
+            BI.ov(img, (170 - i * 14, fy, 290 - i * 18, fy + 3), "orange4", 0.4 - i * 0.07, 0.4 - i * 0.07, "y", 4)
+    chair_back(img, variant)
+    # the person behind the desk
+    if who == "sora":
+        spec = dict(CAST["sora"], glasses=True, expr="tired")
+        spr = chibi(spec, "down", "idle", 0, "tired")
+    else:
+        spr = chibi(CAST["regular"], "down", "idle", 0, "smile")
+        for (x, y) in ((12, 18), (19, 18), (13, 19), (18, 19)):       # shrink the grin to a faint smile
+            px(spr, x, y, "pale2")
+        px(spr, 13, 18, "ink"); px(spr, 18, 18, "ink")
+    paste(img, spr, 144, 73)
+    if sick:
+        # sickly cast over the person as well
+        for y in range(73, 120):
+            for x in range(144, 176):
+                c = img.getpixel((x, y))
+                if c in (col("skin2"), col("skin3")) and 0.5 > _thr(x, y, 4):
+                    img.putpixel((x, y), col("pale2"))
+    desk_front(img, variant)
+    # ---- things on the desk
+    if sick:
+        rule_stack(img, 108, 116, 8, variant)
+        job_card(img, 140, 108, variant)
+        # name plate (title only)
+        rect(img, 196, 106, 28, 13, "grey3", "ink")
+        hline(img, 197, 222, 107, "pale2")
+        text(img, 210, 108, "실장", "ink", 9, align="center")
+    else:
+        # one folded note, a mug, the stack gone
+        note = build_note()
+        note_big = new(20, 14)
+        poly(note_big, [(4, 0), (17, 0), (19, 12), (1, 12)], "wall1", "ink")
+        poly(note_big, [(12, 1), (17, 1), (17, 5)], "grey4", "ink")
+        line(note_big, [(3, 6), (17, 6)], "grey3")
+        for p in ((5, 3), (6, 2), (7, 3), (8, 2), (9, 3), (6, 9), (7, 8), (8, 9), (9, 8), (10, 9), (11, 8)):
+            px(note_big, *p, "ink2")
+        paste(img, note_big, 148, 105)
+        rect(img, 196, 108, 8, 8, "white", "ink"); rect(img, 197, 109, 6, 2, "brown1")
+        px(img, 204, 111, "ink"); px(img, 205, 112, "ink")
+        for k in range(4):
+            px(img, 199 + (k % 2), 105 - k, "grey4")                   # steam
+    # contact shadow under the desk
+    BI.ov(img, (76, 150, 244, 158), "ink", 0.7, 0.7, "y", 2)
+    if sick:
+        BI.ov(img, (0, 22, 320, 40), "ink", 0.6, 0.0, "y", 4)
+        BI.ov(img, (0, 22, 50, 158), "ink", 0.6, 0.0, "x", 4)
+        BI.ov(img, (270, 22, 320, 158), "ink", 0.0, 0.6, "x", 4)
+    letterbox(img)
+    return img
+
+
+# ======================================================================
+def main():
+    build_junho()
+    save(build_note(), "props/note.png")
+    build_float()
+    frames, names = [], []
+    for k, p in KW_POSES.items():
+        frames.append(kwak_frame(p, p.get("f", 0))); names.append(k)
+    frames.append(kwak_defeat()); names.append("defeat_0")
+    order = ["idle_0", "idle_1", "tell_0", "lunge_0", "hurt_0", "defeat_0"]
+    frames = [frames[names.index(n)] for n in order]
+    sheet(frames, "props/kwak_boss", order, cols=6)
+    save(build_park(), "bg/park.png")
+    save(build_dawn(), "bg/ending_dawn.png")
+    save(office_scene("sick", "sora"), "bg/ending_desk.png")
+    save(office_scene("soft", "regular"), "bg/ending_note.png")
+    files = ["bg/park.png", "bg/ending_dawn.png", "bg/ending_desk.png", "bg/ending_note.png",
+             "props/float.png", "props/kwak_boss.png", "characters/junho.png", "props/note.png"]
+    for f in files:
+        im = Image.open(os.path.join(ASSETS, f)).convert("RGBA")
+        print(f, im.size, "off-palette:", off_palette(im) or "none")
+    contact(files, "_contact/finale.png", cols=2, scale=2)
+    print("ok")
+
+
+if __name__ == "__main__":
+    main()

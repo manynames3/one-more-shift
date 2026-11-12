@@ -1,0 +1,50 @@
+{
+ "frames": {
+  "blue_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   }
+  },
+  "red_0": {
+   "frame": {
+    "x": 8,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   }
+  }
+ },
+ "meta": {
+  "image": "pill.png",
+  "size": {
+   "w": 16,
+   "h": 8
+  },
+  "scale": 1,
+  "frameWidth": 8,
+  "frameHeight": 8
+ }
+}

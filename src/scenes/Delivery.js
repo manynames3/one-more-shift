@@ -111,7 +111,7 @@ export default class Delivery extends Phaser.Scene {
       this.opened = false;       // a door that opens first only does it once per visit
     } else if (place === "stairs") {
       this.bg.setTexture("bg_stairwell");
-      this.bigFloor.setText(`${this.floor}F`).setColor(f4 ? C.red : C.grey);
+      this.bigFloor.setText(`${this.floor}F`).setColor(f4 ? C.red : C.grey).setX(86);
       this.navR.setText(this.floor < TOPF ? t("stairsUp") : "");
       this.navL.setText(this.floor > 1 ? t("stairsDown") : t("exitOut"));
       if (f4) { this.bg.setTint(0xd9a0a0); this.dim.setAlpha(0.12); }
