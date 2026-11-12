@@ -242,7 +242,7 @@ export default class Event extends Phaser.Scene {
       if (!h.off) {
         h.t -= dt;
         if (h.t <= 0 && !this.call.on) {
-          h.off = true; h.left = 4.2; h.grace = 0.8;
+          h.off = true; h.left = 4.2; h.grace = 1.1;
           m.setFrame("headoff_0"); snd.sfx("clang"); snd.sfx("warn", 0.1);
           this.cameras.main.shake(140, 0.004);
           this.hint("turn", W / 2 + 40, 52);
