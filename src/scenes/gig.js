@@ -6,8 +6,22 @@ import { W, H, BAR, C, txt, soundToggle } from "../ui.js";
 import { S, t, won, START_DEBT, recordBest, markSeen, hourly, clearAct, saveNote } from "../state.js";
 import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
+import { setActionLabel } from "../touchpad.js";
 
 export const GigMixin = {
+  /** Tell the on-screen A button what it would do here. */
+  padLabel() {
+    let k = null;
+    if (this.meterState) k = this.meterState.mode === "hold" ? "hold" : "tap";
+    else if (this.riding) k = "hop";
+    else if (this.bossActive?.()) k = "boss";
+    else if (!this.over && !this.talking && this.spots) {
+      const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
+      if (s) k = s[2].replace(/[0-9]/g, "");
+    }
+    setActionLabel(k ? t("pad_" + k) : "");
+  },
+
   /**
    * A small skill check above Sora's head.
    *   mode "hold": the bar fills while Space / A / a finger is held; let go inside the zone.
@@ -202,6 +216,7 @@ export const GigMixin = {
 
   tickHud(dt) {
     if (!this.over) this.meterTick(dt);
+    this.padLabel();
     if (!this.over) this.tickNote();
     this.blink += dt;
     const on = Math.floor(this.blink * 6) % 2 === 0;

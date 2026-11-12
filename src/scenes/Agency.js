@@ -9,12 +9,14 @@ import { wQuotaFor } from "./Ward.js";
 import { sQuotaFor } from "./Site.js";
 const QUOTA = { 1: quotaFor, 2: eQuotaFor, 3: dQuotaFor, 4: cQuotaFor, 5: wQuotaFor, 6: sQuotaFor, 7: () => 0 };
 import * as snd from "../audio.js";
+import { setActionLabel } from "../touchpad.js";
 
 // Briefing: the manager talks, then hands over tonight's job card.
 export default class Agency extends Phaser.Scene {
   constructor() { super("Agency"); }
 
   create(data) {
+    setActionLabel("");
     const run = S.run;
     this.cameras.main.fadeIn(250, 20, 16, 26);
     snd.ambience(false);

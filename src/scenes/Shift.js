@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
 import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily, clearAct, hourly, saveNote } from "../state.js";
 import * as snd from "../audio.js";
+import { setActionLabel } from "../touchpad.js";
 import { startReplay, endReplay, cancelReplay } from "../replay.js";
 import { RoomMixin, ROOM } from "./rooms.js";
 import { BossMixin, BOSS_SHIFT, BOSS_MIN } from "./boss.js";
@@ -33,6 +34,7 @@ export default class Shift extends Phaser.Scene {
   constructor() { super("Shift"); }
 
   create() {
+    setActionLabel("");
     const run = S.run;
     this.run = run;
     this.rules = rulesFor(run.shift);

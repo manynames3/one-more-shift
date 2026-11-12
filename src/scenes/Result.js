@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, button, soundToggle } from "../ui.js";
 import { S, t, won, hourly, GIG, newRun, MAX_CONTINUES, continueCost, saveDaily } from "../state.js";
 import * as snd from "../audio.js";
+import { setActionLabel } from "../touchpad.js";
 import { sharePayStub } from "../share.js";
 import { hasReplay, replayGif } from "../replay.js";
 
@@ -10,6 +11,7 @@ export default class Result extends Phaser.Scene {
   constructor() { super("Result"); }
 
   create(data) {
+    setActionLabel("");
     const run = S.run, cause = data.cause || "door";
     const daily = run.daily, dailyOk = cause === "daily";
     if (daily && !dailyOk) saveDaily({ done: true, ok: false, pay: run.earned, cause });

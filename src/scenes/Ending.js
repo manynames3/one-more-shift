@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, onAdvance } from "../ui.js";
 import { S, t, won, clearAct, saveEnding } from "../state.js";
 import * as snd from "../audio.js";
+import { setActionLabel } from "../touchpad.js";
 
 // The three endings, then the credits.
 //   sign  -> the front desk: the debt is gone and Sora hands the next worker a rule sheet
@@ -13,6 +14,7 @@ export default class Ending extends Phaser.Scene {
   constructor() { super("Ending"); }
 
   create(data) {
+    setActionLabel("");
     const key = data?.ending || "walk";
     const run = S.run;
     if (key === "sign" && run) { run.earned += run.debt; run.debt = 0; }

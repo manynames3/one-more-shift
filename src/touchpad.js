@@ -28,6 +28,15 @@ const CSS = `
 #pad.off .b:not(.hide) { display: none; }
 `;
 
+let actBtn = null, lastLabel = "A";
+/** Show what the A button does right now (a short word), or "A". */
+export function setActionLabel(s) {
+  s = s || "A";
+  if (!actBtn || s === lastLabel) return;
+  lastLabel = s; actBtn.textContent = s;
+  actBtn.style.fontSize = s.length > 3 ? "11px" : s.length > 1 ? "13px" : "16px";
+}
+
 export function initTouchpad() {
   const touch = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
   if (!touch) return;
@@ -48,6 +57,7 @@ export function initTouchpad() {
     el.addEventListener("pointercancel", up);
     el.addEventListener("lostpointercapture", up);
     pad.appendChild(el);
+    return el;
   };
   // d-pad, bottom-left
   btn("left", "◀", `left:${L}; bottom:calc(${B} + ${S}px);`);
@@ -55,7 +65,9 @@ export function initTouchpad() {
   btn("up", "▲", `left:calc(${L} + ${S}px); bottom:calc(${B} + ${2 * S}px);`);
   btn("down", "▼", `left:calc(${L} + ${S}px); bottom:${B};`);
   // action, bottom-right
-  btn("act", "A", `right:${R}; bottom:calc(${B} + ${S / 2}px);`, "act");
+  actBtn = btn("act", "A", `right:${R}; bottom:calc(${B} + ${S / 2}px);`, "act");
+  // the rotate tip would sit under the pad
+  const rot = document.getElementById("rotate"); if (rot) { rot.style.bottom = "auto"; rot.style.top = "56px"; }
   // show / hide the pad
   const hide = document.createElement("div");
   hide.className = "b hide"; hide.textContent = off ? "🎮" : "×";
