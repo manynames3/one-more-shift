@@ -18,7 +18,7 @@ const LIVES = 3, FOREMAN_HP = 3;
 export const FOREMAN_NIGHT = 3, FOREMAN_MIN = 45;
 
 /** Pay you must earn on a site night. */
-export const sQuotaFor = shift => 30000 + 4000 * (shift - 1);
+export const sQuotaFor = shift => 26000 + 4000 * (shift - 1);
 
 export default class Site extends Phaser.Scene {
   constructor() { super("Site"); }

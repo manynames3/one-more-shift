@@ -22,7 +22,7 @@ const SLOTS = [228, 254, 280, 306];
 const ADULTS = ["halmae", "daeri", "jisu"];
 
 /** Pay you must earn on an event night. */
-export const eQuotaFor = shift => 52000 + 6000 * (shift - 1);
+export const eQuotaFor = shift => 50000 + 4000 * (shift - 1);
 
 export default class Event extends Phaser.Scene {
   constructor() { super("Event"); }

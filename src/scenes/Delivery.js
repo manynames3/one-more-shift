@@ -93,6 +93,8 @@ export default class Delivery extends Phaser.Scene {
   // ---- places ----------------------------------------------------------------
   /** Show a place. x = where Sora stands on arrival. */
   enter(place, x) {
+    // walked away from a door that opened first: it stays shut when you come back
+    if (this.opened && this.order) this.order.trap = false;
     this.place = place; this.target = null; this.intent = null;
     this.clearHints();
     this.elevOpen.setVisible(false); this.doorOpen.setVisible(false);
