@@ -220,6 +220,10 @@ const STR = {
     offerLine: n => n === 1 ? "빚 4천만 원. 새벽 2시, 휴대폰이 울렸다." : n === 7 ? "마지막 알림. 곽 실장의 이름으로 왔다." : "또 휴대폰이 울렸다. 시급이 더 올랐다.",
     lastNight: "마지막 밤",
     flashOn: "섬광: 켬", flashOff: "섬광: 끔",
+    rcard_knock: "철문 노크? 창고를 나가시오",
+    rcard_fridge: "03:40 후 냉장고 금지",
+    rcard_hoist: "사람 탄 호이스트 금지",
+    rcard_pit: "타설 중 구덩이 금지",
     paused: "일시정지", pauseHint: "P / Esc 로 계속", resume: "계속", quitTitle: "타이틀로",
     dread_1: "한 번만 더",
     dread_2: "출근 기록이 두 개야",
@@ -260,7 +264,7 @@ const STR = {
     brief5: ["쓰레기는 가게 앞에 내놔.", "가로등 밑에 누가 있으면... 보지 마."],
     brief6: ["단골 말인데... 요즘 얼굴을 바꿔.", "그림자 없는 손님은 계산하지 마."],
     brief7: ["냉장고는 03:40까지만 열어.", "그 뒤엔 돈을 세 배 준대도 열지 마."],
-    hint_box: "상자 줍기 (Space)", hint_trash: "쓰레기 → 가게 앞 쓰레기통", hint_bins: "쓰레기통에 버리기", hint_knock: "철문 노크! 빨리 나가!", hint_lamp: "왼쪽을 보지 마!",
+    hint_till: "손님 대기! Space로 계산", hint_box: "상자 줍기 (Space)", hint_trash: "쓰레기 → 가게 앞 쓰레기통", hint_bins: "쓰레기통에 버리기", hint_knock: "철문 노크! 빨리 나가!", hint_lamp: "왼쪽을 보지 마!",
     toFloor: "▼ 매장", toStore: "▲ 가게로", waiting: n => `손님 ${n}명 대기`,
     dg1: ["새로 왔어? 난 덕구. 같이 야간이야.", "규칙만 지키면 돼. 진짜로.", "나? 여기서 오래 일했지.", "...언제부터였더라."],
     dg2: ["창고 철문은 대답하지 마.", "두드리면 그냥 나와. 상자는 두고.", "네 오빠도 야간 했었지.", "...아, 아무것도 아냐.", "요즘 창고에 쥐가 많아."],
@@ -372,6 +376,12 @@ const STR = {
     offerLine: n => n === 1 ? "₩40,000,000 in debt. 2 AM, the phone buzzes." : n === 7 ? "The last alert. It comes from Kwak himself." : "The phone buzzes again. The pay went up again.",
     lastNight: "Last night",
     flashOn: "Flashes: on", flashOff: "Flashes: off",
+    rcard_door: "It comes? Face the door",
+    rcard_lamp: "Don't look under the lamp",
+    rcard_answer: "It calls you? Don't answer",
+    rcard_count: "More out? Lock Hall 3",
+    rcard_bed: "Lights out? Stay in bed",
+    rcard_pit: "Pouring? Stay off the pit",
     paused: "PAUSED", pauseHint: "P / Esc to continue", resume: "Resume", quitTitle: "Quit",
     dread_1: "one more shift",
     dread_2: "you clocked in twice",
@@ -412,7 +422,7 @@ const STR = {
     brief5: ["Take the trash out front.", "If someone's under the streetlamp... don't look."],
     brief6: ["About the Regular... it wears other faces now.", "No shadow? Don't ring them up."],
     brief7: ["The fridge closes at 03:40.", "Even if it pays triple. Don't open it."],
-    hint_box: "Grab a box (Space)", hint_trash: "Trash → bins out front", hint_bins: "Drop it in the bins", hint_knock: "KNOCKING! GET OUT!", hint_lamp: "Don't look left!",
+    hint_till: "Customer waiting! Space", hint_box: "Grab a box (Space)", hint_trash: "Trash → bins out front", hint_bins: "Drop it in the bins", hint_knock: "KNOCKING! GET OUT!", hint_lamp: "Don't look left!",
     toFloor: "▼ SHOP", toStore: "▲ STORE", waiting: n => `${n} waiting`,
     dg1: ["New? I'm Deokgu. Nights too.", "Keep the rules and you're fine. Really.", "Me? Been here a long time.", "...Since when, again?"],
     dg2: ["Don't answer the steel door.", "If it knocks, get out. Leave the box.", "Your brother worked nights too.", "...Forget I said that.", "Lots of rats in the back lately."],
@@ -437,6 +447,9 @@ const STR = {
     shareText: (n, cause) => `ONE MORE SHIFT: ended on shift ${n}. Cause: ${cause}`,
   },
 };
+
+/** Whether the current language has its own string for key (no English fallback). */
+export const hasStr = key => key in STR[S.lang];
 
 export function t(key, ...a) {
   const v = STR[S.lang][key] ?? STR.en[key] ?? key;

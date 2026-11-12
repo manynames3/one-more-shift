@@ -190,6 +190,7 @@ export default class Shift extends Phaser.Scene {
 
   tickHud(dt) {
     this.tickDread(dt);
+    if (this.hints.till && (!this.front() || this.working?.kind === "serve")) this.unhint("till");
     if (this.note && this.room === "floor" && Phaser.Math.Distance.Between(this.p.x, this.p.y, this.note.x, 150) < 12) {
       this.note.destroy(); this.note = null; saveNote(1); snd.sfx("coin");
       const c = txt(this, W / 2, 40, t("note1"), { ox: 0.5, size: 9, depth: 960, wrap: W - 40 }).setBackgroundColor("#14101a").setPadding(4, 2, 4, 2);
@@ -496,6 +497,8 @@ export default class Shift extends Phaser.Scene {
     const f = Math.max(0, c.pat / c.max);
     c.bar.clear().fillStyle(0x14101a).fillRect(spr.x - 9, spr.y - 52, 18, 4)
       .fillStyle(c.isReg && !c.disguised ? 0xc8202f : f > 0.4 ? 0x7fc77a : 0xef3b4a).fillRect(spr.x - 8, spr.y - 51, Math.round(16 * f), 2);
+    // a new player watching the queue: point at the till once
+    if (f < 0.5 && !c.isReg && this.front() === c && this.working?.kind !== "serve") this.hint("till", spr.x, spr.y - 64);
     if (c.pat <= 0) {
       this.queue.splice(this.queue.indexOf(c), 1); c.out = true; c.bar.clear();
       if (this.working?.kind === "serve" && !this.front()) this.cancelWork();

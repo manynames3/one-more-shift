@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, C, txt, soundToggle, enCard } from "../ui.js";
-import { S, t, won, newRuleFor, MULT, hourly, GIG, saveRun } from "../state.js";
+import { S, t, won, newRuleFor, MULT, hourly, GIG, saveRun, hasStr } from "../state.js";
 import { quotaFor } from "./Shift.js";
 import { dQuotaFor } from "./Delivery.js";
 import { eQuotaFor } from "./Event.js";
@@ -84,6 +84,20 @@ export default class Agency extends Phaser.Scene {
     this.showCard();
   }
 
+  /** Split a rule for the job card: a short first line beside the badge, then one full-width line.
+   *  Long rules use their card wording (rcard_*). Returns [first, second, fits]. */
+  ruleLines(rule) {
+    const s = t(hasStr("rcard_" + rule) ? "rcard_" + rule : "rule_" + rule);
+    const words = s.split(" "), badge = S.lang === "ko" ? 24 : 26;
+    const probe = txt(this, 0, 0, "", { size: 9, shadow: false });
+    let first = "";
+    while (words.length) { probe.setText(first ? first + " " + words[0] : words[0]); if (probe.width > 96 - badge && first) break; first = probe.text; words.shift(); }
+    probe.setText(first); const w1 = probe.width;
+    const second = words.join(" "); probe.setText(second); const w2 = probe.width;
+    probe.destroy();
+    return [first, second, w1 <= 96 - badge && w2 <= 96];
+  }
+
   showCard() {
     snd.sfx("stamp");
     const c = this.add.container(100, -100).setDepth(50);
@@ -92,7 +106,10 @@ export default class Agency extends Phaser.Scene {
     c.add(txt(this, 32, 23, t(this.gig.place), { size: 9, color: C.ink, shadow: false }));
     c.add(txt(this, 32, 37, (S.run.act === 7 ? t("wageAll") : t("wageLine", MULT[S.run.act || 1], hourly(S.run.act || 1))), { size: 9, color: C.ink, shadow: false }));
     // below the RULE badge, two tight lines inside the red box
-    c.add(txt(this, 13, 61, t("rule_" + this.newRule), { size: 9, color: C.red2, shadow: false, wrap: 96 }).setLineSpacing(-3));
+    // the first line starts beside the RULE badge, so two lines fit inside the red box
+    const [l1, l2] = this.ruleLines(this.newRule);
+    c.add(txt(this, 13 + (S.lang === "ko" ? 24 : 26), 57, l1, { size: 9, color: C.red2, shadow: false }));
+    if (l2) c.add(txt(this, 13, 68, l2, { size: 9, color: C.red2, shadow: false }));
     this.card = c;
     this.tweens.add({ targets: c, y: 26, duration: 380, ease: "Back.easeOut" });
     this.l1.setText(t("rulePre") + t("rule_" + this.newRule));
