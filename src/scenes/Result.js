@@ -1,8 +1,8 @@
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, button, soundToggle } from "../ui.js";
+import { W, H, BAR, C, txt, button, soundToggle, enStub } from "../ui.js";
 import { S, t, won, hourly, GIG, newRun, MAX_CONTINUES, continueCost, saveDaily } from "../state.js";
 import * as snd from "../audio.js";
-import { setActionLabel } from "../touchpad.js";
+import { setActionLabel, showPad } from "../touchpad.js";
 import { sharePayStub } from "../share.js";
 import { hasReplay, replayGif } from "../replay.js";
 
@@ -11,7 +11,7 @@ export default class Result extends Phaser.Scene {
   constructor() { super("Result"); }
 
   create(data) {
-    setActionLabel("");
+    setActionLabel(""); showPad(false);
     const run = S.run, cause = data.cause || "door";
     const daily = run.daily, dailyOk = cause === "daily";
     if (daily && !dailyOk) saveDaily({ done: true, ok: false, pay: run.earned, cause });
@@ -29,6 +29,7 @@ export default class Result extends Phaser.Scene {
     // the stub (180x240) prints upward, then scrolls to show the bottom half
     const stub = this.add.container(14, H).setDepth(10);
     stub.add(this.add.image(0, 0, "ui_paystub").setOrigin(0));
+    enStub(this, stub);
     this.rows.forEach((v, i) => stub.add(txt(this, 66, 61 + 20 * i, v, {
       size: v.length > 13 ? 9 : 11, color: i === 4 || i === 5 ? C.red2 : C.ink, shadow: false,
     })));
@@ -46,9 +47,10 @@ export default class Result extends Phaser.Scene {
 
     const x = 256;
     txt(this, x, BAR + 12, t(dailyOk ? "over_daily" : win ? "over_win" : fired ? "over_fired" : "over_fail"), { ox: 0.5, color: win ? C.green : C.red, depth: 30 });
-    txt(this, x, BAR + 30, t("cause_" + cause), { ox: 0.5, size: 9, depth: 30, wrap: 112 });
-    txt(this, x, BAR + 48, daily ? won(run.earned) : t("survived", run.cleared), { ox: 0.5, size: daily ? 11 : 9, color: C.yellow, depth: 30 });
-    if (!daily) txt(this, x, BAR + 60, `${t("debt")} ${won(run.debt)}`, { ox: 0.5, size: 9, color: C.grey, depth: 30 });
+    const why = txt(this, x, BAR + 26, t("cause_" + cause), { ox: 0.5, size: 9, depth: 30, wrap: 112 });
+    const dy = Math.max(0, why.height - 12);     // a two-line cause pushes the rest down
+    txt(this, x, BAR + 40 + dy, daily ? won(run.earned) : t("survived", run.cleared), { ox: 0.5, size: daily ? 11 : 9, color: C.yellow, depth: 30 });
+    if (!daily) txt(this, x, BAR + 52 + dy, `${t("debt")} ${won(run.debt)}`, { ox: 0.5, size: 9, color: C.grey, depth: 30 });
 
     this.locked = true;
     this.time.delayedCall(900, () => { this.locked = false; });
@@ -56,10 +58,10 @@ export default class Result extends Phaser.Scene {
     this.canCont = !win && !daily && (run.continues || 0) < MAX_CONTINUES;
     if (this.canCont) {
       this.cost = continueCost(run.continues || 0);
-      txt(this, x, BAR + 72, t("cont_cost", won(this.cost)), { ox: 0.5, size: 9, color: C.orange, depth: 30 });
-      button(this, x, BAR + 92, "ui_btn_primary", t("cont_btn"), () => this.cont(), 30);
-      button(this, x, BAR + 113, "ui_btn_danger", t("retry"), () => this.retry(), 30);
-      this.shareBtn = button(this, x, BAR + 134, "ui_btn_secondary", t("share"), () => this.share(shiftNo, cause), 30);
+      txt(this, x + 4, BAR + 64 + dy, t("cont_cost", won(this.cost)), { ox: 0.5, size: 9, color: C.orange, depth: 30 });
+      button(this, x, BAR + 86, "ui_btn_primary", t("cont_btn"), () => this.cont(), 30);
+      button(this, x, BAR + 106, "ui_btn_danger", t("retry"), () => this.retry(), 30);
+      this.shareBtn = button(this, x, BAR + 126, "ui_btn_secondary", t("share"), () => this.share(shiftNo, cause), 30);
       this.input.keyboard.on("keydown-C", () => this.cont());
     } else {
       button(this, x, BAR + 88, "ui_btn_primary", t("retry"), () => this.retry(), 30);

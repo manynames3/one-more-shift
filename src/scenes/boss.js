@@ -137,7 +137,7 @@ export const BossMixin = {
     dg.sh.destroy(); dg.destroy(); this.deokgu = null;
     for (let i = 0; i < 4; i++) this.spawnRat(b.spr.x + rand(-20, 20), b.spr.y);
     [this.fightPlate, this.hearts, this.bossBarBg, this.bossBar, this.bossName].flat().forEach(o => o.setAlpha(1));
-    this.hint("fight", W / 2, 132);
+    this.hint("fight", W / 2, 44);
     b.phase = "fight"; b.state = "idle"; b.st = 1.0;
   },
 

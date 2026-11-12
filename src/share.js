@@ -1,3 +1,4 @@
+import { S } from "./state.js";
 // Renders the pay stub as a 720x960 PNG and shares or downloads it.
 const SCALE = 4;
 
@@ -11,6 +12,15 @@ export function renderPayStub(scene, rows, stampKey) {
   g.fillStyle = "#14101a"; g.fillRect(0, 0, cv.width, cv.height);
   g.drawImage(src, 0, 0, cv.width, cv.height);
   g.textBaseline = "top";
+  // English: paint over the Korean labels baked into the stub
+  if (S.lang === "en") {
+    g.fillStyle = "#f6f1e7"; g.fillRect(9 * SCALE, 36 * SCALE, 64 * SCALE, 16 * SCALE);
+    g.font = `${12 * SCALE}px "Galmuri11"`; g.fillStyle = "#14101a"; g.fillText("WAGE SLIP", 10 * SCALE, 38 * SCALE);
+    [[62, "#e9e2c8", "PLACE"], [82, "#f6f1e7", "SHIFT"], [102, "#e9e2c8", "WAGE"], [122, "#fff3a8", "TOTAL"], [142, "#e9e2c8", "CAUSE"], [162, "#f6f1e7", "DEBT LEFT"]].forEach(([y, c, s]) => {
+      g.fillStyle = c; g.fillRect(8 * SCALE, (y - 2) * SCALE, 52 * SCALE, 14 * SCALE);
+      g.font = `${10 * SCALE}px "Galmuri9"`; g.fillStyle = "#4a4458"; g.fillText(s, 10 * SCALE, (y - 1) * SCALE);
+    });
+  }
   rows.forEach((v, i) => {
     const small = v.length > 13;
     g.font = small ? `${10 * SCALE}px "Galmuri9"` : `${12 * SCALE}px "Galmuri11"`;

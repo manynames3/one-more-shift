@@ -27,7 +27,7 @@ export const ResidentMixin = {
     b.glow = this.add.rectangle(0, 0, 34, 22, 0xef3b4a).setDepth(4).setAlpha(0);
     b.peek = this.add.sprite(0, 0, "props_resident", "peek_0").setOrigin(0.5, 1).setDepth(5).setVisible(false);
     b.hp = txt(this, W - 6, 34, "", { ox: 1, size: 9, color: C.red, depth: 895 });
-    b.floorTxt = txt(this, W / 2, 80, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 });
+    b.floorTxt = txt(this, W / 2, 34, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 }).setBackgroundColor("#14101a").setPadding(2, 0, 2, 0);
     this.cut(() => {
       this.floor = Math.max(1, Math.min(this.floor, 5));
       this.toLanding(160);
@@ -54,7 +54,7 @@ export const ResidentMixin = {
     b.decoy.setPosition(PEEK[other].x, PEEK[other].y).setFlipX(other === "R").setVisible(this.floor >= 4).setAlpha(0);
     if (this.floor >= 4) this.tweens.add({ targets: b.decoy, alpha: 1, delay: 250, duration: 300 });
     if (this.floor === 4 && !b.warned) { b.warned = true; this.caption(t("resPhase2"), 2.2); }
-    b.hp.setText("♥".repeat(LIVES - b.hits) + "♡".repeat(b.hits));
+    b.hp.setText("♥".repeat(Math.max(0, LIVES - b.hits)) + "♡".repeat(Math.min(LIVES, b.hits)));
     b.floorTxt.setText(`${this.floor}F → ${t("roofF")}`);
     this.hint("flight", W / 2, 96);
   },

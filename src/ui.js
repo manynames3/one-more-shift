@@ -61,3 +61,27 @@ export function soundToggle(scene) {
 
 export const rand = (a, b) => a + Math.random() * (b - a);
 export const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+// The job card, pay stub and HUD bar have their labels painted in Korean. In English, paint over them.
+const EN_STUB = [[62, 0xe9e2c8, "PLACE"], [82, 0xf6f1e7, "SHIFT"], [102, 0xe9e2c8, "WAGE"], [122, 0xfff3a8, "TOTAL"], [142, 0xe9e2c8, "CAUSE"], [162, 0xf6f1e7, "DEBT LEFT"]];
+export function enStub(scene, c) {
+  if (S.lang !== "en") return;
+  c.add(scene.add.rectangle(9, 36, 64, 16, 0xf6f1e7).setOrigin(0));
+  c.add(txt(scene, 10, 39, "WAGE SLIP", { color: C.ink, shadow: false }));
+  EN_STUB.forEach(([y, col, s]) => { c.add(scene.add.rectangle(8, y - 2, 52, 14, col).setOrigin(0)); c.add(txt(scene, 10, y, s, { size: 9, color: "#4a4458", shadow: false })); });
+}
+export function enCard(scene, c) {
+  if (S.lang !== "en") return;
+  c.add(scene.add.rectangle(20, 3, 80, 16, 0x2f4a9c).setOrigin(0));
+  c.add(txt(scene, 60, 6, "TONIGHT'S JOB", { ox: 0.5, size: 9, color: C.white }));
+  c.add(scene.add.rectangle(5, 23, 25, 26, 0xf6f1e7).setOrigin(0));
+  c.add(txt(scene, 6, 24, "AT", { size: 9, color: "#4a4458", shadow: false }));
+  c.add(txt(scene, 6, 38, "PAY", { size: 9, color: "#4a4458", shadow: false }));
+  c.add(scene.add.rectangle(10, 50, 23, 12, 0xc8202f).setOrigin(0).setStrokeStyle(1, 0x14101a));
+  c.add(txt(scene, 21, 51, "RULE", { ox: 0.5, size: 9, color: C.white, shadow: false }));
+}
+export function enHud(scene) {
+  if (S.lang !== "en") return;
+  scene.add.rectangle(200, H - 22 + 4, 24, 14, 0x14101a).setOrigin(0).setDepth(905);
+  txt(scene, 222, H - 22 + 6, "DEBT", { ox: 1, size: 9, color: C.red, depth: 906 });
+}

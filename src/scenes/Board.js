@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, soundToggle } from "../ui.js";
 import { S, t, ACTS, actOpen, newRun, GIG, savedRun } from "../state.js";
 import * as snd from "../audio.js";
-import { setActionLabel } from "../touchpad.js";
+import { setActionLabel, showPad } from "../touchpad.js";
 
 // The agency's job board: one card per act. Shown from the title once Act 1 is cleared,
 // and right after beating the Rat King (context "clear"), where the store gets stamped.
@@ -12,7 +12,7 @@ export default class Board extends Phaser.Scene {
   constructor() { super("Board"); }
 
   create(data) {
-    setActionLabel("");
+    setActionLabel(""); showPad(false);
     this.ctx = data?.context || "title";
     this.clearedAct = data?.act || 1;
     this.cameras.main.fadeIn(250, 20, 16, 26);

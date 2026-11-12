@@ -2,15 +2,16 @@
 // A scene using it sets this.clockBase (minutes past midnight at 00 of the shift) and may define
 // clockHot() (clock turns orange) and tickSlip() (update the top-left slip).
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, soundToggle } from "../ui.js";
+import { W, H, BAR, C, txt, soundToggle, enHud } from "../ui.js";
 import { S, t, won, START_DEBT, recordBest, markSeen, hourly, clearAct, saveNote } from "../state.js";
 import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
-import { setActionLabel } from "../touchpad.js";
+import { setActionLabel, showPad } from "../touchpad.js";
 
 export const GigMixin = {
   /** Phaser reuses scene objects: clear everything a previous night left on `this`. */
   resetGig() {
+    showPad(true);
     this.boss = null; this.bossDone = false; this.note = null; this.meterState = null; this.meterEnd = null;
     this.talking = false; this.riding = null; this.chosen = null; this.choosing = false; this.opened = false;
     this.working = null; this.carry = false; this.order = null; this.floatWrong = false; this.moving = false;
@@ -203,6 +204,7 @@ export const GigMixin = {
     this.ruleIcon = this.add.image(43, 11, "props_icons", "rule").setDepth(910);
     this.ruleTxt = txt(this, 60, 5, "", { color: C.yellow, depth: 910 });
     this.add.image(0, H - BAR, "ui_hud_bottom").setOrigin(0).setDepth(900);
+    enHud(this);
     this.hudClock = txt(this, 64, H - BAR + 6, "", { size: 9, ox: 0.5, depth: 910 });
     this.hudPay = txt(this, 129, H - BAR + 6, "", { size: 9, color: C.yellow, depth: 910 });
     this.debtFill = this.add.image(226, H - BAR + 9, "ui_debt_meter_fill").setOrigin(0).setDepth(910);

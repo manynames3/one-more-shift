@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { W, H, C, txt, soundToggle } from "../ui.js";
+import { W, H, C, txt, soundToggle, enCard } from "../ui.js";
 import { S, t, won, newRuleFor, MULT, hourly, GIG, saveRun } from "../state.js";
 import { quotaFor } from "./Shift.js";
 import { dQuotaFor } from "./Delivery.js";
@@ -9,14 +9,14 @@ import { wQuotaFor } from "./Ward.js";
 import { sQuotaFor } from "./Site.js";
 const QUOTA = { 1: quotaFor, 2: eQuotaFor, 3: dQuotaFor, 4: cQuotaFor, 5: wQuotaFor, 6: sQuotaFor, 7: () => 0 };
 import * as snd from "../audio.js";
-import { setActionLabel } from "../touchpad.js";
+import { setActionLabel, showPad } from "../touchpad.js";
 
 // Briefing: the manager talks, then hands over tonight's job card.
 export default class Agency extends Phaser.Scene {
   constructor() { super("Agency"); }
 
   create(data) {
-    setActionLabel("");
+    setActionLabel(""); showPad(false);
     const run = S.run;
     saveRun(run);
     this.cameras.main.fadeIn(250, 20, 16, 26);
@@ -88,14 +88,18 @@ export default class Agency extends Phaser.Scene {
     snd.sfx("stamp");
     const c = this.add.container(100, -100).setDepth(50);
     c.add(this.add.image(0, 0, "ui_job_card").setOrigin(0));
+    enCard(this, c);
     c.add(txt(this, 32, 23, t(this.gig.place), { size: 9, color: C.ink, shadow: false }));
     c.add(txt(this, 32, 37, (S.run.act === 7 ? t("wageAll") : t("wageLine", MULT[S.run.act || 1], hourly(S.run.act || 1))), { size: 9, color: C.ink, shadow: false }));
-    c.add(txt(this, 13, 60, t("rule_" + this.newRule), { size: 9, color: C.red2, shadow: false, wrap: 94 }));
+    // below the RULE badge, two tight lines inside the red box
+    c.add(txt(this, 13, 61, t("rule_" + this.newRule), { size: 9, color: C.red2, shadow: false, wrap: 96 }).setLineSpacing(-3));
     this.card = c;
     this.tweens.add({ targets: c, y: 26, duration: 380, ease: "Back.easeOut" });
     this.l1.setText(t("rulePre") + t("rule_" + this.newRule));
+    // a long rule drops to the small font so it stays inside the box
+    if (this.l1.width > 216) this.l1.setFontFamily("Galmuri9").setFontSize("10px");
     this.l1.setColor(C.red);
-    this.l2.setText(t("quotaLine", won(QUOTA[S.run.act || 1](S.run.shift))) + "   [ " + t("go") + " ]"); this.more.setVisible(false);
+    this.l2.setText((S.run.act === 7 ? t("lastNight") : t("quotaLine", won(QUOTA[S.run.act || 1](S.run.shift)))) + "   [ " + t("go") + " ]"); this.more.setVisible(false);
     this.tweens.add({ targets: this.l2, alpha: 0.3, duration: 400, yoyo: true, repeat: -1 });
     this.guard = this.time.now + 350;
   }

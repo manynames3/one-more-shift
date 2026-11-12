@@ -1,8 +1,8 @@
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
+import { W, H, BAR, C, txt, rand, pick, soundToggle, enHud } from "../ui.js";
 import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily, clearAct, hourly, saveNote } from "../state.js";
 import * as snd from "../audio.js";
-import { setActionLabel } from "../touchpad.js";
+import { setActionLabel, showPad } from "../touchpad.js";
 import { startReplay, endReplay, cancelReplay } from "../replay.js";
 import { RoomMixin, ROOM } from "./rooms.js";
 import { BossMixin, BOSS_SHIFT, BOSS_MIN } from "./boss.js";
@@ -34,7 +34,7 @@ export default class Shift extends Phaser.Scene {
   constructor() { super("Shift"); }
 
   create() {
-    setActionLabel("");
+    setActionLabel(""); showPad(true);
     const run = S.run;
     this.run = run;
     this.rules = rulesFor(run.shift);
@@ -105,7 +105,7 @@ export default class Shift extends Phaser.Scene {
     const goal = txt(this, W / 2, 71, t("quotaLine", won(this.quota)), { ox: 0.5, size: 9, depth: 880 });
     this.tweens.add({ targets: [plate, title, goal], alpha: 0, delay: 2400, duration: 400, onComplete: () => { plate.destroy(); title.destroy(); goal.destroy(); } });
     if (run.shift === 1 && S.runs <= 3) {
-      const hint = txt(this, W / 2, H - BAR - 14, t("hint"), { ox: 0.5, size: 9, depth: 880 });
+      const hint = txt(this, W / 2, H - BAR - 14, t("hint"), { ox: 0.5, size: 9, depth: 880 }).setBackgroundColor("#14101a").setPadding(3, 1, 3, 1);
       this.tweens.add({ targets: hint, alpha: 0, delay: 5000, duration: 500, onComplete: () => hint.destroy() });
     }
   }
@@ -151,6 +151,7 @@ export default class Shift extends Phaser.Scene {
     this.ruleIcon = this.add.image(43, 11, "props_icons", "rule").setDepth(910);
     this.ruleTxt = txt(this, 60, 5, "", { color: C.yellow, depth: 910 });
     this.add.image(0, H - BAR, "ui_hud_bottom").setOrigin(0).setDepth(900);
+    enHud(this);
     this.hudClock = txt(this, 64, H - BAR + 6, "03:00", { size: 9, ox: 0.5, depth: 910 });
     this.hudPay = txt(this, 129, H - BAR + 6, "", { size: 9, color: C.yellow, depth: 910 });
     this.debtFill = this.add.image(226, H - BAR + 9, "ui_debt_meter_fill").setOrigin(0).setDepth(910);

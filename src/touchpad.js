@@ -20,15 +20,21 @@ function send(type, k) {
 const CSS = `
 #pad { position: fixed; inset: 0; pointer-events: none; z-index: 10; font: 14px "Galmuri11", monospace; }
 #pad .b { position: absolute; pointer-events: auto; display: flex; align-items: center; justify-content: center;
-  width: 54px; height: 54px; border-radius: 12px; color: #f6f1e7; background: rgba(42, 34, 51, .55);
+  width: 50px; height: 50px; border-radius: 12px; color: #f6f1e7; background: rgba(42, 34, 51, .55);
   border: 2px solid rgba(246, 241, 231, .35); touch-action: none; -webkit-tap-highlight-color: transparent; }
 #pad .b.on { background: rgba(255, 212, 42, .55); border-color: #ffd42a; color: #14101a; }
 #pad .act { width: 72px; height: 72px; border-radius: 50%; font-size: 16px; }
 #pad .hide { width: 30px; height: 30px; border-radius: 8px; font-size: 11px; opacity: .7; }
 #pad.off .b:not(.hide) { display: none; }
+#pad.menu .b { display: none; }
 `;
 
-let actBtn = null, lastLabel = "A";
+let actBtn = null, lastLabel = "A", padEl = null, padWanted = true;
+/** The pad only shows while playing; menus and story scenes are tap-to-advance. */
+export function showPad(on) {
+  padWanted = on;
+  if (padEl) padEl.classList.toggle("menu", !on);
+}
 /** Show what the A button does right now (a short word), or "A". */
 export function setActionLabel(s) {
   s = s || "A";
@@ -41,11 +47,12 @@ export function initTouchpad() {
   const touch = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
   if (!touch) return;
   const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
-  const pad = document.createElement("div"); pad.id = "pad";
+  const pad = document.createElement("div"); pad.id = "pad"; padEl = pad;
+  if (!padWanted) pad.classList.add("menu");
   let off = false;
   try { off = localStorage.getItem("oms.pad") === "off"; } catch { /* private mode */ }
   if (off) pad.classList.add("off");
-  const S = 58, L = "max(10px, env(safe-area-inset-left))", R = "max(12px, env(safe-area-inset-right))", B = "max(14px, env(safe-area-inset-bottom))";
+  const S = 52, L = "max(10px, env(safe-area-inset-left))", R = "max(12px, env(safe-area-inset-right))", B = "max(14px, env(safe-area-inset-bottom))";
   const btn = (name, label, css, cls = "") => {
     const el = document.createElement("div");
     el.className = "b " + cls; el.textContent = label; el.style.cssText = css;

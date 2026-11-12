@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, onAdvance, button } from "../ui.js";
 import { S, t, won, clearAct, saveEnding } from "../state.js";
 import * as snd from "../audio.js";
-import { setActionLabel } from "../touchpad.js";
+import { setActionLabel, showPad } from "../touchpad.js";
 
 // The three endings, then the credits.
 //   sign  -> the front desk: the debt is gone and Sora hands the next worker a rule sheet
@@ -14,7 +14,7 @@ export default class Ending extends Phaser.Scene {
   constructor() { super("Ending"); }
 
   create(data) {
-    setActionLabel("");
+    setActionLabel(""); showPad(false);
     this.rolling = false; this.leaving = false;
     const key = this.key = data?.ending || "walk";
     const run = S.run;
@@ -39,7 +39,7 @@ export default class Ending extends Phaser.Scene {
     this.i = 0;
     this.box = this.add.rectangle(W / 2, H - BAR - 18, W - 16, 30, 0x14101a, 0.9).setStrokeStyle(1, 0x7b7689).setDepth(10);
     this.line = txt(this, 14, H - BAR - 30, "", { size: 9, color: C.white, depth: 11, wrap: W - 30 });
-    this.debt = txt(this, W - 8, BAR + 4, `${t("debt")} ${won(run?.debt ?? 0)}`, { ox: 1, size: 9, color: C.grey, depth: 11 });
+    this.debt = txt(this, W - 8, BAR + 4, `${t("debt")} ${won(run?.debt ?? 0)}`, { ox: 1, size: 9, color: C.white, depth: 11 }).setBackgroundColor("#14101a").setPadding(3, 1, 3, 1);
     this.guard = this.time.now + 900;
     this.next();
     onAdvance(this, () => { if (this.time.now > this.guard) this.next(); });

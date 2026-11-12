@@ -26,16 +26,16 @@ export const SuitMixin = {
     this.cameras.main.shake(300, 0.008);
     this.caption(t("suitTurn"), 2.5);
     b.spr = this.add.sprite(STAGE, STAGE_Y, "props_suit_boss", "idle_0").setOrigin(0.5, 1).setDepth(95).setVisible(false);
-    b.tiesTxt = txt(this, W / 2, 34, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 });
+    b.tiesTxt = txt(this, W / 2, 34, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 }).setBackgroundColor("#14101a").setPadding(2, 0, 2, 0);
     b.hpTxt = txt(this, W - 6, 34, "", { ox: 1, size: 9, color: C.red, depth: 895 });
     this.drawBossHud();
-    this.hint("tie", W / 2, 52);
+    this.time.delayedCall(2600, () => { if (!this.over) this.hint("tie", W / 2, 66); });
   },
 
   drawBossHud() {
     const b = this.boss;
     b.tiesTxt.setText(t("suitTies", b.ties, TIES));
-    b.hpTxt.setText("♥".repeat(LIVES - b.hits) + "♡".repeat(b.hits));
+    b.hpTxt.setText("♥".repeat(Math.max(0, LIVES - b.hits)) + "♡".repeat(Math.min(LIVES, b.hits)));
   },
 
   tickBoss(dt) {
@@ -73,7 +73,7 @@ export const SuitMixin = {
     }
     s.x = Math.round(b.x);
     if (this.over) return;
-    if (b.phase === "stun") this.hint("tieNow", Math.round(b.x), 60); else this.unhint("tieNow");
+    if (b.phase === "stun") this.hint("tieNow", Math.round(b.x), 100); else this.unhint("tieNow");
   },
 
   suitHit() {

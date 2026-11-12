@@ -207,18 +207,18 @@ export default class Site extends Phaser.Scene {
     snd.music("boss"); snd.sfx("roar"); this.cameras.main.shake(300, 0.008);
     const b = this.boss = { phase: "walk", x: W + 30, t: 1, hp: FOREMAN_HP, hits: 0, iframe: 0, cool: 0, dropT: 0 };
     b.spr = this.add.sprite(b.x, FY, "props_foreman", "idle_0").setOrigin(0.5, 1).setDepth(95);
-    b.hpTxt = txt(this, W / 2, 34, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 });
+    b.hpTxt = txt(this, W / 2, 34, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 }).setBackgroundColor("#14101a").setPadding(2, 0, 2, 0);
     b.lives = txt(this, W - 6, 34, "", { ox: 1, size: 9, color: C.red, depth: 895 });
     this.load_.setVisible(true).setPosition(HOOK, 46);
     this.drawForeman();
     this.caption(t("foremanStart"), 2.8);
-    this.hint("crane", HOOK, 100);
+    this.time.delayedCall(2900, () => { if (!this.over && this.bossActive()) this.hint("crane", HOOK, 100); });
   }
 
   drawForeman() {
     const b = this.boss;
     b.hpTxt.setText(t("foremanHp", b.hp));
-    b.lives.setText("♥".repeat(LIVES - b.hits) + "♡".repeat(b.hits));
+    b.lives.setText("♥".repeat(Math.max(0, LIVES - b.hits)) + "♡".repeat(Math.min(LIVES, b.hits)));
   }
 
   /** Space during the fight: signal the crane to drop its load at the hook. */

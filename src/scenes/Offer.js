@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, button } from "../ui.js";
 import { S, t, won, MULT, hourly, GIG, ACTS } from "../state.js";
 import * as snd from "../audio.js";
-import { setActionLabel } from "../touchpad.js";
+import { setActionLabel, showPad } from "../touchpad.js";
 
 // How every new gig starts: the job lands on Sora's phone. Accept, and the next screen is the place
 // itself (a title card with her walking in), then the briefing.
@@ -12,7 +12,7 @@ export default class Offer extends Phaser.Scene {
   constructor() { super("Offer"); }
 
   create(data) {
-    setActionLabel("");
+    setActionLabel(""); showPad(false);
     this.done = false;      // scenes are reused: clear last time's state
     this.act = data.act; this.next = data.next;
     const a = ACTS[this.act - 1];
@@ -66,7 +66,7 @@ export class TitleCard extends Phaser.Scene {
   constructor() { super("TitleCard"); }
 
   create(data) {
-    setActionLabel("");
+    setActionLabel(""); showPad(false);
     this.done = false;
     const a = ACTS[data.act - 1];
     const key = "tc_" + { store: "store", event: "event", delivery: "milk", cinema: "cinema", trial: "trial", site: "site", park: "park" }[a.key];
@@ -77,9 +77,14 @@ export class TitleCard extends Phaser.Scene {
     this.add.rectangle(0, H - BAR, W, BAR, 0x14101a).setOrigin(0);
     const sora = this.add.sprite(-20, H - BAR - 4, "characters_sora", "right_walk_0").setOrigin(0.5, 1).play("characters_sora_right_walk");
     this.tweens.add({ targets: sora, x: 120, duration: 2200, onComplete: () => { sora.anims.stop(); sora.setFrame("up_walk_0"); } });
-    const n = txt(this, W - 14, H - BAR - 40, t("act", data.act), { ox: 1, size: 9, color: C.white }).setAlpha(0);
-    const name = txt(this, W - 14, H - BAR - 28, t("job_" + a.key) + " · " + t(GIG[data.act].place), { ox: 1, color: C.yellow }).setAlpha(0);
+    const n = txt(this, W - 14, H - BAR - 40, t("act", data.act), { ox: 1, size: 9, color: C.white });
+    const name = txt(this, W - 14, H - BAR - 28, t("job_" + a.key) + " · " + t(GIG[data.act].place), { ox: 1, color: C.yellow });
+    // a dark plate so the title reads on any card
+    const plate = this.add.rectangle(W - 8, H - BAR - 44, Math.max(n.width, name.width) + 14, 32, 0x14101a, 0.78).setOrigin(1, 0);
+    n.setDepth(2); name.setDepth(2);
+    [n, name, plate].forEach(o => o.setAlpha(0));
     this.tweens.add({ targets: [n, name], alpha: 1, delay: 500, duration: 500 });
+    this.tweens.add({ targets: plate, alpha: 0.78, delay: 500, duration: 500 });
     snd.sfx("bell", 0.4);
     const go = () => {
       if (this.done) return;

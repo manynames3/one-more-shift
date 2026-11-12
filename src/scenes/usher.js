@@ -24,18 +24,18 @@ export const UsherMixin = {
       this.screen.setVisible(true).setFrame("cctv_0");
       b.beam = this.add.image(W - 6, 40, "props_beam").setOrigin(1, 0).setDepth(55);
       b.spr = this.add.sprite(40, FY, "props_usher", "idle_0").setOrigin(0.5, 1).setDepth(95);
-      b.hpTxt = txt(this, W / 2, 34, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 });
+      b.hpTxt = txt(this, W / 2, 34, "", { ox: 0.5, size: 9, color: C.yellow, depth: 895 }).setBackgroundColor("#14101a").setPadding(2, 0, 2, 0);
       b.lives = txt(this, W - 6, 34, "", { ox: 1, size: 9, color: C.red, depth: 895 });
       this.drawUsher();
       this.caption(t("usherStart"), 2.6);
-      this.hint("lamp", W / 2, 60);
+      this.time.delayedCall(2700, () => { if (!this.over && this.boss.phase === "lit") this.hint("lamp", W / 2, 66); });
     }, 300);
   },
 
   drawUsher() {
     const b = this.boss;
     b.hpTxt.setText(t("usherHp", b.hp));
-    b.lives.setText("♥".repeat(LIVES - b.hits) + "♡".repeat(b.hits));
+    b.lives.setText("♥".repeat(Math.max(0, LIVES - b.hits)) + "♡".repeat(Math.min(LIVES, b.hits)));
   },
 
   /** Space in the fight: hit it if it's dark and close, otherwise cut the lamp. */
@@ -88,7 +88,7 @@ export const UsherMixin = {
       }
       s.setFlipX(dx > 0);
       if (Math.abs(p.x - b.x) < 12 && b.iframe <= 0) this.usherHit();
-      if (b.cool <= 0 && !this.hints.lamp) this.hint("lamp", W / 2, 60);
+      if (b.cool <= 0 && !this.hints.lamp && this.time.now > (b.hintAfter ||= this.time.now + 2700)) this.hint("lamp", W / 2, 66);
     }
     s.x = Math.round(Phaser.Math.Clamp(b.x, 14, W - 14));
   },

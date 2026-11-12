@@ -232,10 +232,10 @@ export default class Park extends Phaser.Scene {
     b.lives = txt(this, W - 6, 34, "", { ox: 1, size: 9, color: C.red, depth: 895 });
     this.drawLives();
     this.caption(t("kwakTurn"), 2.5);
-    this.hint("survive", W / 2, 60);
+    this.time.delayedCall(2600, () => { if (!this.over) this.hint("survive", W / 2, 66); });
   }
 
-  drawLives() { this.boss.lives.setText("♥".repeat(LIVES - this.boss.hits) + "♡".repeat(this.boss.hits)); }
+  drawLives() { this.boss.lives.setText("♥".repeat(Math.max(0, LIVES - this.boss.hits)) + "♡".repeat(Math.min(LIVES, this.boss.hits))); }
 
   tickBoss(dt) {
     const b = this.boss, s = b.spr, p = this.p;

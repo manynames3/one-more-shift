@@ -2,13 +2,13 @@ import Phaser from "phaser";
 import { W, H, C, txt, soundToggle } from "../ui.js";
 import { S, t, saveSettings, newRun, newDailyRun, today, dailyRecord, notesFound } from "../state.js";
 import * as snd from "../audio.js";
-import { setActionLabel } from "../touchpad.js";
+import { setActionLabel, showPad } from "../touchpad.js";
 
 export default class Title extends Phaser.Scene {
   constructor() { super("Title"); }
 
   create() {
-    setActionLabel("");
+    setActionLabel(""); showPad(false);
     this.add.image(0, 0, "bg_title_bg").setOrigin(0);
     const logo = this.add.image(W / 2, 22, "ui_logo").setOrigin(0.5, 0);
     this.tweens.add({ targets: logo, y: 34, duration: 700, ease: "Bounce.easeOut" });

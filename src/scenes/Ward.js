@@ -223,10 +223,10 @@ export default class Ward extends Phaser.Scene {
     b.lives = txt(this, W - 6, 34, "", { ox: 1, size: 9, color: C.red, depth: 895 });
     this.p.x = BED; this.drawLives();
     this.caption(t("subjectStart"), 3);
-    this.hint("sneak", W / 2, 60);
+    this.time.delayedCall(3100, () => { if (!this.over) this.hint("sneak", W / 2, 104); });
   }
 
-  drawLives() { this.boss.lives.setText("♥".repeat(LIVES - this.boss.hits) + "♡".repeat(this.boss.hits)); }
+  drawLives() { this.boss.lives.setText("♥".repeat(Math.max(0, LIVES - this.boss.hits)) + "♡".repeat(Math.min(LIVES, this.boss.hits))); }
 
   tickBoss(dt) {
     const b = this.boss;
