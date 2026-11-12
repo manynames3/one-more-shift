@@ -21,7 +21,7 @@ export default class Result extends Phaser.Scene {
     this.add.image(0, 0, "bg_death_bg").setOrigin(0);
 
     const shiftNo = win ? run.cleared : run.cleared + 1;
-    this.rows = [t("place"), daily ? t("dailyRow", daily) : t("shiftRow", shiftNo), won(WAGE), won(run.earned), t("cause_" + cause), daily ? "—" : won(run.debt)];
+    this.rows = [t(run.act === 2 ? "place2" : "place"), daily ? t("dailyRow", daily) : t("shiftRow", shiftNo), won(WAGE), won(run.earned), t("cause_" + cause), daily ? "—" : won(run.debt)];
     this.stampKey = win ? "ui_stamp_success" : fired ? "ui_stamp_fired" : "ui_stamp_fail";
 
     // the stub (180x240) prints upward, then scrolls to show the bottom half
@@ -72,7 +72,7 @@ export default class Result extends Phaser.Scene {
   retry() {
     if (this.locked) return;
     this.locked = true;
-    newRun();
+    newRun(S.run.act || 1);
     this.cameras.main.fadeOut(220, 20, 16, 26);
     this.time.delayedCall(250, () => this.scene.start("Agency", { context: "again" }));
   }

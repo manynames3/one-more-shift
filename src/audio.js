@@ -416,6 +416,9 @@ const SFX = {
   buzz: (d, t) => { for (let i = 0; i < 5; i++) tone(d, { type: "sawtooth", f: 120, t: t + i * 0.13, dur: 0.07, vol: 0.06 }); },
   // the store phone, at the worst possible time
   ring: (d, t) => { for (let k = 0; k < 2; k++) for (let i = 0; i < 8; i++) tone(d, { type: "p25", f: i % 2 ? 1397 : 1175, t: t + k * 0.9 + i * 0.05, dur: 0.045, vol: 0.08, r: 0.01 }); },
+  moped: (d, t) => { tone(d, { type: "sawtooth", f: 62, slide: 1.9, t, dur: 1.2, vol: 0.07, vib: 0.06, s: 0.9, r: 0.3 }); noise(d, { t, dur: 1.2, vol: 0.05, f: 300, type: "lowpass", a: 0.1 }); },
+  ding: (d, t) => { tone(d, { type: "sine", f: 1568, t, dur: 0.5, vol: 0.12, s: 0.4, r: 0.4 }); tone(d, { type: "sine", f: 1175, t: t + 0.25, dur: 0.7, vol: 0.12, s: 0.4, r: 0.5 }); },
+  slide: (d, t) => noise(d, { t, dur: 0.5, vol: 0.08, f: 1200, sweep: 0.5, type: "bandpass", q: 1.5, a: 0.08 }),
   hop: (d, t) => { tone(d, { type: "p25", f: 330, slide: 2.2, t, dur: 0.14, vol: 0.1 }); noise(d, { t: t + 0.26, dur: 0.06, vol: 0.12, f: 500, type: "lowpass" }); },
 };
 

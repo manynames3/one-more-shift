@@ -78,7 +78,7 @@ export default class Board extends Phaser.Scene {
     const c = this.cards[i];
     this.tweens.add({ targets: c, y: c.baseY - 3, duration: 380, yoyo: true, repeat: -1, ease: "Stepped", easeParams: [3] });
     const a = c.act;
-    const key = !c.open ? "jd_locked" : !a.built ? "jd_soon" : this.ctx === "clear" ? "jd_keep" : "jd_store";
+    const key = !c.open ? "jd_locked" : !a.built ? "jd_soon" : a.key === "delivery" ? "jd_delivery" : this.ctx === "clear" ? "jd_keep" : "jd_store";
     this.desc.setText(t(key)).setColor(!c.open ? C.dim : !a.built ? C.orange : C.white);
   }
 
@@ -92,6 +92,7 @@ export default class Board extends Phaser.Scene {
     }
     this.locked = true;
     snd.sfx("start");
+    if (a.key === "delivery") { newRun(2); return this.leave("Agency", { context: "d_intro" }); }
     if (this.ctx === "clear") return this.leave("Agency", { context: "next" });
     newRun();
     this.leave("Agency", { context: S.runs > 1 ? "again" : "intro" });

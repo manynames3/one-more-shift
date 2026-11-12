@@ -34,6 +34,11 @@ export default class Boot extends Phaser.Scene {
     this.load.setPath("assets/");
     manifest.images.filter(i => USED.has(i.key)).forEach(i => this.load.image(i.key, i.png));
     manifest.atlases.filter(a => USED.has(a.key)).forEach(a => this.load.atlas(a.key, a.png, a.json));
+    // Act 2 (night delivery)
+    [["bg_delivery_hub", "bg/delivery_hub.png"], ["bg_apt_hall", "bg/apt_hall.png"], ["bg_stairwell", "bg/stairwell.png"],
+      ["props_moped", "props/moped.png"], ["props_moped_b", "props/moped_b.png"], ["props_delivery_bag", "props/delivery_bag.png"],
+      ["props_apt_door_open", "props/apt_door_open.png"], ["props_elevator_open", "props/elevator_open.png"]]
+      .forEach(([k, f]) => this.load.image(k, f));
   }
 
   create() {
