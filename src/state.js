@@ -7,10 +7,10 @@ const store = {
 // Pay matches the show: each gig pays a multiple of the 2026 minimum wage (₩10,320 an hour), taken
 // from the show's gig in the same slot: store 50x (episode 1, ₩4M a night), event 75x (episode 2's
 // ₩6M a day, scaled by the same rate), delivery 200x (episode 3's milk run), cinema 100x (no figure in
-// the show; 100x is what the agency offers after the first job), construction 200x (episode 6).
+// the show; 100x is what the agency offers after the first job), construction 500x (set by design).
 // A shift is one in-game hour, so a cleared shift pays one hour at that rate.
 export const MIN_WAGE = 10320;
-export const MULT = { 1: 50, 2: 75, 3: 200, 4: 100, 6: 200 };
+export const MULT = { 1: 50, 2: 75, 3: 200, 4: 100, 6: 500 };
 export const hourly = act => MIN_WAGE * (MULT[act] || 50);
 export const START_DEBT = 20000000;
 
