@@ -1620,7 +1620,7 @@ def tc_milk():
     # sign + entrance
     cv.paint(mrect(bx0 + 10, 108, bx0 + 88, 118), "green1")
     cv.paint(mrect(bx0 + 10, 108, bx0 + 88, 108), "green2")
-    text(cv.img, bx0 + 12, 107, "새벽 오피스텔", "white", 9)
+    text(cv.img, bx0 + 16, 107, "새벽 오피스텔", "white", 9)
     cv.paint(mrect(bx0 + 34, 118, bx0 + 62, 128), "blue1")
     cv.dth(mrect(bx0 + 34, 118, bx0 + 62, 128), "blue3", 0.45, 4)
     cv.paint(mrect(bx0 + 47, 118, bx0 + 48, 128), "ink2")
@@ -1686,11 +1686,11 @@ def tc_cinema():
     cv.paint(mrect(80, 60, 240, 88), "ink")
     cv.paint(mrect(82, 62, 238, 86), "yellow2")
     cv.dth(mrect(82, 62, 238, 86), "orange3", 0.35, 2)
-    text(cv.img, 90, 62, "심야 상영", "red2", 14)
-    text(cv.img, 172, 62, "마지막 회", "ink", 14)
+    text(cv.img, 92, 62, "심야 상영", "red2", 11)
+    text(cv.img, 174, 62, "마지막 회", "ink", 11)
     cv.paint(mrect(86, 83, 234, 83), "orange2")
     text(cv.img, 92, 73, "〈 끝나지 않는 밤 〉", "red1", 11) if False else None
-    text(cv.img, 90, 75, "끝나지 않는 밤 · 24:30", "red1", 9)
+    text(cv.img, 106, 75, "끝나지 않는 밤 · 24:30", "red1", 9)
     for xx in range(78, 244, 6):
         px(cv.img, xx, 58, "yellow") ; px(cv.img, xx + 3, 90, "yellow")
     for yy in range(60, 90, 6):
@@ -1941,8 +1941,8 @@ def tc_site():
     cv.dth(fence, "ink", 0.25, 2)
     sign = mrect(222, 98, 310, 122)
     cv.layer(sign, "yellow", "orange2", "yellow2", sd=(2, 2), hd=(1, 1))
-    text(cv.img, 228, 98, "안전제일", "ink", 11)
-    text(cv.img, 228, 110, "신축 공사 현장", "ink", 9)
+    text(cv.img, 266, 97, "안전제일", "ink", 11, align="center")
+    text(cv.img, 266, 111, "신축 공사 현장", "ink", 9, align="center")
     # gravel ground, hazard stripes
     cv.paint(mrect(0, 130, SW, 158), "grey1")
     cv.dth(mrect(0, 130, SW, 158), "ink2", 0.5, 2)
@@ -1982,9 +1982,9 @@ def tc_park():
     arch = mpoly([(80, 128), (80, 74), (110, 54), (206, 54), (236, 74), (236, 128), (226, 128), (226, 78), (204, 62), (112, 62), (90, 78), (90, 128)])
     cv.layer(arch, "purple1", "purple0", "purple2", sd=(3, 3), hd=(2, 2), dith=True)
     # sign letters, only some lit
-    word = "달나라 놀이공원"
-    lit_i = {0, 2, 4, 5, 8}
-    x = 96
+    word = "달빛랜드"          # the park's name everywhere else in the game; the last letter has died
+    lit_i = {0, 1, 2}
+    x = 158 - len(word) * 14 // 2
     for i, ch in enumerate(word):
         if ch == " ":
             x += 6

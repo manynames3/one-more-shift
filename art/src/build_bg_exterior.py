@@ -303,7 +303,7 @@ def street(night=False):
 
     # ---- ground floor
     # laundry (은하 세탁)  x 54..101
-    sign(img, 54, 91, 48, 12, "green1", "은하 세탁", "white", "ink", 9, "green2")
+    sign(img, 54, 91, 48, 12, "green1", "세탁", "white", "ink", 9, "green2")
     obox(img, 56, 105, 44, 31, "grey3", "grey4", "grey2")
     rect(img, 58, 107, 40, 27, "blue3", "ink")
     dither_grad(img, (59, 108, 97, 133), "blue4", "blue3", "d", 4, 0.9, 0.0)

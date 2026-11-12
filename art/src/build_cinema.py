@@ -244,7 +244,7 @@ def build_lobby():
         vline(im, x, yt + 1, yb, "orange0")
     rect(im, 284, 126, 3, 24, "orange1", "ink")
     # sign 영사실
-    lit_sign(im, 285, 50, 32, 13, "영사실", c="yellow", bc="red2", f=9)
+    lit_sign(im, 281, 50, 37, 13, "영사실", c="yellow", bc="red2", f=9)
     poly(im, [(299, 66), (305, 66), (302, 71)], "red3", "ink")
     glow(im, 284, 50, 320, 76, "red3", 0.14, 4, 4)
 
@@ -271,6 +271,9 @@ def build_lobby():
     ovl(im, (0, Y0, W, 60), "ink", 0.22, 2)
     ovl(im, (0, 138, W, Y1), "ink", 0.12, 2)
     ovl(im, (0, Y0, 22, Y1), "ink", 0.3, 2); ovl(im, (W - 14, Y0, W, Y1), "ink", 0.2, 2)
+    # lit signs don't dim: draw them again on top of the 2AM shade
+    lit_sign(im, 52, 42, 38, 12, "매표소", f=9)
+    lit_sign(im, 281, 50, 37, 13, "영사실", c="yellow", bc="red2", f=9)
     # floor guard shadows under booth/popcorn
     letterbox(im)
     return im

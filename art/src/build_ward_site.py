@@ -558,17 +558,17 @@ def build_site():
         cone(im, pts, "yellow2", 0.4, 4, only=["ink","blue0","purple0","red0","grey1","grey2","grey3"])
 
     # ---- safety signs on the hoarding
-    rect(im, 14, 102, 46, 15, "green1", "ink")
-    draw(im).rectangle([16, 104, 57, 114], outline=col("white"))
-    text(im, 37, 105, "안전제일", "white", 9, align="center")
-    rect(im, 136, 104, 44, 15, "yellow", "ink")
-    for x in range(138, 178, 8):
+    rect(im, 12, 102, 52, 15, "green1", "ink")
+    draw(im).rectangle([14, 104, 61, 114], outline=col("white"))
+    text(im, 38, 105, "안전제일", "white", 9, align="center")
+    rect(im, 135, 104, 52, 15, "yellow", "ink")
+    for x in range(137, 185, 8):
         line(im, [(x, 118), (x + 4, 105)], "ink2")
-    rect(im, 140, 106, 36, 11, "yellow")
-    text(im, 158, 107, "낙하주의", "ink", 9, align="center")
-    rect(im, 212, 104, 44, 15, "orange2", "ink")
-    draw(im).rectangle([214, 106, 253, 116], outline=col("ink"))
-    text(im, 234, 107, "추락주의", "ink", 9, align="center")
+    rect(im, 138, 106, 46, 11, "yellow")
+    text(im, 161, 107, "낙하주의", "ink", 9, align="center")
+    rect(im, 190, 104, 52, 15, "orange2", "ink")
+    draw(im).rectangle([192, 106, 239, 116], outline=col("ink"))
+    text(im, 216, 107, "추락주의", "ink", 9, align="center")
     # ---- mud ground
     dither_grad(im, (0, 138, W, 157), "brown1", "brown0", "y", 4, 0.0, 1.0)
     hline(im, 0, W - 1, 138, "ink")
