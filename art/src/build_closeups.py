@@ -191,6 +191,66 @@ def stripes_light(cv, y0, y1, period, thick, slope, c, mask=None):
     return m
 
 
+# ----------------------------------------------------------------- hands
+SKIN_H = ("skin1", "skin0", "skin2")
+PALE_H = ("pale2", "pale1", "grey4")
+
+
+def digit_mask(pts, w):
+    """capsule along a polyline (finger / thumb) with round ends."""
+    m = np.zeros((SH, SW), bool)
+    r = w // 2
+    for a, b in zip(pts, pts[1:]):
+        m |= mline([a, b], w)
+    for x, y in pts:
+        m |= mell(int(x) - r, int(y) - r, int(x) - r + w - 1, int(y) - r + w - 1)
+    return m
+
+
+def draw_digit(cv, pts, w, ramp, sd=(2, 2), hd=(1, 1)):
+    m = digit_mask(pts, w)
+    cv.layer(m, ramp[0], ramp[1], ramp[2], sd=sd, hd=hd, dith=False)
+    return m
+
+
+def draw_hand(cv, palm_pts, fingers, thumb=None, ramp=SKIN_H, sd=(2, 2), hd=(1, 1), knuckles=True,
+              thumb_w=8, palm_dith=True, nails=True):
+    """palm_pts: polygon. fingers: list of (polyline, width), back to front. Fingers are drawn first with
+    their own 1px ink outline (the gaps between them); the palm is painted over their roots with an outline
+    that skips the roots; the thumb goes on top. Returns the union mask."""
+    fm = np.zeros((SH, SW), bool)
+    for f, fw in fingers:
+        fm |= draw_digit(cv, f, fw, ramp, sd, hd)
+    pm = mpoly(palm_pts)
+    cv.layer(pm, ramp[0], ramp[1], ramp[2], sd=sd, hd=hd, dith=palm_dith, ol=None)
+    cv.paint(dil(pm, 1) & ~pm & ~fm, "ink")
+    if knuckles:
+        for f, fw in fingers:
+            cv.pts([(int(f[0][0]), int(f[0][1]))], ramp[1])
+    allm = pm | fm
+    if thumb:
+        allm |= draw_digit(cv, thumb, thumb_w, ramp, sd, hd)
+    if nails:
+        for f, fw in fingers + ([(thumb, thumb_w)] if thumb else []):
+            (x0, y0), (x1, y1) = f[-2], f[-1]
+            n = max(1.0, math.hypot(x1 - x0, y1 - y0))
+            ux, uy = (x1 - x0) / n, (y1 - y0) / n
+            cv.pts([(round(x1 + ux * 1 - uy * 0), round(y1 + uy * 1)), (round(x1 + ux * 0), round(y1 + uy * 0))], ramp[2])
+    return allm
+
+
+def clasp(cv, cx, top, ramp=SKIN_H):
+    """two hands folded together, seen from the front: the far hand (right) with its thumb up, the near hand
+    (left) with four fingers laid across it and its own thumb on top."""
+    X = lambda dx, dy: (cx + dx, top + dy)
+    draw_hand(cv, [X(2, 3), X(22, 0), X(32, 9), X(31, 22), X(3, 22)], [],
+              thumb=[X(27, 6), X(21, -1), X(15, -3)], ramp=ramp, thumb_w=6, knuckles=False)
+    draw_hand(cv, [X(-33, 4), X(-19, 0), X(-4, 3), X(-2, 22), X(-30, 22), X(-35, 13)],
+              [([X(-5, 5), X(8, 5), X(17, 8)], 4), ([X(-5, 10), X(10, 10), X(19, 13)], 4),
+               ([X(-5, 15), X(9, 15), X(17, 18)], 4), ([X(-5, 20), X(6, 20), X(12, 22)], 4)],
+              thumb=[X(-17, 6), X(-9, -1), X(1, -3)], ramp=ramp, thumb_w=6)
+
+
 # --------------------------------------------------------------- the face rig
 # skin ramps: (hi, base, shade, deep)
 SKIN = dict(hi="skin3", base="skin2", sh="skin1", deep="skin0")
@@ -494,13 +554,25 @@ def cu_sora_phone():
     cv.pts([(cx + 14, H.chin + 34 + i) for i in range(12)], "grey4")
     glow(cv, cx, 168, 60, [("blue2", 0.45), ("blue3", 0.75)], only=torso & (YY > 120), power=1.4)
     cv.dth(mell(cx - 46, 146, cx + 46, 190) & (YY < 158), "blue3", 0.6)
-    cv.paint(mell(cx - 30, 152, cx + 30, 190) & (YY < 158), "blue4")
-    hand = mpoly([(cx - 30, 158), (cx - 28, 146), (cx - 20, 138), (cx - 10, 136), (cx - 2, 141), (cx + 6, 138),
-                  (cx + 16, 139), (cx + 26, 145), (cx + 32, 158)])
-    cv.layer(hand, "skin3", "skin1", "blue4", sd=(0, -5), hd=(0, -2), extra_shade=None)
-    for fx in (cx - 14, cx - 3, cx + 9, cx + 20):
-        cv.pts([(fx, 143), (fx, 144), (fx, 145), (fx, 146)], "skin1")
-    cv.dth(hand, "blue4", 0.35, 2)
+    # the phone: dark back edge towards us, screen light spilling over its top rim, fingers wrapped round it
+    PX0, PX1, PY0 = cx - 26, cx + 26, 126
+    glow(cv, cx, PY0 - 2, 46, [("blue2", 0.4), ("blue3", 0.7)], only=torso | col_, power=1.3)
+    phone = mpoly([(PX0 + 2, PY0), (PX1 - 2, PY0), (PX1, PY0 + 2), (PX1, 160), (PX0, 160), (PX0, PY0 + 2)])
+    cv.layer(phone, "ink2", "ink", "grey1", sd=(-3, 0), hd=(1, 1), dith=False)
+    cv.paint(mrect(PX0 + 2, PY0 - 1, PX1 - 2, PY0 - 1), "blue4")
+    cv.paint(mrect(PX0 + 1, PY0, PX1 - 1, PY0 + 1), "blue3")
+    cv.paint(mrect(PX0, PY0 + 2, PX0, PY0 + 8), "blue3")
+    cv.paint(mrect(PX1, PY0 + 2, PX1, PY0 + 8), "blue3")
+    cv.dth(mrect(PX0 + 2, PY0 + 2, PX1 - 2, PY0 + 5), "blue2", 0.5, 2)
+    cv.pts([(cx - 3, 146), (cx + 3, 146), (cx, 148)], "grey1")      # camera dot on the back
+    # right hand: four fingers curl over the right edge onto the back, palm below/outside
+    draw_hand(cv, [(PX1 + 4, 132), (PX1 + 16, 128), (PX1 + 24, 138), (PX1 + 24, 160), (PX1 + 2, 160), (PX1 + 2, 140)],
+              [([(PX1 + 4, 148), (PX1 - 6, 149), (PX1 - 12, 152)], 5), ([(PX1 + 4, 142), (PX1 - 8, 143), (PX1 - 15, 146)], 5),
+               ([(PX1 + 4, 136), (PX1 - 9, 137), (PX1 - 17, 139)], 5), ([(PX1 + 5, 130), (PX1 - 8, 131), (PX1 - 15, 132)], 5)],
+              ramp=("skin2", "skin1", "skin3"))
+    # left thumb pressing the left edge from the side, tip toward the lit rim
+    draw_digit(cv, [(PX0 - 12, 160), (PX0 - 5, 146), (PX0 + 1, 134)], 8, ("skin2", "skin1", "skin3"))
+    cv.dth(mrect(PX0 - 14, 128, PX0 + 6, 138), "blue4", 0.35, 4)
     return cv.save("cu_sora_phone")
 
 
@@ -644,9 +716,6 @@ def cu_kwak_offer():
     cv.layer(sleeve, "green0", "ink2", "green1", sd=(3, 3), hd=(2, 2), dith=True)
     cuff = mpoly([(148, 128), (178, 126), (178, 136), (148, 138)])
     cv.layer(cuff, "white", "grey4", None, sd=(2, 2))
-    hand_back = mpoly([(140, 92), (160, 88), (176, 100), (180, 118), (176, 128), (150, 128), (142, 114)])
-    cv.layer(hand_back, "skin2", "skin1", "skin3", sd=(3, 3), hd=(2, 2))
-    cv.pts([(170, 100 + i) for i in range(0, 12)], "skin1")
     paper = mpoly([(24, 92), (132, 80), (142, 138), (34, 150)])
     cv.layer(paper, "white", "grey4", None, sd=(3, 4), hd=(0, 0), dith=True)
     def pl(p0, p1, c):
@@ -659,9 +728,11 @@ def cu_kwak_offer():
     text(cv.img, 107, 126, "인", "white", 9)
     for i, xx in enumerate(range(44, 80, 3)):
         px(cv.img, xx, 138 - (3 if i % 2 else 0), "ink2")
-    thumb = mpoly([(158, 98), (140, 100), (124, 106), (122, 112), (130, 116), (150, 114), (160, 110)])
-    cv.layer(thumb, "skin2", "skin1", "skin3", sd=(3, 3), hd=(2, 2))
-    cv.pts([(124, 108), (125, 108), (124, 109)], "skin3")
+    # the hand: back of the hand towards us, four fingers curled over the paper's right edge, thumb on top
+    draw_hand(cv, [(150, 92), (164, 90), (178, 98), (183, 116), (177, 131), (152, 131), (147, 116)],
+              [([(151, 121), (140, 122), (128, 125)], 6), ([(151, 114), (138, 115), (122, 118)], 6),
+               ([(151, 107), (136, 107), (118, 109)], 6), ([(151, 100), (137, 99), (123, 100)], 6)],
+              thumb=[(162, 94), (146, 90), (128, 89)], thumb_w=8)
     return cv
 
 
@@ -756,14 +827,14 @@ def cu_junho():
     cv.layer(hmask, skin["base"], skin["sh"], skin["hi"], sd=(3, 3), hd=(2, 2), dith=True, extra_shade=extra)
     ey = H.eye_y
     # cold fill from the frost on the shadow side + blush
-    cv.dth(hmask & (XX > cx + 8), "blue3", 0.15, 4)
+    # tired and relieved: heavy lids, eyes low, brows lifted at the inner ends (worry), no blush, no frost on skin
     for sd_ in (-1, 1):
-        cv.dth(mell(cx + sd_ * 14 - 5, ey + 9, cx + sd_ * 14 + 5, ey + 15) & hmask, "red4", 0.25, 2)
         ex = cx + sd_ * H.eye_dx
-        eye(cv, ex, ey, sd_, w=13, h=14, iris="brown1", iris2="brown2", lid=3, look=(0, -2), hl="white", bag=True,
-            skin_sh="skin1", lidc="skin2")
-        cv.pts([(ex - 3, ey + 6), (ex - 2, ey + 6), (ex + 2, ey + 6)], "blue4")      # wet lower lid
-        brow(cv, ex, ey - 11, sd_, 11, tilt=-3, c="purple0", thick=2)
+        eye(cv, ex, ey, sd_, w=13, h=14, iris="brown1", iris2="brown2", lid=5, look=(0, 0), hl="white", bag=True,
+            skin_sh="skin1", lidc="skin1")
+        cv.pts([(ex + i, ey - 2 + 0) for i in range(-6, 7) if False], "skin0")
+        cv.pts([(ex + i, ey - 1) for i in range(-5, 6)], "skin0")               # heavy lid crease
+        brow(cv, ex, ey - 11, sd_, 11, tilt=-4, c="purple0", thick=2)
         # tired bags
         cv.pts([(ex + i, ey + 9) for i in range(-4, 5)], "skin1")
         cv.dth(mrect(ex - 4, ey + 10, ex + 4, ey + 10), "skin1", 0.5, 2)
@@ -776,19 +847,14 @@ def cu_junho():
     ringm = mell(cx - 17, yt - 4, cx + 15, yt + 12) & ~mell(cx - 17, yt + 1, cx + 15, yt + 17)
     hh = hm_all | ll | lr
     cv.layer(hh, "purple1", "purple0", "purple2", sd=(3, 3), hd=(2, 2), extra_shade=extra & ~ringm, extra_hi=ringm, dith=True)
-    # FROST on the hair
+    # FROST only on the hair tips: pale dots along the outer rim of the hair / spike ends
     rng = np.random.RandomState(3)
-    top_zone = hh & (YY < yt + 14)
-    cv.dth(top_zone, "blue4", vgrad(yt - 12, yt + 14, 0.35, 0.05), 4)
-    cv.dth(hh & (YY >= yt + 14), "blue3", 0.08, 4)
-    for _ in range(34):
-        fx = int(rng.randint(cx - 26, cx + 28)); fy = int(rng.randint(yt - 10, yt + 26))
-        if 0 <= fy < SH and hh[fy, fx]:
+    tips = hh & ~ero(hh, 3) & (YY < yt + 44)
+    cv.dth(tips, "blue4", 0.55, 4)
+    for _ in range(40):
+        fx = int(rng.randint(cx - 34, cx + 34)); fy = int(rng.randint(yt - 14, yt + 46))
+        if 0 <= fy < SH and tips[fy, fx]:
             px(cv.img, fx, fy, "white")
-            if rng.rand() < 0.4:
-                px(cv.img, fx + 1, fy, "blue4")
-    # frost fleck on lashes/brows/cheek
-    cv.pts([(cx - 17, ey - 12), (cx + 18, ey - 12), (cx + 20, ey + 10), (cx - 19, ey + 11)], "blue4")
     # knees (pants) + arms wrapped round them
     knees = mell(cx - 66, 122, cx + 66, 200)
     cv.layer(knees, "blue1", "blue0", "blue2", sd=(3, 4), hd=(2, 3), dith=True)
@@ -802,13 +868,7 @@ def cu_junho():
     cv.layer(fa_r, "grey3", "grey2", "grey4", sd=(3, 4), hd=(2, 2), dith=True)
     cv.paint(mline([(cx - 70, 134), (cx - 40, 142)], 1), "grey2")
     cv.paint(mline([(cx + 70, 134), (cx + 40, 142)], 1), "grey2")
-    h1 = mell(cx - 26, 136, cx + 2, 154)
-    h2 = mell(cx - 4, 132, cx + 24, 150)
-    cv.layer(h1, "skin2", "skin1", "skin3", sd=(3, 4), hd=(2, 2))
-    cv.layer(h2, "skin2", "skin1", "skin3", sd=(3, 4), hd=(2, 2))
-    for fx in (0, 5, 10, 15):
-        cv.pts([(cx + fx, 138), (cx + fx, 139), (cx + fx, 140)], "skin1")
-    cv.pts([(cx + 22, 140), (cx + 22, 141), (cx + 23, 142)], "skin1")
+    clasp(cv, cx, 133)
     kn1 = knees; kn2 = knees
     # carousel light spill on the vest + hair rim + knees
     fig = cv.alpha_mask()
@@ -963,14 +1023,12 @@ def cu_regular():
     cv.dth(mrect(0, 136, SW, 148), "orange3", hgrad(0, SW, 0.0, 0.55), 4)
     # window light parallelograms on the desk top
     cv.dth(mpoly([(190, 134), (216, 134), (240, 148), (212, 148)]) | mpoly([(246, 133), (276, 133), (300, 148), (268, 148)]), "yellow2", 0.6, 4)
-    # her pale hand resting by the note
-    for i in range(4):
-        fg = mpoly([(164 + i * 3, 138 + i * 3), (192, 137 + i * 3), (194, 141 + i * 3), (166 + i * 3, 141 + i * 3)])
-        cv.layer(fg, "pale2", "pale1", "grey4", sd=(-2, 2), hd=(-1, 1))
-    palm = mell(186, 135, 216, 152)
-    cv.layer(palm, "pale2", "pale1", "grey4", sd=(-3, 3), hd=(-2, 1), dith=True)
-    cv.pts([(214, 144), (213, 145)], "pale1")
-    cv.dth(palm | mrect(168, 140, 190, 150), "orange4", 0.3, 4)
+    # her pale hand resting on the desk by the note: back of the hand, fingers laid flat towards the note
+    hm_ = draw_hand(cv, [(188, 134), (206, 133), (219, 142), (217, 154), (192, 156), (186, 146)],
+                    [([(189, 152), (180, 153), (174, 154)], 4), ([(189, 147), (178, 148), (169, 150)], 4),
+                     ([(189, 142), (176, 142), (164, 144)], 4), ([(189, 137), (174, 137), (160, 138)], 4)],
+                    thumb=[(208, 135), (196, 130), (184, 129)], thumb_w=6, ramp=PALE_H)
+    cv.dth(hm_, "orange4", 0.3, 4)
     # folded note, standing like a tent
     note_l = mpoly([(58, 148), (60, 130), (82, 126), (82, 148)])
     note_r = mpoly([(82, 148), (82, 126), (104, 130), (106, 148)])
@@ -1272,12 +1330,7 @@ def cu_sora_desk():
     cv.dth(desk, "green0", 0.3, 2)
     cv.paint(mrect(0, 153, SW, 158), "brown0")
     cv.dth(mrect(0, 153, SW, 158), "ink", 0.5, 2)
-    h1 = mell(cx - 30, 129, cx + 2, 148)
-    h2 = mell(cx - 4, 126, cx + 28, 145)
-    cv.layer(h1, "pale2", "pale1", "grey4", sd=(3, 4), hd=(2, 2))
-    cv.layer(h2, "pale2", "pale1", "grey4", sd=(3, 4), hd=(2, 2))
-    for fx in (0, 6, 12, 18):
-        cv.pts([(cx + fx, 132), (cx + fx, 133), (cx + fx, 134)], "pale1")
+    clasp(cv, cx, 126, PALE_H)
     # stack of rule sheets (leaning, ragged), the top one written on
     for i in range(7):
         ox = 38 + (i * 7 % 5) - 2
@@ -1369,7 +1422,8 @@ def tc_store():
     cv.paint(mrect(84, 70, 100, 82), "yellow")
     cv.paint(mell(86, 70, 98, 82), "blue1")
     cv.paint(mell(91, 70, 100, 82), "yellow")
-    neon(cv, 108, 69, "달빛 편의점", "white", "blue3", f=14, glow=0.5)
+    tw_, _th = text_size("달빛마트", 14)
+    neon(cv, 156 - tw_ // 2, 69, "달빛마트", "white", None, f=14, outline_c="blue0")
     text(cv.img, 218, 72, "24", "yellow", 14, edge="ink")
     # glass front glowing + shelves
     for (x0, x1) in [(82, 160), (172, 248)]:
@@ -1389,14 +1443,13 @@ def tc_store():
     for i, xx in enumerate(range(76, 254, 10)):
         cv.paint(mrect(xx, 87, xx + 9, 89), "green2" if i % 2 == 0 else "white")
     # corner vertical sign
-    cv.paint(mrect(256, 40, 268, 104), "ink2")
-    cv.paint(mrect(257, 41, 267, 103), "red2")
     dither_radial(cv.img, 262, 72, 24, "red3", None, 4, box=(240, 30, 290, 110))
-    cv.paint(mrect(256, 40, 268, 104), "ink2")
-    cv.paint(mrect(257, 41, 267, 103), "red2")
-    cv.dth(mrect(257, 41, 267, 103), "red1", 0.35, 2)
+    cv.paint(mrect(254, 38, 270, 106), "ink2")
+    cv.paint(mrect(255, 39, 269, 105), "red2")
+    cv.paint(mrect(255, 39, 255, 105), "red3")
+    cv.paint(mrect(269, 39, 269, 105), "red1")
     for i, ch in enumerate("새벽영업"):
-        text(cv.img, 257, 44 + i * 14, ch, "white", 11)
+        text(cv.img, 257, 42 + i * 16, ch, "white", 11, shadow="red0")
     # sidewalk glow pool
     walk = mrect(0, 124, SW, 140)
     cv.paint(walk, "grey1")
@@ -1487,11 +1540,66 @@ def tc_event():
     return cv
 
 
+def moped(cv, ox, oy):
+    """delivery moped facing left; ox = left edge of the front wheel, oy = ground line. ~66px wide with a milk crate."""
+    X = lambda dx, dy: (ox + dx, oy + dy)
+    # ground shadow
+    cv.dth(mell(ox - 2, oy - 3, ox + 74, oy + 4), "ink2", 0.65, 2)
+    # rear crate + cartons on the carrier (behind the body)
+    rack = mrect(ox + 40, oy - 27, ox + 70, oy - 25)
+    cv.layer(rack, "grey2", "grey1", "grey3", sd=(0, 1), hd=(0, -1), dith=False)
+    for i in range(5):
+        cx_ = ox + 43 + i * 6
+        ct = mpoly([(cx_, oy - 44), (cx_ + 2, oy - 48), (cx_ + 4, oy - 44), (cx_ + 4, oy - 36), (cx_, oy - 36)])
+        cv.layer(ct, "white", "grey4", None, sd=(2, 0), dith=False)
+        cv.paint(mrect(cx_ + 1, oy - 44, cx_ + 3, oy - 42), "blue2" if i % 2 == 0 else "red3")
+    crate = mrect(ox + 41, oy - 37, ox + 71, oy - 27)
+    cv.layer(crate, "blue1", "blue0", "blue2", sd=(2, 2), hd=(1, 1), dith=False)
+    for gx in range(ox + 44, ox + 70, 4):
+        cv.paint(mrect(gx, oy - 34, gx + 1, oy - 30), "blue0")
+    cv.paint(mrect(ox + 41, oy - 37, ox + 71, oy - 37), "blue3")
+    # wheels
+    for wx in (ox + 14, ox + 52):
+        cv.layer(mell(wx - 8, oy - 16, wx + 8, oy), "ink2", "ink", "grey1", sd=(2, 2), hd=(1, 1), dith=False)
+        cv.layer(mell(wx - 4, oy - 12, wx + 4, oy - 4), "grey3", "grey2", "grey4", sd=(1, 1), hd=(1, 1), dith=False)
+        cv.pts([(wx, oy - 8), (wx - 2, oy - 8), (wx + 2, oy - 8), (wx, oy - 10), (wx, oy - 6)], "grey1")
+    # rear body / cowl + seat
+    cowl = mpoly([X(34, -12), X(36, -23), X(46, -27), X(66, -26), X(70, -18), X(64, -9), X(56, -8), X(46, -7)])
+    cv.layer(cowl, "blue2", "blue1", "blue3", sd=(3, 3), hd=(2, 2), dith=True)
+    seat = mpoly([X(30, -26), X(34, -29), X(52, -29), X(54, -26), X(52, -24), X(32, -24)])
+    cv.layer(seat, "ink2", "ink", "grey1", sd=(2, 2), hd=(1, 1), dith=False)
+    # floorboard + front leg shield
+    fb = mrect(ox + 20, oy - 12, ox + 36, oy - 8)
+    cv.layer(fb, "blue1", "blue0", "blue2", sd=(2, 2), hd=(1, 1), dith=False)
+    shield = mpoly([X(11, -14), X(18, -34), X(26, -36), X(29, -30), X(24, -12), X(20, -9)])
+    cv.layer(shield, "blue2", "blue1", "blue3", sd=(3, 3), hd=(2, 2), dith=True)
+    cv.paint(mline([X(21, -30), X(25, -14)], 1), "white")
+    # front fender over the wheel, handlebar, headlight, mirror
+    fend = mpoly([X(4, -13), X(8, -20), X(18, -21), X(22, -15), X(16, -15), X(8, -15)])
+    cv.layer(fend, "blue3", "blue2", "blue4", sd=(2, 2), hd=(1, 1), dith=False)
+    cv.paint(mline([X(22, -36), X(32, -38)], 2), "ink2")
+    cv.pts([(ox + 33, oy - 38), (ox + 33, oy - 37)], "grey1")
+    cv.paint(mline([X(26, -38), X(24, -46)], 1), "ink2")
+    cv.layer(mell(ox + 20, oy - 49, ox + 27, oy - 45), "grey3", "grey2", "white", sd=(1, 1), hd=(1, 1), dith=False)
+    hl = mell(ox + 6, oy - 36, ox + 14, oy - 29)
+    cv.layer(hl, "yellow2", "yellow", "white", sd=(2, 2), hd=(1, 1), dith=False)
+    dither_radial(cv.img, ox + 3, oy - 32, 9, "yellow2", None, 4, box=(ox - 8, oy - 44, ox + 8, oy - 20))
+    # exhaust + stand
+    cv.layer(mrect(ox + 56, oy - 8, ox + 72, oy - 5), "grey2", "grey1", "grey3", sd=(0, 1), hd=(0, -1), dith=False)
+    # tail light
+    cv.paint(mrect(ox + 70, oy - 22, ox + 71, oy - 19), "red3")
+
+
 def tc_milk():
     cv = CV("wall3")
-    dither_ramp(cv.img, (0, 22, SW, 120), ["blue3", "wall4", "orange3", "orange4", "yellow2"], "y", 4)
-    cv.dth(mrect(0, 22, SW, 60), "blue3", vgrad(22, 60, 0.5, 0.0), 4)
-    glow(cv, 60, 118, 90, [("yellow2", 0.3)], m=4)
+    # dawn: deep blue overhead, pink band, orange glow, pale yellow at the horizon
+    dither_ramp(cv.img, (0, 22, SW, 124), ["blue2", "blue3", "wall4", "orange3", "orange4", "yellow2"], "y", 4)
+    # a few long thin clouds lit from below
+    for (cy_, x0, x1) in [(48, 20, 120), (60, 150, 300), (74, 60, 200)]:
+        cv.dth(mrect(x0, cy_, x1, cy_ + 2), "wall4", 0.6, 2)
+        cv.dth(mrect(x0 + 10, cy_ + 3, x1 - 20, cy_ + 3), "orange3", 0.5, 2)
+    glow(cv, 56, 122, 80, [("yellow2", 0.35), ("orange4", 0.3)], m=4)
+    cv.paint(mell(44, 108, 68, 134) & (YY < 124), "yellow2")
     # distant blocks
     rng = np.random.RandomState(8)
     x = 0
@@ -1516,7 +1624,7 @@ def tc_milk():
     cv.paint(mrect(bx0 + 34, 118, bx0 + 62, 128), "blue1")
     cv.dth(mrect(bx0 + 34, 118, bx0 + 62, 128), "blue3", 0.45, 4)
     cv.paint(mrect(bx0 + 47, 118, bx0 + 48, 128), "ink2")
-    # mailboxes by the door
+    cv.paint(mrect(bx0 + 34, 117, bx0 + 62, 117), "ink2")
     for i in range(4):
         cv.paint(mrect(bx0 + 66 + i * 5, 118, bx0 + 69 + i * 5, 123), ["grey3", "grey2"][i % 2])
     # vertical sign on side
@@ -1531,34 +1639,17 @@ def tc_milk():
         cv.paint(mrect(274, yy, 316, yy), "grey3")
     cv.paint(mrect(274, 92, 316, 94), "ink2")
     # road + sidewalk
-    cv.paint(mrect(0, 128, SW, 140), "grey3")
-    cv.dth(mrect(0, 128, SW, 140), "wall4", 0.4, 2)
-    cv.paint(mrect(0, 140, SW, 158), "grey2")
-    cv.dth(mrect(0, 140, SW, 158), "grey1", 0.5, 2)
-    cv.paint(mrect(0, 140, SW, 141), "grey4")
-    # moped with milk box (delivery), parked at the left, in front
-    mx, my = 62, 130
-    # shadow
-    cv.dth(mell(mx - 26, my + 14, mx + 58, my + 22), "ink2", 0.6, 2)
-    for wx in (mx, mx + 44):
-        cv.layer(mell(wx - 8, my + 4, wx + 8, my + 20), "ink2", "ink", "grey1", sd=(2, 2), hd=(1, 1))
-        cv.paint(mell(wx - 3, my + 9, wx + 3, my + 15), "grey2")
-    body = mpoly([(mx + 4, my + 6), (mx + 20, my - 4), (mx + 34, my - 2), (mx + 40, my + 8), (mx + 30, my + 14), (mx + 12, my + 14)])
-    cv.layer(body, "blue2", "blue1", "blue3", sd=(3, 3), hd=(2, 2), dith=True)
-    cv.layer(mrect(mx + 14, my - 8, mx + 32, my - 4), "ink2", "ink", "grey1", sd=(2, 2), hd=(1, 1))
-    cv.paint(mline([(mx + 4, my + 2), (mx - 6, my - 10)], 2), "grey1")
-    cv.paint(mrect(mx - 10, my - 12, mx - 2, my - 11), "ink2")
-    box = mrect(mx + 22, my - 34, mx + 56, my - 8)
-    cv.layer(box, "white", "grey4", None, sd=(3, 3), dith=False)
-    cv.paint(mrect(mx + 22, my - 34, mx + 56, my - 31), "blue2")
-    cv.paint(mrect(mx + 22, my - 12, mx + 56, my - 10), "blue2")
-    text(cv.img, mx + 25, my - 29, "우유", "blue1", 11)
-    cv.pts([(mx + 58, my - 20)], "red3")
-    # milk crate stack on pavement
-    for i in range(3):
-        cr = mrect(116, 120 - i * 7 + 8, 138, 126 - i * 7 + 8)
-        cv.layer(cr, "orange2", "orange1", "orange3", sd=(2, 2), hd=(1, 1))
-    ground_fade(cv, 124, "ink2", 0.0, 0.55)
+    cv.paint(mrect(0, 128, SW, 142), "grey3")
+    cv.dth(mrect(0, 128, SW, 142), "wall4", 0.4, 2)
+    cv.paint(mrect(0, 142, SW, 158), "grey2")
+    cv.dth(mrect(0, 142, SW, 158), "grey1", 0.5, 2)
+    cv.paint(mrect(0, 142, SW, 143), "grey4")
+    # street lamp (still on at dawn)
+    lamp(cv, 92, 62, 142, c="grey1", bulb="yellow2", glow_c="yellow2", r=20, arm=10)
+    cv.paint(mrect(91, 136, 94, 142), "grey1")
+    # the delivery moped, parked right at the entrance
+    moped(cv, 112, 146)
+    ground_fade(cv, 140, "ink2", 0.0, 0.5)
     return cv
 
 
@@ -1635,52 +1726,150 @@ def tc_cinema():
     return cv
 
 
+def sway_tree(cv, tx, ty, rx, ry, seed=1, trunk_to=134):
+    """tree whose crown is smeared sideways in ordered dither, as if moving in the night wind."""
+    rng = np.random.RandomState(seed)
+    crown = np.zeros((SH, SW), bool)
+    for i in range(7):
+        ox = int(rng.randint(-rx // 2, rx // 2 + 1)); oy = int(rng.randint(-ry // 2, ry // 2 + 1))
+        r1 = int(rx * (0.55 + 0.25 * rng.rand())); r2 = int(ry * (0.5 + 0.25 * rng.rand()))
+        crown |= mell(tx + ox - r1, ty + oy - r2, tx + ox + r1, ty + oy + r2)
+    trunk = mrect(tx - 2, ty + ry // 2, tx + 1, trunk_to)
+    cv.layer(trunk, "brown0", "ink", "brown1", sd=(2, 0), hd=(1, 0), dith=False)
+    # wind ghost: crown shifted right, then further, in sparser dither
+    cv.dth(sh(crown, 5, 1, edge=False) & ~crown, "green0", 0.55, 4)
+    cv.dth(sh(crown, 9, 2, edge=False) & ~crown & ~sh(crown, 5, 1, edge=False), "green0", 0.25, 4)
+    cv.layer(crown, "green0", "ink", "green1", sd=(3, 4), hd=(2, 2), dith=True)
+    cv.dth(crown & (XX < tx), "green1", 0.28, 2)
+    leaves = crown & ~ero(crown, 3)
+    cv.dth(leaves & (YY < ty + 4), "green1", 0.5, 4)
+    cv.dth(sh(crown, -3, 0, edge=False) & ~crown, "green1", 0.2, 4)
+    return crown
+
+
 def tc_trial():
     cv = CV("ink")
     dither_ramp(cv.img, (0, 22, SW, 130), ["ink", "blue0", "blue0", "ink2"], "y", 4)
     stars(cv, 22, 24, 40, 21)
-    # fog bands
+    dither_radial(cv.img, 232, 34, 14, "blue1", None, 4, box=(214, 24, 252, 50))
+    cv.layer(mell(227, 29, 237, 39), "yellow2", "orange4", None, sd=(2, 2), dith=False)
+    # the wing
     wing = mrect(26, 38, 294, 128)
     cv.layer(wing, "grey1", "ink2", "grey2", sd=(4, 3), hd=(2, 2), dith=True)
     cv.paint(mrect(26, 38, 294, 42), "grey2")
-    # window rows: mostly dark, a few lit green-white
-    lit_set = {(0, 5), (1, 11), (2, 3), (2, 12), (3, 7), (1, 2), (3, 14), (0, 9)}
-    window_grid(cv, 36, 50, 16, 4, 10, 12, 6, 6, lit=lambda r, c: (r, c) in lit_set, off="blue0", on="green3", on2="green2", seed=3)
-    for (r, c) in lit_set:
-        wx, wy = 36 + c * 16, 50 + r * 18
-        g_ = mrect(wx - 3, wy - 3, wx + 12, wy + 14) & ~mrect(wx, wy, wx + 9, wy + 11)
-        cv.dth(g_, "green1", 0.5, 2)
-        cv.paint(mrect(wx, wy, wx + 9, wy + 11), "green3")
-        cv.paint(mrect(wx + 4, wy, wx + 5, wy + 11), "green1")
-        cv.paint(mrect(wx, wy + 9, wx + 9, wy + 11), "yellow2")
-    # sign plate + cross
-    cv.paint(mrect(112, 126 - 18, 208, 126 - 8), "ink") if False else None
-    # ground floor lobby
-    cv.paint(mrect(120, 106, 200, 128), "pale2")
-    cv.dth(mrect(120, 106, 200, 128), "green3", 0.6, 4)
-    cv.paint(mrect(158, 106, 160, 128), "ink2")
+    # windows: mostly dark, some warm, some cold; one holds a lone figure
+    rng = np.random.RandomState(11)
+    figure = (1, 10)
+    for r in range(4):
+        for c in range(16):
+            wx, wy = 36 + c * 16, 50 + r * 18
+            if r == 3 and 4 <= c <= 11:
+                continue
+            if r == 2 and 5 <= c <= 11:
+                continue
+            kind = "warm" if rng.rand() < 0.14 else ("cold" if rng.rand() < 0.16 else ("dim" if rng.rand() < 0.2 else "off"))
+            if (r, c) == figure:
+                kind = "warm"
+            W_ = mrect(wx, wy, wx + 9, wy + 11)
+            if kind == "warm":
+                cv.dth(mrect(wx - 3, wy - 3, wx + 12, wy + 14) & ~W_, "orange1", 0.4, 2)
+                cv.paint(W_, "yellow2")
+                cv.dth(W_, "orange3", vgrad(wy, wy + 11, 0.0, 0.6), 2)
+                cv.paint(mrect(wx + 4, wy, wx + 5, wy + 11), "orange1")
+            elif kind == "cold":
+                cv.dth(mrect(wx - 3, wy - 3, wx + 12, wy + 14) & ~W_, "green1", 0.45, 2)
+                cv.paint(W_, "green3")
+                cv.dth(W_, "blue4", 0.4, 2)
+                cv.paint(mrect(wx + 4, wy, wx + 5, wy + 11), "green1")
+                cv.paint(mrect(wx, wy + 9, wx + 9, wy + 11), "blue3")
+            elif kind == "dim":
+                cv.paint(W_, "blue1")
+                cv.dth(W_, "blue2", 0.3, 4)
+                cv.paint(mrect(wx, wy, wx + 9, wy), "blue2")
+            else:
+                cv.paint(W_, "blue0")
+                cv.paint(mrect(wx, wy, wx + 9, wy), "blue1")
+            cv.paint(mrect(wx - 1, wy + 12, wx + 10, wy + 12), "ink")
+            if (r, c) == figure:
+                # lone silhouette standing at the window
+                cv.paint(mell(wx + 3, wy + 2, wx + 6, wy + 5), "ink")
+                cv.paint(mpoly([(wx + 1, wy + 11), (wx + 2, wy + 7), (wx + 4, wy + 6), (wx + 5, wy + 6), (wx + 7, wy + 7), (wx + 8, wy + 11)]), "ink")
+    # lobby sign band + canopy over the doors
     cv.paint(mrect(110, 100, 210, 105), "ink2")
+    cv.paint(mrect(110, 105, 210, 105), "grey1")
     cv.paint(mrect(112, 86, 208, 100), "ink")
     cv.paint(mrect(112, 86, 208, 86), "green2")
     text(cv.img, 117, 88, "제3 임상시험센터", "green3", 9)
-    # green cross on side
-    cv.paint(mrect(268, 94, 280, 100), "green2"); cv.paint(mrect(271, 91, 277, 103), "green2")
-    # overhead canopy glow + ambulance bay light (red)
-    cv.dth(mell(100, 126, 220, 150), "green3", 0.3, 4)
-    bokeh(cv, 288, 120, 5, "red3", "red4", 0.5, 0.9)
-    # trees, fog, path
-    for tx in (14, 306):
-        cv.paint(mell(tx - 20, 80, tx + 20, 130), "green0")
-        cv.dth(mell(tx - 20, 80, tx + 20, 130), "ink", 0.5, 2)
+    # --- lit lobby seen through glass doors
+    lob = mrect(118, 106, 202, 128)
+    cv.paint(lob, "ink2")
+    back = mrect(120, 106, 200, 121)
+    dither_ramp(cv.img, (120, 106, 201, 122), ["yellow2", "orange4", "orange3"], "y", 4)
+    cv.dth(back, "pale2", 0.25, 4)
+    # back-wall details: green sign panel, wall clock, hanging ceiling lights
+    cv.paint(mrect(168, 108, 190, 114), "green1")
+    cv.paint(mrect(168, 108, 190, 108), "green2")
+    cv.pts([(171 + i * 3, 111) for i in range(6)], "green3")
+    cv.paint(mrect(124, 106, 128, 107), "grey3")
+    cv.paint(mrect(150, 106, 154, 107), "grey3")
+    cv.paint(mrect(120, 121, 200, 128), "brown3")                  # floor
+    cv.dth(mrect(120, 121, 200, 128), "orange3", 0.4, 2)
+    # reception desk: counter top, front panel, monitor, lamp
+    cv.layer(mrect(126, 112, 156, 114), "brown3", "brown2", "yellow2", sd=(0, 1), hd=(0, -1), dith=False)
+    cv.layer(mrect(127, 115, 155, 125), "brown2", "brown1", "brown3", sd=(2, 2), hd=(1, 1), dith=False)
+    cv.paint(mrect(132, 108, 137, 111), "blue2"); cv.paint(mrect(133, 109, 136, 110), "blue4")
+    cv.paint(mrect(134, 112, 135, 112), "ink2")
+    cv.paint(mrect(145, 110, 146, 111), "ink2"); cv.paint(mrect(143, 108, 148, 109), "green1")   # desk lamp
+    cv.paint(mrect(128, 119, 154, 119), "brown1")
+    # waiting chair + plant
+    cv.paint(mrect(176, 118, 190, 124), "blue1"); cv.paint(mrect(176, 118, 190, 119), "blue2")
+    cv.paint(mell(192, 112, 198, 120), "green1"); cv.paint(mrect(194, 120, 196, 124), "orange1")
+    # glass reflections + door mullions + push bars + door gap
+    refl = ((XX + YY * 1) % 16 < 2) & lob & (YY < 121) & ~mrect(126, 111, 156, 126)
+    cv.dth(refl, "white", 0.45, 4)
+    for mx_ in (118, 139, 159, 160, 181, 202):
+        cv.paint(mrect(mx_, 106, mx_, 128), "ink2")
+    cv.paint(mrect(118, 106, 202, 106), "ink2")
+    cv.paint(mrect(150, 106, 169, 128) & ~mrect(150, 106, 169, 128), "ink2")
+    for hx in (156, 163):
+        cv.paint(mrect(hx, 115, hx, 121), "grey3")
+    cv.paint(mrect(118, 127, 202, 128), "grey1")
+    # floor spill onto the path
+    cv.dth(mell(104, 124, 216, 150) & (YY > 128), "yellow2", 0.28, 4)
+    # --- ambulance bay canopy, right side
+    cv.layer(mrect(210, 98, 288, 104), "grey2", "grey1", "grey3", sd=(0, 3), hd=(0, -1), dith=True)
+    for i, xx in enumerate(range(210, 289, 6)):
+        cv.paint(mrect(xx, 104, xx + 2, 105), "yellow" if i % 2 == 0 else "ink")
+    cv.paint(mrect(222, 88, 270, 98), "red2")
+    cv.paint(mrect(222, 88, 270, 88), "red3"); cv.paint(mrect(222, 98, 270, 98), "red1")
+    text(cv.img, 236, 88, "응급", "white", 9)
+    cv.paint(mrect(226, 91, 232, 93), "green2"); cv.paint(mrect(228, 89, 230, 95), "green2")    # cross
+    bay = mrect(216, 106, 282, 128)
+    cv.paint(bay, "ink")
+    dither_radial(cv.img, 250, 108, 28, "orange3", None, 4, box=(214, 106, 284, 128))
+    cv.dth(bay, "red1", 0.18, 2)
+    cv.paint(mrect(244, 106, 256, 107), "yellow2")          # hanging light
+    cv.paint(mrect(248, 107, 252, 109), "orange4")
+    cv.paint(mrect(216, 106, 217, 128), "grey1")
+    cv.paint(mrect(281, 106, 282, 128), "grey1")
+    for i in range(6):
+        xx = 222 + i * 10
+        cv.paint(mpoly([(xx, 128), (xx + 4, 128), (xx + 8, 124), (xx + 4, 124)]) & (YY > 123), "yellow" if i % 2 == 0 else "grey3")
+    bokeh(cv, 290, 116, 4, "red3", "red4", 0.55, 0.9)
+    cv.paint(mrect(284, 110, 285, 128), "grey2")
+    # --- trees swaying, ground, fog, path
     cv.paint(mrect(0, 128, SW, 158), "ink2")
     cv.dth(mrect(0, 128, SW, 158), "blue0", 0.5, 2)
     path = mpoly([(150, 128), (170, 128), (210, 158), (110, 158)])
     cv.paint(path, "grey1")
     cv.dth(path, "green1", 0.25, 4)
+    sway_tree(cv, 16, 98, 26, 28, seed=3)
+    sway_tree(cv, 62, 112, 14, 14, seed=5)
+    sway_tree(cv, 304, 96, 26, 30, seed=7)
     fog = (YY > 112) & (YY < 140)
     cv.dth(fog, "pale1", vgrad(112, 140, 0.0, 0.3) * 1.0, 4)
     lamp(cv, 96, 100, 130, bulb="green3", glow_c="green2", r=14, arm=6)
-    lamp(cv, 230, 100, 130, bulb="green3", glow_c="green2", r=14, arm=-6)
+    lamp(cv, 296, 104, 132, bulb="green3", glow_c="green2", r=14, arm=-6)
     ground_fade(cv, 128, "ink", 0.2, 0.8)
     return cv
 

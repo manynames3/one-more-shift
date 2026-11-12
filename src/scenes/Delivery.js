@@ -161,7 +161,7 @@ export default class Delivery extends Phaser.Scene {
         return this.add.image(toApts ? x : W - x, FY + 1, "props_wet_floor_sign").setOrigin(0.5, 1).setDepth(139);
       });
       this.riding = { hopAt: -9999, crashed: 0 };
-      this.hint("hop", W / 2, 70);
+      this.hint("hop", W / 2, 112);
       this.tweens.add({
         targets: this.moped, x: toApts ? W + 30 : -30, duration: 2600,
         onUpdate: () => {
@@ -400,7 +400,7 @@ export default class Delivery extends Phaser.Scene {
       this.addMin(CLIMB_MIN);
       if (this.over) return;
       this.floor += dir; this.p.y = FY;
-      this.enter("stairs", dir > 0 ? STAIR.up - 22 : STAIR.down + 22);
+      this.enter("stairs", dir > 0 ? 200 : 124);   // arrive on the landing at the foot of the next flight
     }, 200);
   }
 

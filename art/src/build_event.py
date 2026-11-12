@@ -584,15 +584,31 @@ def mascot_frame(kind):
         im = mascot_body(cx, dy=1 if a else 0, lift=(2, 0) if a else (0, 2), swing=(-1, 1) if a else (1, -1), spread=0)
         bun_head(im, cx, 1 + (1 if a else 0))
         return im
-    # headless: body left, head resting on the floor on the right
+    # headless: body shifted left, the fallen full-size bun head resting on the floor in front of it
+    # (head 32px wide; it overlaps the body's right side and reaches the frame edge)
     t = 0.0 if kind == "headoff_0" else 0.05
-    im = mascot_body(17, tilt=t)
-    hd = new(40, 40)
-    bun_head(hd, 20, 6, small=True)
-    hd = hd.rotate(38 if kind == "headoff_0" else 30, expand=True, resample=Image.NEAREST)
-    bb = hd.getbbox()
-    hd = hd.crop(bb)
-    paste(im, hd, 47 - hd.width, 64 - hd.height)
+    im = mascot_body(16, tilt=t)
+    cx, cy = 31, 49
+    dither_flat(im, (cx - 14, 61, cx + 17, 64), "ink2", "ink2", 0.6, 2)          # floor shadow
+    tilt_y = 1 if kind == "headoff_0" else -1                                     # head rocks a little between the frames
+    ellipse(im, cx + 2 - tilt_y, cy - 18, cx + 8 - tilt_y, cy - 13, "white", "ink")   # knot, flopped to the side
+    egg(im, cx - 16, cy - 14, cx + 16, cy + 14, "white", "grey4", "white", -0.3, 1.1, 4)
+    for dx, ex in ((-3, -9), (0, -2), (3, 5), (6, 11)):                            # pleats
+        line(im, [(cx + dx, cy - 11), (cx + ex, cy - 6)], "grey3")
+    for sx_, ey in ((-1, cy - 3 + (0 if tilt_y > 0 else 1)), (1, cy - 3 + (1 if tilt_y > 0 else 0))):
+        ex = cx + sx_ * 8 - (1 if sx_ < 0 else 0)
+        if kind == "headoff_0":
+            rect(im, ex, ey - 1, 2, 4, "ink")
+            px(im, ex, ey - 1, "grey2")
+        else:
+            for (dx, dy) in ((0, 1), (1, 0), (2, 0), (3, 1)):                       # squeezed-shut arcs
+                px(im, ex - 1 + dx, ey + dy, "ink")
+    for sx_ in (-1, 1):                                                            # cheeks
+        x0 = cx + sx_ * 11 - 2
+        rect(im, x0, cy + 1 + (1 if sx_ > 0 else 0), 4, 3, "red3")
+        dither_flat(im, (x0, cy + 1 + (1 if sx_ > 0 else 0), x0 + 4, cy + 4 + (1 if sx_ > 0 else 0)), "red3", "red4", 0.5, 2)
+    for (dx, dy) in ((-3, 4), (-2, 5), (-1, 6), (0, 6), (1, 6), (2, 5), (3, 4)):    # a small wobbly smile
+        px(im, cx + dx, cy + dy + (1 if kind == "headoff_1" else 0), "ink")
     return im
 
 

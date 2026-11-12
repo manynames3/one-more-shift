@@ -341,24 +341,39 @@ def build_hall():
             px(im, x + (y // 4 % 2) * 6, y, "red1")
     speckle(im, (0, 144, W, Y1), "grey1", 25, 3)
     glow(im, 0, 143, 140, 157, "grey1", 0.3, 4, 12)
-    # exit door x282..312 top 88 bottom 150
-    rect(im, 281, 87, 32, 64, "ink")
-    rect(im, 282, 88, 30, 62, "grey1")
-    rect(im, 284, 90, 26, 58, "grey1", "ink")
-    dither_grad(im, (285, 91, 309, 147), "grey1", "ink2", "y", 2, 0.0, 0.9)
-    rect(im, 286, 104, 22, 12, "ink", "ink2"); dither_grad(im, (287, 105, 307, 115), "blue0", "green0", "x", 4, 0.0, 0.8)
-    rect(im, 286, 126, 22, 2, "ink")
-    rect(im, 286, 120, 22, 2, "grey3", "ink")
+    # exit door x281..312, top 88, bottom 150: frame, leaf, small window, push bar, hinges, kick plate
+    rect(im, 280, 86, 34, 66, "ink")                                   # outer outline
+    rect(im, 281, 87, 32, 64, "grey2")                                 # steel frame
+    hline(im, 282, 311, 88, "grey3")                                   # frame highlight
+    vline(im, 282, 88, 148, "grey3")
+    rect(im, 284, 90, 26, 60, "ink")                                   # leaf outline (gap)
+    rect(im, 285, 91, 24, 58, "grey1")                                 # door leaf, flat
+    rect(im, 304, 92, 4, 56, "ink2")                                   # flat shade band on the hinge-away side
+    hline(im, 286, 303, 92, "grey2"); vline(im, 286, 92, 147, "grey2")
+    # small wired window, glowing green from the exit sign
+    rect(im, 290, 96, 14, 18, "ink")
+    rect(im, 291, 97, 12, 16, "blue0")
+    dither_grad(im, (291, 97, 303, 113), "blue0", "green0", "y", 4, 0.0, 0.8)
+    for gx in (295, 299):
+        vline(im, gx, 97, 112, "ink2")
+    hline(im, 291, 302, 105, "ink2")
+    px(im, 292, 98, "green2"); px(im, 293, 98, "green2"); px(im, 292, 99, "green2")     # glass glint
+    # push bar with end brackets
+    rect(im, 286, 126, 3, 5, "grey3", "ink"); rect(im, 304, 126, 3, 5, "grey3", "ink")
+    rect(im, 286, 127, 22, 3, "grey4", "ink")
+    hline(im, 288, 305, 127, "white")
+    # hinges on the left edge (outside the leaf) + kick plate
+    for hy in (96, 118, 140):
+        rect(im, 283, hy, 3, 5, "grey3", "ink")
+    rect(im, 286, 140, 22, 8, "grey2", "ink"); hline(im, 287, 306, 141, "grey3")
     rect(im, 281, 150, 32, 2, "ink2")
-    # exit light
-    rect(im, 288, 74, 18, 11, "ink")
-    rect(im, 289, 75, 16, 9, "green1", "ink")
-    rect(im, 290, 76, 14, 7, "green2")
-    text(im, 297, 75, "비상구", "green0", 9, align="center") if False else None
-    # running man icon
-    px(im, 294, 77, "white"); rect(im, 293, 78, 3, 2, "white"); px(im, 292, 80, "white"); px(im, 295, 80, "white")
-    rect(im, 298, 77, 4, 2, "white"); rect(im, 298, 80, 4, 1, "white")
-    hanging_bulb(im, 297, 80, 26, 0.45, "green1")
+    # EXIT-style sign above the door: invented Korean text, green box (its glow is drawn first, behind it)
+    hanging_bulb(im, 297, 78, 28, 0.45, "green1")
+    rect(im, 280, 70, 34, 15, "ink")
+    rect(im, 281, 71, 32, 13, "green1")
+    rect(im, 282, 72, 30, 11, "green2")
+    hline(im, 282, 311, 72, "green3")
+    text(im, 297, 73, "비상구", "green0", 9, align="center")
     glow(im, 282, 150, 314, 157, "green1", 0.2, 4, 6, up=True)
     # projector port
     rect(im, 295, 39, 11, 11, "ink")

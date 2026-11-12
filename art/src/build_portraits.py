@@ -679,10 +679,16 @@ def build(sp, ex):
         px(s, 44 + ox, 21 + oy, "white")
         fig.alpha_composite(outline(s))
     if sp.get("frost"):
-        for y in range(S):
-            for x in range(S):
-                if fig.getpixel((x, y)) == col("skin3") and 0.09 > _thr(x + 1, y, 4):
-                    fig.putpixel((x, y), col("blue4"))
+        # frost only on the hair tips: pale dots on hair pixels that touch the outer ink outline (spike ends)
+        hair_c = {col("purple0"), col("purple1"), col("purple2")}
+        ink_c = col("ink")
+        base = fig.copy()
+        for y in range(1, 26):
+            for x in range(1, S - 1):
+                if base.getpixel((x, y)) in hair_c:
+                    nb = [base.getpixel((x + 1, y)), base.getpixel((x - 1, y)), base.getpixel((x, y - 1))]
+                    if ink_c in nb and (x + y) % 2 == 0:
+                        fig.putpixel((x, y), col("blue4"))
         for (x, y) in ((17, 8), (26, 4), (41, 3), (14, 17), (47, 14)):
             if fig.getpixel((x, y))[:3] == PAL["purple1"]:
                 fig.putpixel((x, y), col("blue3"))

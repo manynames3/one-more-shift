@@ -1087,7 +1087,8 @@ def street_dawn_scene():
     dither_grad(im, (291, 111, 305, 121), "blue0", "orange2", "d", 4, 0.0, 0.8)
     rect(im, 284, 128, 40, 4, "grey1", "ink")
     # sidewalk
-    dither_grad(im, (0, 132, W, 151), "grey4", "wall4", "y", 4, 0.0, 0.8)
+    rect(im, 0, 133, W, 18, "grey4")
+    dither_grad(im, (0, 144, W, 151), "grey4", "wall4", "y", 4, 0.0, 1.0)
     hline(im, 0, W - 1, 132, "ink")
     for x in range(0, W, 16):
         vline(im, x + (x // 16 % 2) * 8, 133, 150, "grey3")
@@ -1099,7 +1100,6 @@ def street_dawn_scene():
             t = (x - 120) / 200
             if t * 0.65 > _thr(x, y, 4):
                 px(im, x, y, "orange4" if (y + x) % 3 else "yellow2")
-    speckle(im, (0, 134, W, 150), "grey2", 40, 14)
     # curb + road
     rect(im, 0, 150, W, 2, "grey2")
     hline(im, 0, W - 1, 150, "ink"); hline(im, 0, W - 1, 151, "grey3")
@@ -1129,24 +1129,39 @@ def street_dawn_scene():
     return im
 
 
+def ground_shadow(im, spr, fx, fy, k=1.45, thick=0.62, ycl=(134, 151), c1="purple0", c2="purple1", tilt=-0.10):
+    """long cast shadow lying on the ground to the LEFT of a figure (sun low on the right): the sprite's
+    silhouette stretched along the ground (height -> length, width -> thickness) as a solid shape, with
+    its far end dissolving in ordered dither."""
+    A = [[spr.getpixel((x, y))[3] > 0 for x in range(spr.width)] for y in range(spr.height)]
+    top_y = fy - 45
+    bot = max(y for y in range(spr.height) if any(A[y]))
+    n_px = bot + 1
+    for Y in range(ycl[0], ycl[1]):
+        for X in range(0, fx + 6):
+            h = (fx - X) / k                               # height on the figure
+            sy = (bot - h)
+            if h < 0 or sy < 0 or sy > bot:
+                continue
+            dx = (Y - fy - 1 - h * tilt) / thick             # sideways position within the sprite
+            sx = int(round(16 + dx))
+            sy_i = int(sy)
+            if 0 <= sx < spr.width and A[sy_i][sx]:
+                far = h / n_px                                # 0 at the feet .. 1 at the head
+                if far > 0.8 and (X + Y) % 2 == 0 and far > 0.8 + 0.2 * _thr(X, Y, 4):
+                    continue                                  # only the very tip dissolves into dither
+                im.putpixel((X, Y), col(c1))
+
+
 def build_dawn():
     im = street_dawn_scene()
-    # the two figures walking away to the right
-    sora = rim_light(chibi(CAST["sora"], "side", "walk", 1))
-    jun = rim_light(chibi(JUNHO, "side", "walk", 3))
-    sora = frost(rim_light(flip(chibi(CAST["sora"], "side", "walk", 1))), 2) if False else rim_light(flip(chibi(CAST["sora"], "side", "walk", 1)))
-    jun = rim_light(flip(junho_frame("side", "walk", 3)))
     fy = 146
-    for (spr, fx) in ((sora, 204), (jun, 240)):
-        top_y = fy - 45
-        # long shadow, left, dither on the paving
-        m = shadow_of(spr, fx, fy)
-        ovl_mask = m
-        for y in range(H):
-            for x in range(W):
-                if m.getpixel((x, y)) and 133 <= y <= 150 and x < fx - 6:
-                    im.putpixel((x, y), col("purple0") if (x + y) % 3 else col("purple1"))
-        paste(im, spr, fx - 16, top_y)
+    sora = rim_light(flip(chibi(CAST["sora"], "side", "walk", 1)))
+    jun = rim_light(flip(junho_frame("side", "walk", 3)))
+    for (spr, fx, dy, tl) in ((sora, 198, 0, -0.14), (jun, 248, 2, 0.04)):
+        ground_shadow(im, spr, fx, fy + dy, tilt=tl)
+    for (spr, fx) in ((sora, 198), (jun, 248)):
+        paste(im, spr, fx - 16, fy - 45)
     letterbox(im)
     return im
 
@@ -1166,14 +1181,86 @@ SOFT = {   # dawn: pastel, soft light
 }
 
 
+WB = 122          # where the back wall meets the floor
+
+
+def flat_gradient(img, box, c1, c2, rows):
+    """one clean two-step ordered-dither band (the only dither on a flat wall): c2 over c1 fading out."""
+    x0, y0, x1, y1 = box
+    dither_grad(img, (x0, y0, x1, y1), c1, c2, "y", 4, 0.0, 1.0)
+
+
+def fin_room(img, sick):
+    """flat-filled office shell: wall, wainscot, floor. Dither only in one soft band under the ceiling."""
+    P = dict(wall="green0", top="ink2", wain="ink2", joint="ink", wain_hi="grey1", floor="grey1", floor_j="ink2",
+             base="ink", ceil="ink2", shade="ink") if sick else \
+        dict(wall="wall1", top="wall4", wain="brown2", joint="brown1", wain_hi="brown3", floor="brown3", floor_j="brown2",
+             base="brown1", ceil="brown1", shade="brown2")
+    rect(img, 0, 22, W, WB - 22, P["wall"])
+    dither_grad(img, (0, 28, W, 48), P["top"], P["wall"], "y", 4, 1.0, 0.0)          # soft ceiling falloff
+    rect(img, 0, 22, W, 6, P["ceil"]); hline(img, 0, W - 1, 28, "ink")
+    wy = 96                                                                           # wainscot
+    rect(img, 0, wy, W, WB - wy, P["wain"])
+    hline(img, 0, W - 1, wy, "ink"); hline(img, 0, W - 1, wy + 1, P["wain_hi"])
+    for x in range(0, W, 32):
+        vline(img, x, wy + 2, WB - 6, P["joint"])
+    rect(img, 0, WB - 4, W, 4, P["base"]); hline(img, 0, W - 1, WB - 5, "ink")
+    rect(img, 0, WB, W, H - WB, P["floor"])                                           # floor
+    hline(img, 0, W - 1, WB, "ink")
+    for k, (y0, y1) in enumerate(((WB, 130), (130, 139), (139, 149), (149, 158))):
+        if k:
+            hline(img, 0, W - 1, y0, P["floor_j"])
+        step = 28 + 8 * k
+        for x in range(((k * 13) % step) - step, W, step):
+            vline(img, x, y0 + 1, y1 - 1, P["floor_j"])
+    dither_grad(img, (0, 140, W, 158), P["floor"], P["floor_j"], "y", 4, 0.0, 0.8)   # darker toward the viewer
+
+
+def fin_cabinets(img, sick):
+    body, face, hi, slot = ("grey1", "grey2", "grey3", "ink") if sick else ("grey2", "grey3", "grey4", "ink2")
+    for x0 in (6, 38):
+        y0, w, hgt = 62, 30, WB - 62 + 3
+        rect(img, x0, y0, w, hgt, body, "ink")
+        for d in range(4):
+            yy = y0 + 3 + d * 14
+            rect(img, x0 + 3, yy, w - 6, 12, face, "ink")
+            hline(img, x0 + 4, x0 + w - 5, yy + 1, hi)
+            rect(img, x0 + w // 2 - 4, yy + 4, 8, 2, slot)
+            rect(img, x0 + w // 2 - 3, yy + 7, 6, 3, "pale2" if sick else "white", "ink")
+        rect(img, x0 + 2, y0 + hgt - 2, w - 4, 2, "ink")
+    # tidy clutter on top
+    rect(img, 8, 52, 24, 10, "grey3" if sick else "brown3", "ink")
+    rect(img, 12, 49, 14, 3, "pale2" if sick else "wall1", "ink")
+    rect(img, 40, 55, 22, 7, "pale2" if sick else "wall1", "ink")
+    rect(img, 44, 50, 16, 5, "grey3" if sick else "orange3", "ink")
+    rect(img, 50, 44, 8, 6, "grey2" if sick else "wall3", "ink")
+
+
+def fin_calendar(img, sick):
+    x0, y0 = 108, 36
+    rect(img, x0, y0, 26, 34, "pale2" if sick else "white", "ink")
+    rect(img, x0 + 1, y0 + 1, 24, 9, "grey2" if sick else "red2")
+    hline(img, x0 + 1, x0 + 24, y0 + 1, "grey3" if sick else "red3")
+    text(img, x0 + 13, y0 + 0, "11월", "white", 9, align="center")
+    for r in range(5):
+        for c in range(7):
+            rect(img, x0 + 2 + c * 3, y0 + 13 + r * 4, 2, 2, "grey3" if c else "grey2")
+    for (c, r) in [(2, 1), (3, 1), (4, 1), (1, 2)]:                    # crossed-out days
+        rect(img, x0 + 2 + c * 3, y0 + 13 + r * 4, 2, 2, "ink")
+    ellipse(img, x0 + 15, y0 + 21, x0 + 21, y0 + 27, None, "grey1" if sick else "red2")
+    vline(img, x0 + 13, y0 - 3, y0 - 1, "ink")
+
+
 def office_base(variant):
+    sick = variant == "sick"
     img = new(fill="ink")
-    BI.office_wall(img)
-    BI.filing_cabinets(img)
-    BI.wall_calendar(img)
-    if variant == "sick":
-        BI.dying_plant(img)
-    img = swap(img, SICK if variant == "sick" else SOFT)
+    fin_room(img, sick)
+    fin_cabinets(img, sick)
+    fin_calendar(img, sick)
+    if sick:
+        tmp = new()
+        BI.dying_plant(tmp)
+        paste(img, swap(tmp, SICK))
     return img
 
 
@@ -1221,13 +1308,10 @@ def chair_back(img, variant):
     cx = 160
     c1, c2 = ("ink2", "ink") if variant == "sick" else ("brown2", "brown1")
     rect(img, cx - 25, 64, 50, 50, c1, "ink")
-    dither_grad(img, (cx - 24, 65, cx + 24, 113), c1, c2, "x", 4, 0.0, 0.9)
     ellipse(img, cx - 25, 58, cx + 24, 76, c1, "ink")
-    dither_grad(img, (cx - 24, 59, cx + 24, 75), c1, c2, "x", 4, 0.0, 0.9)
+    rect(img, cx + 12, 66, 12, 47, c2)                                                       # flat shade band (right)
+    rect(img, cx - 24, 66, 3, 47, "grey1" if variant == "sick" else "brown3")                # flat highlight (left)
     rect(img, cx - 26, 70, 3, 40, c2, "ink"); rect(img, cx + 24, 70, 3, 40, c2, "ink")       # side rails
-    for y in range(74, 110, 9):                                                              # tufting
-        for x in range(cx - 18, cx + 20, 12):
-            px(img, x, y, "ink" if variant == "sick" else "brown0")
     hline(img, cx - 20, cx + 20, 62, "grey1" if variant == "sick" else "brown3")
 
 
@@ -1238,11 +1322,11 @@ def desk_front(img, variant):
     dx0, dx1 = 84, 236
     ty, tb = 106, 119
     rect(img, dx0 - 2, ty, dx1 - dx0 + 4, tb - ty, top_c[0], "ink")             # desktop (seen from above)
-    dither_grad(img, (dx0 - 1, ty + 1, dx1 + 1, tb), top_c[0], top_c[1], "y", 4, 0.0, 0.8)
+    hline(img, dx0 - 1, dx1 + 1, tb - 1, top_c[1])
     hline(img, dx0 - 1, dx1 + 1, ty + 1, "pale2" if sick else "white")
     rect(img, dx0 - 4, tb, dx1 - dx0 + 8, 4, top_c[1], "ink")                    # front lip
     rect(img, dx0, tb + 4, dx1 - dx0, 150 - tb - 4, body_c[0], "ink")
-    dither_grad(img, (dx0 + 1, tb + 5, dx1 - 1, 149), body_c[0], body_c[1], "x", 4, 0.0, 0.8)
+    rect(img, dx1 - 8, tb + 5, 7, 149 - tb - 5, body_c[1])
     for sx in (dx0 + 5, dx1 - 45):                                                # drawer stacks
         rect(img, sx, tb + 8, 40, 26, body_c[1], "ink")
         for d in range(3):
@@ -1251,7 +1335,7 @@ def desk_front(img, variant):
             hline(img, sx + 4, sx + 36, yy + 1, top_c[0])
             rect(img, sx + 14, yy + 3, 12, 2, "grey3" if sick else "orange3", "ink")
     rect(img, dx0 + 52, tb + 8, dx1 - dx0 - 104, 26, "ink", "ink")                # knee well
-    dither_grad(img, (dx0 + 53, tb + 9, dx1 - 53, tb + 33), "ink", "ink2", "y", 2, 0.2, 0.6)
+    rect(img, dx0 + 53, tb + 9, dx1 - dx0 - 106, 24, "ink2")
     rect(img, dx0 + 2, 146, 8, 4, "ink"); rect(img, dx1 - 10, 146, 8, 4, "ink")
 
 
@@ -1301,12 +1385,10 @@ def office_scene(variant, who):
         m = cmask((W, H), [("p", cone)])
         for y in range(33, 121):
             for x in range(80, 240):
-                if m.getpixel((x, y)):
-                    t = 1 - (y - 33) / 87
-                    if t * 0.38 > _thr(x, y, 4):
-                        c = img.getpixel((x, y))
-                        if c != col("ink"):
-                            img.putpixel((x, y), col("pale1"))
+                if m.getpixel((x, y)) and img.getpixel((x, y)) == col("green0"):
+                    t = (y - 33) / 87
+                    if t < 0.55 or (t < 0.85 and (x + y) % 2 == 0):      # flat to mid height, one checker step to fade out
+                        img.putpixel((x, y), col("green1"))
     else:
         wall_clock(img, 156, 48, 6, 0, variant)
         rect(img, 182, 40, 26, 32, "wall1", "ink")                 # tidy corkboard, almost empty
@@ -1314,12 +1396,9 @@ def office_scene(variant, who):
         rect(img, 190, 46, 10, 8, "white", "ink")
         px(img, 195, 46, "red2")
         # window light spilling over wall and floor (soft stripes)
-        for i in range(5):
-            y = 91 + i * 6
-            BI.ov(img, (176 - i * 6, y, 300, y + 3), "orange4", 0.55 - i * 0.08, 0.1, "x", 4)
-        for i in range(4):
-            fy = 126 + i * 7
-            BI.ov(img, (170 - i * 14, fy, 290 - i * 18, fy + 3), "orange4", 0.4 - i * 0.07, 0.4 - i * 0.07, "y", 4)
+        # window light: two flat parallelograms on the floor, no speckle
+        for (xa, xb) in ((236, 262), (268, 296)):
+            poly(img, [(xa, 128), (xb, 128), (xb - 20, 150), (xa - 20, 150)], "wall1")
     chair_back(img, variant)
     # the person behind the desk
     if who == "sora":
@@ -1364,9 +1443,9 @@ def office_scene(variant, who):
     # contact shadow under the desk
     BI.ov(img, (76, 150, 244, 158), "ink", 0.7, 0.7, "y", 2)
     if sick:
-        BI.ov(img, (0, 22, 320, 40), "ink", 0.6, 0.0, "y", 4)
-        BI.ov(img, (0, 22, 50, 158), "ink", 0.6, 0.0, "x", 4)
-        BI.ov(img, (270, 22, 320, 158), "ink", 0.0, 0.6, "x", 4)
+        BI.ov(img, (0, 22, 320, 36), "ink", 0.5, 0.0, "y", 4)
+        BI.ov(img, (0, 22, 24, 158), "ink", 0.5, 0.0, "x", 4)
+        BI.ov(img, (296, 22, 320, 158), "ink", 0.0, 0.5, "x", 4)
     letterbox(img)
     return img
 

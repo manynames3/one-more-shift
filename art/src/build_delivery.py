@@ -853,34 +853,45 @@ def build_stairs():
     floor_band(im, FLOOR_TOP, 158, "grey1", "grey2", "ink2", "grey3", 28, 9, x0=119, x1=W)
     glow(im, 120, 141, 250, 158, "grey3", 0.3, 4, 20)
 
-    # ----- left: descending flight pit
-    rect(im, 0, FLOOR_TOP, 119, 20, "ink")
-    dither_grad(im, (0, FLOOR_TOP + 1, 119, 158), "ink", "ink2", "y", 2, 0.0, 0.6)
-    # stringer diagonal on the back wall
-    for xx in range(2, 119):
-        yy = FLOOR_TOP + round((118 - xx) * 7 / 8) - 1
-        if yy < 158 and xx > 96:
-            px(im, xx, yy, "grey3")
-    # slab edge
-    rect(im, 114, FLOOR_TOP + 1, 6, 19, "grey2", "ink")
-    vline(im, 115, FLOOR_TOP + 2, 156, "grey3")
-    # steps descending out of the frame
-    for k in range(3):
-        sx = 116 - 8 * k
-        sy = 147 + 6 * k
-        if sy < 157:
-            rect(im, sx - 8, sy, 9, 2, "grey3", "ink")
-            hline(im, sx - 7, sx - 1, sy, "white")
-    # handrail going down-left, posts
-    for xx in range(2, 120):
-        yy = 112 + round((118 - xx) * 7 / 8)
-        if yy < 158:
-            px(im, xx, yy, "ink"); px(im, xx, yy - 1, "grey4"); px(im, xx, yy + 1, "grey1") if False else None
-    for pxx in (118, 102, 86, 70, 54):
-        yy = 112 + round((118 - pxx) * 7 / 8)
-        vline(im, pxx, yy, min(157, 150 + round((118 - pxx) * 7 / 8)) if pxx == 118 else min(157, yy + 40), "grey1")
-    rect(im, 117, 110, 4, 3, "grey2", "ink")
-    # the guard rail continuing along the landing edge (small horizontal run)
+    # ----- left: descending flight (steps going down to the bottom-left, handrail following them)
+    LR, LH = 14, 5                                   # run / rise of the visible treads
+    LX = 119                                        # landing edge
+    rect(im, 0, FLOOR_TOP, LX, 158 - FLOOR_TOP, "ink")
+    dither_grad(im, (0, FLOOR_TOP + 1, LX, 158), "ink", "ink2", "y", 2, 0.0, 0.6)
+    prof = [(LX + 1, FLOOR_TOP)]
+    for k in range(7):
+        prof += [(LX - LR * k, FLOOR_TOP + LH * (k + 1)), (LX - LR * (k + 1), FLOOR_TOP + LH * (k + 1))]
+    mass = prof + [(0, 160), (LX + 1, 160)]
+    dpoly(im, mass, "grey2", "grey1", 0.1, 0.9, "x", 4)
+    for k in range(7):
+        ty = FLOOR_TOP + LH * (k + 1)
+        xa, xb = LX - LR * (k + 1), LX - LR * k
+        if ty > 157:
+            break
+        rect(im, xa + 1, ty, xb - xa - 1, 3, "grey3")          # tread top (lit)
+        hline(im, xa + 1, xb - 1, ty, "white")                   # nosing highlight
+        hline(im, xa + 1, xb - 1, ty + 3, "ink")
+        vline(im, xb, ty - LH + 1, ty, "ink")                # riser edge
+        ovl(im, (xa + 1, ty + 4, xb, min(158, ty + LH + 1)), "ink2", 0.4, 2)
+    poly(im, mass, None, "ink")
+    # slab edge of the landing
+    rect(im, LX - 1, FLOOR_TOP, 4, 20, "grey2", "ink")
+    vline(im, LX, FLOOR_TOP + 1, 156, "grey3")
+    # handrail: parallel to the nosing line (rises LH per LR), posts down to the treads / frame bottom
+    RAIL = 30
+    sl = LH / LR
+    for xx in range(0, LX + 1):
+        yy = FLOOR_TOP - RAIL + round((LX - xx) * sl)
+        if Y0 <= yy < 158:
+            px(im, xx, yy, "ink"); px(im, xx, yy - 1, "grey4")
+    for pxx in range(LX - 1, 0, -14):
+        yy = FLOOR_TOP - RAIL + round((LX - pxx) * sl)
+        ytread = FLOOR_TOP + LH * (((LX - pxx) // LR) + 1)
+        vline(im, pxx, yy + 1, min(157, ytread - 1), "grey2")
+        vline(im, pxx + 1, yy + 1, min(157, ytread - 1), "ink")
+    rect(im, LX - 3, FLOOR_TOP - RAIL - 3, 5, 4, "grey2", "ink")       # newel cap
+    rect(im, LX - 2, FLOOR_TOP - RAIL + 1, 3, RAIL - 1, "grey2", "ink")
+    vline(im, LX - 1, FLOOR_TOP - RAIL + 2, FLOOR_TOP - 1, "grey3")
     # ----- right: ascending flight (stairs rising to the right)
     pts = [(205, 150)]
     k = 0
