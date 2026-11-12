@@ -248,14 +248,14 @@ export default class Site extends Phaser.Scene {
     if (b.phase === "walk") {
       b.x += dir * Math.min(Math.abs(dx), (32 + 6 * (FOREMAN_HP - b.hp)) * dt);
       s.setFrame("walk_" + (Math.floor(this.time.now / 260) % 2)).setFlipX(dir > 0);
-      if (Math.abs(dx) < 34 && b.t <= 0) { b.phase = "wind"; b.t = 0.7; s.setFrame("wind_0"); snd.sfx("warn"); }
+      if (Math.abs(dx) < 34 && b.t <= 0) { b.phase = "wind"; b.t = 0.8; s.setFrame("wind_0"); snd.sfx("warn"); }
     } else if (b.phase === "wind" && b.t <= 0) {
       b.phase = "slam"; b.t = 0.5; s.setFrame("slam_0"); snd.sfx("stamp"); this.cameras.main.shake(150, 0.008);
       const reach = b.x + (s.flipX ? 22 : -22);
       if (Math.abs(p.x - reach) < 22 && b.iframe <= 0) this.foremanHit();
     } else if (b.phase === "slam" && b.t <= 0) {
       // phase 2 (last hit left): a second swing right after the first
-      if (b.hp === 1 && !b.second) { b.second = true; b.phase = "wind"; b.t = 0.4; s.setFrame("wind_0"); snd.sfx("warn"); }
+      if (b.hp === 1 && !b.second) { b.second = true; b.phase = "wind"; b.t = 0.62; s.setFrame("wind_0"); snd.sfx("warn"); }
       else { b.second = false; b.phase = "walk"; b.t = 0.8; }
     }
     else if (b.phase === "hurt" && b.t <= 0) { b.phase = "walk"; b.t = 1; }
