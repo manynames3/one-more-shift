@@ -35,9 +35,9 @@ export default class Offer extends Phaser.Scene {
     P.add(txt(this, 45, 28, t("newJob"), { ox: 0.5, size: 9, color: C.red2, shadow: false }));
     P.add(this.add.sprite(45, 52, "props_coin_spin", "coin_0").setScale(2).play("props_coin_spin_coin"));
     const m = MULT[this.act];
-    P.add(txt(this, 45, 68, t("job_" + a.key), { ox: 0.5, color: C.ink, shadow: false }));
-    P.add(txt(this, 45, 82, m ? t("offerPay", m, won(hourly(this.act))) : t("wageAll"), { ox: 0.5, size: 9, color: C.ink, shadow: false, wrap: 76 }));
-    P.add(txt(this, 45, 96, this.act === 7 ? t("offerOne") : t("offerNights"), { ox: 0.5, size: 9, color: C.dim, shadow: false }));
+    P.add(txt(this, 45, 64, t("job_" + a.key), { ox: 0.5, color: C.ink, shadow: false }));
+    P.add(txt(this, 45, 78, m ? won(hourly(this.act)) + t("perHour") : t("wageAll"), { ox: 0.5, size: 9, color: C.red2, shadow: false }));
+    if (m) P.add(txt(this, 45, 88, t("offerMult", m), { ox: 0.5, size: 9, color: C.ink, shadow: false }));
     this.phone = P;
     this.tweens.add({ targets: P, y: BAR + 8, duration: 600, ease: "Back.easeOut", onComplete: () => this.ready() });
     snd.sfx("ring");
