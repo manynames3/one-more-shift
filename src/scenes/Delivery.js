@@ -206,7 +206,7 @@ export default class Delivery extends Phaser.Scene {
     // tapping an edge of the stairwell means "take the stairs"
     if (this.place === "stairs" && x > 280) { this.target = W + 10; this.intent = null; return; }
     if (this.place === "stairs" && x < 40) { this.target = -10; this.intent = null; return; }
-    const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 14) && y > 70);
+    const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 70);
     this.target = Phaser.Math.Clamp(s ? s[0] : x, 6, W - 6);
     this.intent = s ? s[2] : null;
   }

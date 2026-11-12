@@ -302,6 +302,8 @@ export default class Shift extends Phaser.Scene {
     let kind = null;
     if (this.room === "floor") {
       if (x >= DOOR_TAP.x0 && x <= DOOR_TAP.x1 && y >= DOOR_TAP.y0 && y <= DOOR_TAP.y1) return this.look();
+      // while it's at the door, a tap anywhere in the upper part of the shop means "look at the door"
+      if (this.watch.state !== "idle" && y < DOOR_TAP.y1) return this.look();
       const f = this.queue[0];
       if (f && ((Math.abs(x - f.spr.x) < 16 && y > f.spr.y - 48 && y < f.spr.y + 6) || (x > 232 && y > 84 && y < 146))) kind = "serve";
       else if (this.tasks.shelf.active && x < 96 && y > 40) kind = this.carry === "box" ? "shelf" : "box";

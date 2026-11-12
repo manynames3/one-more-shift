@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { initTouchpad } from "./touchpad.js";
 import { W, H } from "./ui.js";
 import { S } from "./state.js";
 import Boot from "./scenes/Boot.js";
@@ -42,6 +43,7 @@ async function start() {
   fit();
   window.addEventListener("resize", fit);
   window.addEventListener("orientationchange", () => setTimeout(fit, 200));
+  initTouchpad();
   window.__game = game; window.__S = S;   // handy for debugging from the console
 }
 start();

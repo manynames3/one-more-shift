@@ -141,7 +141,7 @@ export default class Cinema extends Phaser.Scene {
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.bossActive?.()) { if (Math.abs(x - this.p.x) < 20) return this.bossAct(); this.target = Phaser.Math.Clamp(x, 10, W - 10); return; }
     if (this.working) this.cancelWork();
-    const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 14) && y > 60);
+    const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 60);
     this.target = Phaser.Math.Clamp(s ? s[0] : x, 10, W - 10);
     this.intent = s ? s[2] : null;
   }

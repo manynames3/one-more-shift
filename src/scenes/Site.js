@@ -99,7 +99,7 @@ export default class Site extends Phaser.Scene {
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.bossActive?.()) { if (y < 80) return this.signal(); this.target = Phaser.Math.Clamp(x, 10, W - 10); return; }
     if (this.working) this.cancelWork();
-    const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 16) && y > 60);
+    const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 60);
     this.target = Phaser.Math.Clamp(s ? s[0] : x, 10, W - 10);
     this.intent = s ? s[2] : null;
   }

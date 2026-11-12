@@ -105,7 +105,7 @@ export default class Event extends Phaser.Scene {
   tap(x, y) {
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.working) this.cancelWork();
-    const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 16) && y > 60);
+    const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 60);
     this.target = Phaser.Math.Clamp(s ? s[0] : x, 10, W - 10);
     this.intent = s ? s[2] : null;
   }
