@@ -38,12 +38,17 @@ export default class Title extends Phaser.Scene {
     this.input.keyboard.on("keydown-C", flipCalm);
     this.drawCalm();
 
-    // daily shift: same night for everyone, once a day
-    this.daily = txt(this, W / 2, 112, t("daily", today()), { color: C.yellow, ox: 0.5 }).setInteractive({ useHandCursor: true });
+    // daily challenge: a side mode, the same night for everyone, one try a day.
+    // It only shows once Act 1 is done, so a new player sees one way in: press any key.
+    this.daily = txt(this, W / 2, 110, t("daily", today()), { color: C.yellow, ox: 0.5 }).setInteractive({ useHandCursor: true });
     this.daily.setBackgroundColor("#14101a").setPadding(5, 2, 5, 2);
+    this.dailySub = txt(this, W / 2, 126, t("dailySub"), { ox: 0.5, size: 9, color: C.white }).setBackgroundColor("#14101a").setPadding(3, 1, 3, 1);
     this.daily.on("pointerdown", (p, x, y, ev) => { ev.stopPropagation(); this.startDaily(); });
-    this.input.keyboard.on("keydown-D", () => this.startDaily());
     if (dailyRecord()?.done !== undefined) this.daily.setColor(C.dim);
+    const showDaily = !!S.acts[1];
+    this.daily.setVisible(showDaily); this.dailySub.setVisible(showDaily);
+    if (!showDaily) this.daily.disableInteractive();
+    else this.input.keyboard.on("keydown-D", () => this.startDaily());
 
     snd.music("title");   // starts on the first tap or key (browsers block sound before that)
     this.started = false;
@@ -62,7 +67,7 @@ export default class Title extends Phaser.Scene {
       this.time.delayedCall(280, () => S.runs > 1 ? this.scene.start("Agency", { context: ctx }) : this.scene.start("Offer", { act: 1, next: { scene: "Agency", data: { context: ctx } } }));
     };
     // setting keys (language, sound, daily, flashes, film, pause) don't start the game
-    this.input.keyboard.on("keydown", e => { if (!["KeyL", "KeyM", "KeyD", "KeyC", "KeyF", "KeyP", "Escape"].includes(e.code)) go(); });
+    this.input.keyboard.on("keydown", e => { if (!["KeyL", "KeyM", "KeyC", "KeyF", "KeyP", "Escape", ...(S.acts[1] ? ["KeyD"] : [])].includes(e.code)) go(); });
     this.input.on("pointerdown", go);
   }
 
@@ -83,7 +88,7 @@ export default class Title extends Phaser.Scene {
     this.time.delayedCall(280, () => this.scene.start("Agency", { context: "dailyIntro" }));
   }
 
-  flipLang() { S.lang = S.lang === "ko" ? "en" : "ko"; saveSettings(); snd.init(); snd.sfx("ui"); this.drawLang(); this.drawCalm(); this.prompt.setText(this.resume ? t("startCont", this.resume.shift) : t("start")); this.daily.setText(t("daily", today())); }
+  flipLang() { S.lang = S.lang === "ko" ? "en" : "ko"; saveSettings(); snd.init(); snd.sfx("ui"); this.drawLang(); this.drawCalm(); this.prompt.setText(this.resume ? t("startCont", this.resume.shift) : t("start")); this.daily.setText(t("daily", today())); this.dailySub.setText(t("dailySub")); }
   drawCalm() { this.calm.setText(t(CALM.on ? "flashOff" : "flashOn") + " (C)"); }
   drawLang() { this.lang.setText((S.lang === "ko" ? "[한국어] EN" : "한국어 [EN]") + " (L)"); }
 }
