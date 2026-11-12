@@ -3,7 +3,7 @@
 // Shift 1-2: he stands by the shelves and gives advice.
 // Shift 3:   he gets hungry. No shadow. At 03:45 the customers run and he turns into the Rat King.
 // The fight: it spawns rats, rears up (telegraph), and lunges along a red line. After a lunge it's
-// dazed; that's the only time the mop hurts it. Three hits on you and you're done. Six on it and you live.
+// dazed; that's the only time the mop hurts it. Three hits on you and you're done. Five on it and you live.
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand } from "../ui.js";
 import { S, t } from "../state.js";
@@ -13,7 +13,7 @@ export const BOSS_SHIFT = 3, BOSS_MIN = 45;
 const SPOT = { x: 56, y: 151 };           // where Deokgu stands
 const CARD = { x: 252, y: 88 };           // the time card on the counter (shift 1)
 const ARENA = { top: 122, bot: 154, xl: y => 100 - (y - 118) * 1.45 + 6, xr: y => Math.min(236, 213 + (y - 118) * 1.3) - 4 };
-const PLAYER_HP = 3, BOSS_HP = 6;
+const PLAYER_HP = 3, BOSS_HP = 5;
 
 export const BossMixin = {
   initBoss() {
@@ -161,7 +161,7 @@ export const BossMixin = {
       case "idle":
         spr.play("boss_ratking_idle", true);
         b.ratT -= dt;
-        if (b.ratT <= 0 && this.rats.length < (angry ? 7 : 4)) { this.spawnRat(spr.x + rand(-18, 18), spr.y - 2); b.ratT = angry ? 0.55 : 0.9; snd.sfx("squeak"); }
+        if (b.ratT <= 0 && this.rats.length < (angry ? 4 : 3)) { this.spawnRat(spr.x + rand(-18, 18), spr.y - 2); b.ratT = angry ? 0.9 : 1.3; snd.sfx("squeak"); }
         if (b.st <= 0) {
           b.state = "tell"; b.st = angry ? 0.6 : 0.85;
           b.line = { x: p.x, y: Phaser.Math.Clamp(p.y, ARENA.top, ARENA.bot) };
@@ -219,7 +219,7 @@ export const BossMixin = {
     for (const r of [...this.rats]) {
       r.life -= dt;
       const dx = p.x - r.x, dy = p.y - r.y, d = Math.hypot(dx, dy) || 1;
-      const sp = (angry ? 50 : 40) * dt;
+      const sp = (angry ? 42 : 34) * dt;
       const ny = Phaser.Math.Clamp(r.y + dy / d * sp, ARENA.top, ARENA.bot);
       r.setPosition(Phaser.Math.Clamp(r.x + dx / d * sp, ARENA.xl(ny) - 6, ARENA.xr(ny) + 6), ny).setFlipX(dx > 0).setDepth(r.y);
       if (d < 7) { this.hurtPlayer(); this.killRat(r, false); continue; }
