@@ -191,6 +191,14 @@ export default class Shift extends Phaser.Scene {
   tickHud(dt) {
     this.tickDread(dt);
     if (this.hints.till && (!this.front() || this.working?.kind === "serve")) this.unhint("till");
+    // the shelf job, step by step: what the ! means, where the box goes, and the way back out
+    if (!this.over && !this.boss) {
+      const shelf = this.tasks.shelf.active, box = this.carry === "box", busy = this.working?.kind === "shelf";
+      const mk = SPOT.shelf.mark;
+      if (shelf && !box && this.room === "floor") this.hint("shelfNeed", mk.x, mk.y - 16); else this.unhint("shelfNeed");
+      if (shelf && box && this.room === "floor" && !busy) this.hint("shelfHere", mk.x, mk.y - 16); else this.unhint("shelfHere");
+      if (box && this.room === "stock") this.hint("boxCarry", ROOM.stock.exit.x, ROOM.stock.oy + 126); else this.unhint("boxCarry");
+    }
     if (this.note && this.room === "floor" && Phaser.Math.Distance.Between(this.p.x, this.p.y, this.note.x, 150) < 12) {
       this.note.destroy(); this.note = null; saveNote(1); snd.sfx("coin");
       const c = txt(this, W / 2, 40, t("note1"), { ox: 0.5, size: 9, depth: 960, wrap: W - 40 }).setBackgroundColor("#14101a").setPadding(4, 2, 4, 2);
