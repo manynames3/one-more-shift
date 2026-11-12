@@ -97,6 +97,7 @@ export default class Event extends Phaser.Scene {
 
   act() {
     if (this.talking) return;
+    if (this.meterPress()) return;
     if (this.over || this.busy || this.working) return;
     if (this.bossActive() && this.tryTie()) return;
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
@@ -105,6 +106,7 @@ export default class Event extends Phaser.Scene {
 
   tap(x, y) {
     if (this.talking) return;
+    if (this.meterState) { if (y > BAR && y < H - BAR) this.meterPress(); return; }
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.working) this.cancelWork();
     const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 60);
@@ -123,7 +125,14 @@ export default class Event extends Phaser.Scene {
     if (this.call.on) return this.fail("answer");
     if (what === "cart") {
       if (this.carry) return;
-      this.carry = true; this.unhint("take"); snd.sfx("work");
+      // fill it from the helium tank: let go in the green, too much and it pops
+      this.unhint("take"); this.face = "up";
+      this.hint("pump", CART, 62);
+      this.meter({ mode: "hold", zone: [0.6, 0.9], speed: 0.85, label: t("m_pump"), done: ok => {
+        this.unhint("pump");
+        if (ok) { this.carry = true; snd.sfx("squeak"); }
+        else { snd.sfx("hitboss"); this.pop(t("popped"), CART, 70, C.red); }
+      } });
       return;
     }
     if (what === "stage") {

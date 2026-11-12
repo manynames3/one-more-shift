@@ -86,6 +86,7 @@ export default class Ward extends Phaser.Scene {
 
   act() {
     if (this.talking) return;
+    if (this.meterPress()) return;
     if (this.over || this.busy || this.working) return;
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
     if (s) this.use(s[2]);
@@ -93,6 +94,7 @@ export default class Ward extends Phaser.Scene {
 
   tap(x, y) {
     if (this.talking) return;
+    if (this.meterState) { if (y > BAR && y < H - BAR) this.meterPress(); return; }
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.working) this.cancelWork();
     const s = this.spots().find(([sx, r]) => Math.abs(x - sx) <= Math.max(r, 24) && y > 60);
@@ -115,7 +117,12 @@ export default class Ward extends Phaser.Scene {
       if (v.state === "here") {
         // night 3: no name tag. Don't hold your arm out.
         if (v.notag) return this.fail("nurse");
-        this.working = { kind: "blood", t: 1.2, dur: 1.2 }; this.face = "right"; snd.sfx("work");
+        // hold still for the needle: let go too early and it has to go in again
+        this.face = "right"; snd.sfx("work");
+        this.meter({ mode: "hold", zone: [0.72, 1.0], speed: 0.7, label: t("m_still"), done: ok => {
+          if (ok) { this.earn(7000 + 1000 * this.d, BED + 20, 70); snd.sfx("serve"); this.nurseLeave(); }
+          else { snd.sfx("strike"); this.pop(t("again"), BED + 20, 70, C.red); }
+        } });
         return;
       }
       if (this.diary.need) { this.working = { kind: "diary", t: 1.3, dur: 1.3 }; this.face = "up"; snd.sfx("work"); }

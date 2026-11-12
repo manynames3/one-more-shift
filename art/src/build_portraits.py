@@ -9,6 +9,7 @@ and <key>_<expr>.png singles.
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tools"))
 from pxkit import *
+from pxkit import _thr
 import numpy as np
 
 S = 64
@@ -149,6 +150,15 @@ def hair_shapes(st):
         front = msym([(31, 7), (24, 8), (18, 11), (15, 16), (14, 23), (14, 30), (17, 30), (17, 24), (19, 19),
                       (24, 16), (31, 15)])
         ex["hirect"] = (14, 1, 48, 14)
+    elif st == "messy":
+        back = None
+        base = msym([(31, 5), (24, 6), (18, 9), (14, 14), (13, 21), (13, 29), (16, 29), (17, 22), (19, 19),
+                     (22, 22), (25, 18), (28, 22), (31, 19)])
+        spikes = (mpoly([(17, 10), (14, 3), (25, 6)]) | mpoly([(24, 6), (27, 0), (35, 5)]) |
+                  mpoly([(34, 6), (43, 1), (44, 10)]) | mpoly([(45, 12), (51, 11), (49, 19)]) |
+                  mpoly([(13, 16), (9, 15), (13, 24)]))
+        front = base | spikes
+        ex["hirect"] = (9, 0, 50, 15)
     elif st == "cap":
         back = None
         front = mboth([(13, 21), (13, 29), (16, 29), (16, 23)])
@@ -473,14 +483,14 @@ def body(sp, face_m):
         paint(over, edge2, "ink")
     elif o == "vest":
         tee_rim = dilate(hole, 1) & shoulders & ~hole
-        paint(bimg, tee_rim, "grey4")
+        paint(bimg, tee_rim, sp.get("rim", "grey4"))
         paint(bimg, bmask & dilate(hole, 2) & ~dilate(hole, 1) & False, "grey4")
         vl = mpoly([(19, 49), (25, 50), (29, 54), (30, 63), (10, 63), (11, 56)])
         vr = mpoly([(63 - x, y) for x, y in [(19, 49), (25, 50), (29, 54), (30, 63), (10, 63), (11, 56)]])
         vest = (vl | vr) & bmask
-        vimg = layer(vest, sp["vest"][0], sp["vest"][1], hi="blue3", so=(3, 2), hirect=(10, 48, 30, 63))
+        vimg = layer(vest, sp["vest"][0], sp["vest"][1], hi=sp.get("vest_hi", "blue3"), so=(3, 2), hirect=(10, 48, 30, 63))
         over.alpha_composite(vimg)
-        paint(over, vest & ~erode4(vest) & ~mrect(0, 63, 63, 63), "blue0")
+        paint(over, vest & ~erode4(vest) & ~mrect(0, 63, 63, 63), sp.get("vest_ol", "blue0"))
         # tee collar edge ink
         paint(over, edge, "ink")
         for y in range(57, 62, 2):
@@ -605,6 +615,10 @@ def build(sp, ex):
     if e.get("nose_red"):
         for (x, y) in ((31, 35), (32, 35), (31, 36), (32, 36), (30, 36), (33, 36)):
             px(f, x, y, "red3" if (x + y) % 2 == 0 else "red4")
+    if e.get("tear"):
+        for (x, y) in ((23, 36), (23, 37), (22, 38)):
+            px(f, x, y, "blue3")
+        px(f, 23, 36, "blue4")
     # restrict features to the face
     fa = np.array(f)
     fa[~face_m] = 0
@@ -664,6 +678,14 @@ def build(sp, ex):
             px(s, x + ox, y + oy, "blue3")
         px(s, 44 + ox, 21 + oy, "white")
         fig.alpha_composite(outline(s))
+    if sp.get("frost"):
+        for y in range(S):
+            for x in range(S):
+                if fig.getpixel((x, y)) == col("skin3") and 0.09 > _thr(x + 1, y, 4):
+                    fig.putpixel((x, y), col("blue4"))
+        for (x, y) in ((17, 8), (26, 4), (41, 3), (14, 17), (47, 14)):
+            if fig.getpixel((x, y))[:3] == PAL["purple1"]:
+                fig.putpixel((x, y), col("blue3"))
     bgimg = make_bg(*sp["bg"])
     if sp.get("bg_extra"):
         sp["bg_extra"](bgimg)
@@ -737,6 +759,12 @@ CAST = {
     "jisu": dict(skin=SK, eye="brown0", brow="brown0", hair_style="ponytail", hair=("brown0", "brown1", "brown2"),
                  outfit="track", top=("red2", "red1"), top_hi="red3", bg=("yellow2", "orange4"), blush="soft",
                  head=dict(hw=15.5, chin=45, p=2.0)),
+    # Sora's older brother: same purple hair family, worn green agency vest over a grey hoodie, faint frost
+    "junho": dict(skin=(None, "skin3", "skin2", "skin1"), eye="brown1", brow="purple0", hair_style="messy",
+                  hair=("purple0", "purple1", "purple2"), outfit="vest", top=("grey3", "grey2"), top_hi=None,
+                  vest=("green1", "green0"), vest_hi="green2", vest_ol="green0", rim="grey2", lash=False,
+                  bg=("wall3", "blue3"), frost=True, brow_dy=1,
+                  head=dict(hw=15.0, chin=46, p=2.1)),
     "regular": dict(skin=SKP, eye="ink", brow="ink", hair_style="long", hair=("ink", "ink", "ink2"),
                     outfit="coat", top=("ink2", "ink"), top_hi="grey1", bg=("red1", "red0"), lash=False,
                     head=dict(hw=14.5, chin=47, p=2.0)),
@@ -775,7 +803,14 @@ EXPR = {
         "neutral": dict(eye="open", brow="flat", mouth="neutral"),
         "surprised": dict(eye="big", brow="arch", brow_dy=-1, mouth="oh"),
     },
+    "junho": {
+        "neutral": dict(eye="open", opt=dict(tiredbag=True), brow="tired", mouth="gentle"),
+        "smile": dict(eye="arc_up", brow="arch", mouth="smile", blush="soft"),
+        "tired": dict(eye="open", opt=dict(lid=(29, 0), tiredbag=True, gy=1), brow="tired", brow_dy=2, mouth="tired"),
+        "sad": dict(eye="open", opt=dict(lid=(28, 1), tiredbag=True, gy=1), brow="worried", brow_dy=0, mouth="thin", tear=True),
+    },
     "regular": {
+        "neutral": dict(eye="oval", brow="none", mouth="thin"),
         "smile": dict(eye="oval", opt=dict(red=True), brow="none", mouth="grin"),
         "blank": dict(eye="oval", brow="none", mouth="flatline"),
         "glitch": dict(eye="oval", opt=dict(red=True), brow="none", mouth="flatline", glitch=True),

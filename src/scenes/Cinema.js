@@ -132,6 +132,7 @@ export default class Cinema extends Phaser.Scene {
 
   act() {
     if (this.talking) return;
+    if (this.meterPress()) return;
     if (this.over || this.busy || this.working) return;
     if (this.bossActive?.()) return this.bossAct();
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
@@ -140,6 +141,7 @@ export default class Cinema extends Phaser.Scene {
 
   tap(x, y) {
     if (this.talking) return;
+    if (this.meterState) { if (y > BAR && y < H - BAR) this.meterPress(); return; }
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.bossActive?.()) { if (Math.abs(x - this.p.x) < 20) return this.bossAct(); this.target = Phaser.Math.Clamp(x, 10, W - 10); return; }
     if (this.working) this.cancelWork();
@@ -165,7 +167,12 @@ export default class Cinema extends Phaser.Scene {
     if (what === "down") return this.cut(() => this.enter("lobby", LOBBY.booth - 14));
     if (what === "proj") {
       if (!this.reel.need) return;
-      this.working = { kind: "reel", t: 1.5, dur: 1.5 }; this.face = "up"; snd.sfx("work");
+      // thread the new reel: catch the sprocket three times
+      this.face = "up"; snd.sfx("work");
+      this.meter({ mode: "tap", zone: [0.42, 0.6], speed: 1.3, presses: 3, label: t("m_reel"), done: ok => {
+        if (!ok) return;
+        this.reel.need = false; this.reel.t = rand(12, 18) - this.d; this.syncPlace(); this.earn(6000 + 1000 * this.d, BOOTH.proj, 60); snd.sfx("stock");
+      } });
       return;
     }
     if (what.startsWith("trash")) {

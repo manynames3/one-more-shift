@@ -90,6 +90,7 @@ export default class Site extends Phaser.Scene {
 
   act() {
     if (this.talking) return;
+    if (this.meterPress()) return;
     if (this.over || this.busy || this.working) return;
     if (this.bossActive?.()) return this.signal();
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
@@ -98,6 +99,7 @@ export default class Site extends Phaser.Scene {
 
   tap(x, y) {
     if (this.talking) return;
+    if (this.meterState) { if (y > BAR && y < H - BAR) this.meterPress(); return; }
     if (this.over || this.busy || y < BAR || y > H - BAR) return;
     if (this.bossActive?.()) { if (y < 80) return this.signal(); this.target = Phaser.Math.Clamp(x, 10, W - 10); return; }
     if (this.working) this.cancelWork();
@@ -114,7 +116,13 @@ export default class Site extends Phaser.Scene {
       if (!this.carry || this.hoist.state !== "down") return;
       // night 1: it came down with someone already in it. Loading it means riding with them.
       if (this.hoist.rider) return this.fail("hoist");
-      this.working = { kind: "load", t: 0.8, dur: 0.8 }; this.face = "up"; snd.sfx("work");
+      // set the stack square on the pallet; off-centre and it comes down
+      this.face = "up"; snd.sfx("work");
+      this.meter({ mode: "tap", zone: [0.38, 0.62], speed: 1.5 + 0.2 * this.d, label: t("m_stack"), done: ok => {
+        this.carry = false; this.unhint("hoistGo");
+        if (ok) { this.earn(5000 + 1000 * this.d, HOIST, 76); snd.sfx("stock"); this.sendHoist(); }
+        else { snd.sfx("stamp"); this.cameras.main.shake(120, 0.005); this.pop(t("bricksFell"), HOIST, 76, C.red); }
+      } });
     }
   }
 

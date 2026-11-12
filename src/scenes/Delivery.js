@@ -150,11 +150,32 @@ export default class Delivery extends Phaser.Scene {
       snd.sfx("moped"); this.time.delayedCall(700, () => snd.sfx("moped"));
       let fr = 0;
       const spin = this.time.addEvent({ delay: 90, loop: true, callback: () => { fr ^= 1; this.moped.setTexture(fr ? "props_moped_b" : "props_moped"); } });
+      // road cones on the way: hop them (Space / A / tap). Hitting one spills the bag and costs time.
+      const n = 1 + Math.min(2, this.d) + (Math.random() < 0.4 ? 1 : 0);
+      const cones = Array.from({ length: n }, (_, i) => {
+        const x = Math.round(70 + (i + 0.5) * (180 / n) + Phaser.Math.Between(-10, 10));
+        return this.add.image(toApts ? x : W - x, FY + 1, "props_wet_floor_sign").setOrigin(0.5, 1).setDepth(139);
+      });
+      this.riding = { hopAt: -9999, crashed: 0 };
+      this.hint("hop", W / 2, 70);
       this.tweens.add({
-        targets: this.moped, x: toApts ? W + 30 : -30, duration: 1500,
-        onUpdate: () => { this.p.setPosition(this.moped.x - dir * 4, this.moped.y - 12); this.sh.setVisible(false); this.bag.setPosition(this.moped.x - dir * 15, this.moped.y - 30); },
+        targets: this.moped, x: toApts ? W + 30 : -30, duration: 2600,
+        onUpdate: () => {
+          const h = this.time.now - this.riding.hopAt, air = h < 460 ? Math.sin(Math.PI * h / 460) * 20 : 0;
+          this.moped.y = FY + 2 - air;
+          this.p.setPosition(this.moped.x - dir * 4, this.moped.y - 12); this.sh.setVisible(false); this.bag.setPosition(this.moped.x - dir * 15, this.moped.y - 30);
+          cones.forEach(c => {
+            if (!c.visible || Math.abs(c.x - this.moped.x) > 9 || air > 6) return;
+            c.setVisible(false); this.riding.crashed++;
+            snd.sfx("stamp"); snd.sfx("strike", 0.05); this.cameras.main.shake(180, 0.008);
+            this.pop(t("spilled"), this.moped.x, 90, C.red);
+            if (this.order) this.order.at -= 4;     // the tip clock takes the hit
+          });
+        },
         onComplete: () => {
-          spin.remove();
+          spin.remove(); cones.forEach(c => c.destroy()); this.unhint("hop");
+          const crashed = this.riding.crashed; this.riding = null;
+          if (crashed) this.addMin(crashed);
           this.addMin(RIDE_MIN);
           if (this.over) return;
           this.cut(() => {
@@ -166,6 +187,12 @@ export default class Delivery extends Phaser.Scene {
         },
       });
     });
+  }
+
+  hop() {
+    const r = this.riding;
+    if (!r || this.time.now - r.hopAt < 480) return;
+    r.hopAt = this.time.now; snd.sfx("hop");
   }
 
   addMin(n) {
@@ -192,6 +219,7 @@ export default class Delivery extends Phaser.Scene {
   /** Do whatever is within reach. */
   act() {
     if (this.talking) return;
+    if (this.riding) return this.hop();
     if (this.over || this.busy || this.working || this.place === "ride") return;
     if (this.place === "roof") { this.pickPhone(); return; }
     if (this.boss) return;
@@ -201,6 +229,7 @@ export default class Delivery extends Phaser.Scene {
 
   tap(x, y) {
     if (this.talking) return;
+    if (this.riding) return this.hop();
     if (this.over || this.busy || this.place === "ride" || y < BAR || y > H - BAR) return;
     if (this.place === "chase") { this.target = x < W / 2 ? 0 : W; this.intent = null; return; }
     if (this.place === "roof") { this.target = Phaser.Math.Clamp(x, 12, W - 12); this.intent = Math.abs(x - 250) < 24 ? "phone" : null; return; }

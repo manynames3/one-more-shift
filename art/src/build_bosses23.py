@@ -68,6 +68,74 @@ def sparkle(im, x, y, c="yellow"):
     px(im, x, y - 1, "yellow2"); px(im, x, y + 1, "yellow2")
 
 
+def dash_leg(layer, hip, knee, foot):
+    line(layer, [hip, knee], "blue1", 8)
+    line(layer, [knee, foot], "blue1", 7)
+    line(layer, [(hip[0] - 1, hip[1]), (knee[0] - 1, knee[1])], "blue2", 2)
+
+
+def dash_frame(a):
+    """Clean running lean (dashing left): torso tilted about the hips, legs mid-stride,
+    arms trailing behind, speed lines to the right."""
+    cx, hy = 26, 52
+    ang = math.radians(28)
+    ca, sa = math.cos(ang), math.sin(ang)
+
+    def rot(x, y):
+        dx, dy = x - cx, y - hy
+        return (cx + dx * ca + dy * sa, hy - dx * sa + dy * ca)
+
+    def rp(pts):
+        return [tuple(int(round(v)) for v in rot(*p)) for p in pts]
+
+    out = new(48, 64)
+    # ---- legs
+    if a:
+        spec = (((cx - 2, 53), (cx - 9, 56), (cx - 17, 59)), ((cx + 3, 53), (cx + 11, 55), (cx + 15, 48)))
+    else:
+        spec = (((cx - 2, 53), (cx - 8, 58), (cx - 9, 61)), ((cx + 3, 53), (cx + 12, 57), (cx + 19, 56)))
+    for k in (1, 0):
+        lay = new(48, 64)
+        dash_leg(lay, *spec[k])
+        out.alpha_composite(outline(lay))
+        ft = spec[k][2]
+        egg(out, ft[0] - 5, ft[1] - 2, ft[0] + 5, ft[1] + 3, "white", "grey3")
+    # ---- far arm trailing back (behind the torso)
+    def arm(sh, hand, dark=False):
+        lay = new(48, 64)
+        line(lay, [sh, hand], "blue1" if dark else "blue2", 5)
+        out.alpha_composite(outline(lay))
+        egg(out, hand[0] - 3, hand[1] - 3, hand[0] + 3, hand[1] + 3, "white", "grey4")
+    sh_far = tuple(int(v) for v in rot(cx + 10, 38))
+    arm(sh_far, (sh_far[0] + 8, sh_far[1] + 7 + (0 if a else 3)), True)
+    # ---- torso: tilted egg, tilted sash + collar
+    t = new(48, 64)
+    ellipse(t, cx - 12, 31, cx + 12, 54, "blue2")
+    t = t.rotate(28, center=(cx, hy), resample=Image.NEAREST)
+    dither_grad(t, (cx - 4, 20, 48, 62), "blue2", "blue1", "x", 2, 0.0, 0.9, shade_mask(t))
+    out.alpha_composite(outline(t))
+    p0, p1 = rot(cx - 10, 36), rot(cx + 9, 53)
+    line(out, [p0, p1], "ink", 6)
+    line(out, [p0, p1], "orange3", 4)
+    line(out, [(p0[0], p0[1] - 1), (p1[0], p1[1] - 1)], "yellow2", 1)
+    ring = []
+    for i in range(16):
+        th = i / 16 * 2 * math.pi
+        ring.append(rot(cx + 9 * math.cos(th), 32 + 4 * math.sin(th)))
+    poly(out, ring, "red2", "ink")
+    inner = [rot(cx + 7 * math.cos(i / 16 * 2 * math.pi), 32 + 2.5 * math.sin(i / 16 * 2 * math.pi)) for i in range(16)]
+    poly(out, inner, "ink", "red1")
+    # ---- near arm trailing back
+    sh_near = tuple(int(v) for v in rot(cx + 11, 40))
+    arm(sh_near, (sh_near[0] + 9, sh_near[1] + 3 + (3 if a else 0)))
+    # ---- speed lines streaming to the right
+    for (y, x0, l, c) in (((18, 37, 9, "white"), (28, 40, 7, "grey4"), (39, 41, 6, "white")) if a else
+                          ((22, 38, 8, "white"), (33, 41, 6, "grey4"), (44, 41, 6, "white"))):
+        line(out, [(x0, y), (min(47, x0 + l), y)], c)
+        px(out, x0 - 1, y, "grey3")
+    return out
+
+
 def boss_frame(kind):
     cx = 24
     if kind in ("idle_0", "idle_1"):
@@ -85,15 +153,7 @@ def boss_frame(kind):
             vline(im, kx + 1, 53, 56, "blue2")
         return lean(im, -0.06)
     if kind in ("dash_0", "dash_1"):
-        a = kind == "dash_0"
-        lift = (0, 6) if a else (6, 0)
-        legs = std_legs(29, lift=lift, spread=4 if a else 3)
-        im = body_parts(29, 1, legs, arms=("down", "down"), swing=(3, 6) if a else (6, 3))
-        im = lean(im, 0.3)
-        # motion lines trailing to the right
-        for (y, x0, l) in ((22, 36, 10), (29, 40, 7), (36, 41, 6), (43, 43, 5), (50, 41, 6), (57, 43, 4), (26, 33, 3)):
-            line(im, [(x0, y), (min(47, x0 + l), y)], "grey3" if y % 2 else "white")
-        return im
+        return dash_frame(kind == "dash_0")
     if kind in ("stun_0", "stun_1"):
         w = kind == "stun_0"
         dy = 6
@@ -376,15 +436,49 @@ def stair_layer():
 
 
 def bulb(im, bx, by):
-    """Caged bulb centred on (bx, by), lit."""
-    vline(im, bx, Y0, by - 11, "ink")
-    rect(im, bx - 4, by - 10, 9, 3, "grey1", "ink")
-    hline(im, bx - 3, bx + 3, by - 9, "grey3")
-    ellipse(im, bx - 3, by - 3, bx + 3, by + 3, "white", "ink")
-    px(im, bx - 1, by - 1, "white"); px(im, bx, by, "yellow2")
-    wire_cage(im, bx, by, 6)
-    for (mx, my) in ((bx - 12, by + 8), (bx + 9, by + 12), (bx + 11, by - 4)):
+    """Big caged bulb centred on (bx, by): 12x14 wire cage, bright yellow2/white glass."""
+    vline(im, bx, Y0, by - 8, "ink")                      # cable
+    vline(im, bx + 1, Y0, by - 8, "grey1")
+    rect(im, bx - 4, by - 8, 9, 3, "grey1", "ink")        # ceiling socket
+    hline(im, bx - 3, bx + 2, by - 7, "grey3")
+    # glass
+    ellipse(im, bx - 4, by - 5, bx + 4, by + 5, "yellow2", "yellow")
+    rect(im, bx - 2, by - 3, 5, 6, "white")
+    px(im, bx - 3, by - 4, "white")
+    # cage: 12 wide x 14 tall, ink frame, grey bars over the bulb
+    rect(im, bx - 6, by - 7, 12, 14, None, "ink")
+    for vx in (bx - 3, bx, bx + 3):
+        vline(im, vx, by - 6, by + 5, "grey2")
+    for hy in (by - 3, by + 1, by + 4):
+        hline(im, bx - 5, bx + 4, hy, "grey2")
+    px(im, bx - 6, by - 7, "grey1"); px(im, bx + 5, by - 7, "grey1")
+    hline(im, bx - 6, bx + 5, by + 7, "grey1")
+    for (mx, my) in ((bx - 14, by + 12), (bx + 12, by + 16), (bx + 15, by - 2)):
         px(im, mx, my, "grey4"); px(im, mx + 1, my - 1, "grey3")
+
+
+def light_cone(im, bx, by, ybot=138, half=54):
+    """Dithered cone of light from the bulb down over its flight."""
+    y0 = by + 8
+    pts = [(bx - 6, y0), (bx + 6, y0), (bx + half, ybot), (bx - half, ybot)]
+    m = mk_mask(pts, im.size)
+    cc = col("yellow2"); c2 = col("white")
+    for y in range(y0, ybot):
+        f = (y - y0) / (ybot - y0)
+        for x in range(max(0, bx - half), min(W, bx + half + 1)):
+            if m.getpixel((x, y)) and im.getpixel((x, y))[:3] != PAL["ink"]:
+                lv = 0.62 * (1 - f) ** 0.8
+                edge = abs(x - bx) / (6 + (half - 6) * f)       # 0 centre .. 1 edge
+                lv *= 1 - 0.55 * edge ** 2
+                if lv > _thr(x, y, 4):
+                    im.putpixel((x, y), c2 if lv > 0.5 else cc)
+    # cone edges: a thin dithered line so the shape is readable
+    for t in range(0, ybot - y0, 2):
+        f = t / (ybot - y0)
+        for sx in (-1, 1):
+            xx = int(bx + sx * (6 + (half - 6) * f))
+            if 0 <= xx < W and im.getpixel((xx, y0 + t))[:3] != PAL["ink"] and f < 0.8:
+                px(im, xx, y0 + t, "yellow2")
 
 
 def flyer(im, fx, fy, fw, fh, fc):
@@ -469,7 +563,13 @@ def build_scissor():
     for gx in (96, 214):
         pass
 
-    # ---- caged bulbs over each flight
+    # ---- brighten the scene a little so the stairs read
+    ovl(im, (0, Y0, W, 158), "grey1", 0.5, 2, only="ink2")
+    ovl(im, (0, Y0, W, 158), "grey2", 0.3, 4, only="grey1")
+    ovl(im, (0, Y0, W, 158), "grey3", 0.2, 4, only="grey2")
+    # ---- caged bulbs over each flight, each with a light cone onto its stairs
+    for bx in (57, 263):
+        light_cone(im, bx, 40)
     bulb(im, 57, 40)
     bulb(im, 263, 40)
 

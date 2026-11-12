@@ -9,6 +9,66 @@ import { cancelReplay } from "../replay.js";
 
 export const GigMixin = {
   /**
+   * A small skill check above Sora's head.
+   *   mode "hold": the bar fills while Space / A / a finger is held; let go inside the zone.
+   *   mode "tap":  a marker swings back and forth; press while it's inside the zone, `presses` times.
+   * Walking away cancels it. done(true | false | null) - null means cancelled.
+   */
+  meter({ mode = "tap", zone = [0.4, 0.6], speed = 1.2, presses = 1, label = "", done }) {
+    this.meterEnd?.(null);
+    const D = 625, x0 = Math.round(this.p.x) - 22, y0 = 92;
+    const g = this.add.graphics().setDepth(D);
+    const lab = txt(this, x0 + 22, y0 - 14, label, { ox: 0.5, size: 9, color: C.yellow, depth: D + 1 }).setBackgroundColor("#14101a").setPadding(2, 0, 2, 0);
+    const m = this.meterState = { mode, zone, speed, presses, hits: 0, v: 0, dir: 1, held: mode === "hold", g, lab, done, flash: 0, flashC: 0 };
+    const draw = () => {
+      g.clear().fillStyle(0x14101a).fillRect(x0 - 1, y0 - 1, 46, 7).fillStyle(0x4a4458).fillRect(x0, y0, 44, 5)
+        .fillStyle(0x7fc77a).fillRect(x0 + Math.round(44 * zone[0]), y0, Math.round(44 * (zone[1] - zone[0])), 5);
+      if (mode === "hold") g.fillStyle(0xffd42a).fillRect(x0, y0 + 1, Math.round(44 * Math.min(1, m.v)), 3);
+      else g.fillStyle(0xf6f1e7).fillRect(x0 + Math.round(43 * m.v), y0 - 2, 2, 9);
+      for (let i = 0; i < presses && presses > 1; i++) g.fillStyle(i < m.hits ? 0x7fc77a : 0x4a4458).fillRect(x0 + 16 + i * 5, y0 + 8, 3, 3);
+      if (m.flash > 0) g.lineStyle(1, m.flashC).strokeRect(x0 - 2, y0 - 2, 48, 9);
+    };
+    m.draw = draw;
+    this.meterEnd = res => {
+      if (!this.meterState) return;
+      g.destroy(); lab.destroy(); this.meterState = null; this.meterEnd = null;
+      if (res !== null) done?.(res);
+    };
+    draw();
+  },
+
+  /** Space / A / tap while a meter is up. Returns true if it took the press. */
+  meterPress() {
+    const m = this.meterState;
+    if (!m) return false;
+    if (m.mode === "hold") return true;          // holding is handled in meterTick
+    const ok = m.v >= m.zone[0] && m.v <= m.zone[1];
+    m.flash = 0.2; m.flashC = ok ? 0x7fc77a : 0xef3b4a;
+    if (ok) { m.hits++; snd.sfx("tick"); if (m.hits >= m.presses) { this.meterEnd(true); return true; } }
+    else { snd.sfx("strike"); if (m.presses === 1) { this.meterEnd(false); return true; } }
+    return true;
+  },
+
+  meterTick(dt) {
+    const m = this.meterState;
+    if (!m) return;
+    const k = this.keys;
+    if ((k.LEFT && k.LEFT.isDown) || (k.RIGHT && k.RIGHT.isDown) || (k.A && k.A.isDown) || (k.D && k.D.isDown)) return this.meterEnd(null);
+    m.flash -= dt;
+    if (m.mode === "hold") {
+      const space = this.spaceKey?.isDown;
+      const holding = space || this.input.activePointer.isDown;
+      if (holding) { m.v += m.speed * dt; if (Math.floor(m.v * 10) !== Math.floor((m.v - m.speed * dt) * 10)) snd.sfx("tick"); }
+      if (m.v > 1.12) return this.meterEnd(false);
+      if (!holding && m.v > 0.04) return this.meterEnd(m.v >= m.zone[0] && m.v <= m.zone[1]);
+    } else {
+      m.v += m.dir * m.speed * dt;
+      if (m.v >= 1) { m.v = 1; m.dir = -1; } else if (m.v <= 0) { m.v = 0; m.dir = 1; }
+    }
+    m.draw();
+  },
+
+  /**
    * A short scene: portrait, speaker, typed line, one line per press. Gameplay pauses until it ends.
    * key names a list of [who, face, text] in the strings table.
    */
@@ -113,6 +173,7 @@ export const GigMixin = {
   },
 
   buildHud() {
+    this.spaceKey = this.input.keyboard.addKey("SPACE", false);   // the skill-check meter reads whether it is held
     this.add.image(0, 0, "ui_rule_banner").setOrigin(0).setDepth(900);
     this.ruleIcon = this.add.image(43, 11, "props_icons", "rule").setDepth(910);
     this.ruleTxt = txt(this, 60, 5, "", { color: C.yellow, depth: 910 });
@@ -140,6 +201,7 @@ export const GigMixin = {
   },
 
   tickHud(dt) {
+    if (!this.over) this.meterTick(dt);
     if (!this.over) this.tickNote();
     this.blink += dt;
     const on = Math.floor(this.blink * 6) % 2 === 0;

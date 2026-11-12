@@ -330,48 +330,68 @@ def dress(im, ox=0):
 
 
 def nurse_frames(tag):
-    spec = dict(hair_style="bun", hair=("brown1", "brown2"), top=("green1", "green0"), outfit="tee",
-                pants=("green1", "green0"), shoes="white", expr="neutral", sleeve="green1")
+    # white uniform, pale blue cardigan, dark hair in a LOW bun (nothing like Sora's purple bob + orange hoodie)
+    spec = dict(hair_style="short", hair=("brown0", "brown1"), top=("white", "grey4"), outfit="vest",
+                vest=("blue3", "blue2"), pants=("white", "grey4"), shoes="grey3", expr="neutral",
+                sleeve="blue3")
 
     def mouth_front(f, oy):
         my = 14 + oy + 5
-        # wipe the small neutral mouth, draw the too-wide smile
+        # wipe the small neutral mouth, draw a smile that is only slightly too wide
         px(f, 15, my, "skin2"); px(f, 16, my, "skin2")
-        line(f, [(11, my), (20, my)], "ink")
-        px(f, 10, my - 1, "ink"); px(f, 21, my - 1, "ink")
-        px(f, 9, my - 2, "ink"); px(f, 22, my - 2, "ink")
-        line(f, [(12, my + 1), (19, my + 1)], "white")
-        line(f, [(12, my + 2), (19, my + 2)], "ink")
+        line(f, [(12, my), (19, my)], "ink")
+        px(f, 11, my - 1, "ink"); px(f, 20, my - 1, "ink")
+        line(f, [(13, my + 1), (18, my + 1)], "white")
 
     def mouth_side(f, oy):
         ey = 14 + oy
         px(f, 7, ey + 5, "skin2"); px(f, 8, ey + 5, "skin2")
-        line(f, [(7, ey + 5), (11, ey + 5)], "ink")
-        px(f, 12, ey + 4, "ink")
+        line(f, [(7, ey + 5), (10, ey + 5)], "ink")
+        px(f, 11, ey + 4, "ink")
         line(f, [(8, ey + 6), (10, ey + 6)], "white")
-        line(f, [(7, ey + 7), (11, ey + 7)], "ink")
+
+    def bun_front(f, oy):
+        # low bun peeking out behind the right of the head, hairnet pin
+        ellipse(f, 24, 18 + oy, 30, 25 + oy, "brown0")
+        px(f, 26, 19 + oy, "brown1"); px(f, 27, 19 + oy, "brown1")
+
+    def bun_side(f, oy):
+        ellipse(f, 20, 17 + oy, 28, 25 + oy, "brown0")
+        line(f, [(22, 18 + oy), (25, 18 + oy)], "brown1")
+        px(f, 20, 20 + oy, "red2")           # hair tie
 
     def cap_front(f, oy):
-        rect(f, 11, 1 + oy, 10, 3, "white", "ink")
-        hline(f, 12, 19, 2 + oy, "grey4")
-        px(f, 15, 2 + oy, "red2"); px(f, 16, 2 + oy, "red2")
+        rect(f, 8, 0 + oy, 16, 5, "white", "ink")
+        hline(f, 9, 22, 1 + oy, "grey4"); hline(f, 9, 22, 3 + oy, "grey4")
+        rect(f, 14, 1 + oy, 4, 3, "red2")
+        px(f, 15, 1 + oy, "white"); px(f, 16, 1 + oy, "white")
+        px(f, 15, 3 + oy, "white"); px(f, 16, 3 + oy, "white")
 
     def cap_side(f, oy):
-        rect(f, 10, 1 + oy, 10, 3, "white", "ink")
-        hline(f, 11, 18, 2 + oy, "grey4")
-        px(f, 14, 2 + oy, "red2"); px(f, 15, 2 + oy, "red2")
+        rect(f, 8, 0 + oy, 15, 5, "white", "ink")
+        hline(f, 9, 21, 1 + oy, "grey4"); hline(f, 9, 21, 3 + oy, "grey4")
+        rect(f, 11, 1 + oy, 4, 3, "red2")
+        px(f, 12, 1 + oy, "white"); px(f, 13, 1 + oy, "white")
+        px(f, 12, 3 + oy, "white"); px(f, 13, 3 + oy, "white")
+
+    def tag_at(f, x, y):
+        lay = new(FW, FH)
+        rect(lay, x, y, 7, 5, "white")
+        hline(lay, x, x + 6, y, "red2")               # the red line
+        hline(lay, x, x + 6, y + 1, "red2")
+        hline(lay, x + 1, x + 4, y + 3, "grey2")      # name scribble
+        f.alpha_composite(outline(lay))
+        px(f, x + 3, y - 1, "grey2")                  # clip
 
     def tag_front(f, oy):
-        rect(f, 11, 27 + oy, 6, 5, "white", "ink")
-        hline(f, 12, 15, 29 + oy, "grey3"); hline(f, 12, 14, 30 + oy, "grey3")
-        px(f, 13, 26 + oy, "ink")
+        tag_at(f, 11, 28 + oy)
 
     def tag_side(f, oy):
-        rect(f, 10, 27 + oy, 5, 5, "white", "ink")
-        hline(f, 11, 13, 29 + oy, "grey3")
-        px(f, 12, 26 + oy, "ink")
+        tag_at(f, 9, 28 + oy)
 
     def finish(f, side, oy):
+        (cap_side if side else cap_front)(f, oy)
+        (bun_side if side else bun_front)(f, oy)
         (cap_side if side else cap_front)(f, oy)
         if tag:
             (tag_side if side else tag_front)(f, oy)
@@ -912,7 +932,98 @@ def fm_arm(sh, el, hd, shade=False, w=9):
     return out
 
 
+def foreman_head(hd, hx, hf, hatless=False):
+    """Head centred (hx,hf). Upper half sits in deep hard-hat shadow with two dim red eyes;
+    lower half is lit skin: cheek, jaw line, stubbly chin."""
+    rect(hd, hx - 2, hf + 6, 11, 5, "skin0")                    # neck
+    ellipse(hd, hx - 8, hf - 8, hx + 8, hf + 8, "brown0" if hatless else "ink2")   # skull / shadow
+    t0 = hf - 2 if hatless else hf + 2
+    # lit lower face: squared jaw
+    poly(hd, [(hx - 8, t0), (hx + 8, t0), (hx + 8, hf + 5), (hx + 5, hf + 9),
+              (hx - 5, hf + 9), (hx - 8, hf + 5)], "skin1")
+    if not hatless:
+        rect(hd, hx - 8, hf + 2, 17, 1, "ink2")                  # hat shadow edge
+    # shade the right half of the face, light from top-left
+    for y in range(t0 + 1, hf + 10):
+        for x in range(hx + 2, hx + 9):
+            if hd.getpixel((x, y))[:3] == PAL["skin1"]:
+                if (x + y) % 2 == 0 or x > hx + 5:
+                    px(hd, x, y, "skin0")
+    # jaw line: dark rim under the cheekbone and along the chin
+    line(hd, [(hx - 8, hf + 5), (hx - 5, hf + 9)], "skin0")
+    line(hd, [(hx - 5, hf + 9), (hx + 5, hf + 9)], "skin0")
+    # nose + mouth
+    px(hd, hx - 3, hf + 4, "skin2"); px(hd, hx - 3, hf + 5, "skin2")
+    line(hd, [(hx - 4, hf + 6), (hx + 1, hf + 6)], "red0")
+    # stubble on chin/jaw (ordered dither, darker skin tone)
+    for y in range(hf + 7, hf + 10):
+        for x in range(hx - 6, hx + 7):
+            if hd.getpixel((x, y))[:3] in (PAL["skin1"], PAL["skin0"]) and (x + y) % 2 == 0:
+                px(hd, x, y, "brown0")
+    # eyes: two dim red glints in the hat shadow
+    for ex in (hx - 5, hx):
+        if hatless:       # knocked out: X eyes
+            for k in range(3):
+                px(hd, ex + k, hf - 2 + k, "ink"); px(hd, ex + 2 - k, hf - 2 + k, "ink")
+        else:
+            px(hd, ex, hf, "red1"); px(hd, ex + 1, hf, "red2"); px(hd, ex, hf - 1, "red0")
+
+
+def foreman_hurt():
+    """Crushed: bent right over, head hanging, hat knocked askew, two pipes across the back."""
+    S = new(48, 64)
+    # buckled legs
+    legs = new(48, 64)
+    for x, c in ((26, "ink2"), (12, "grey1")):
+        rect(legs, x, 50, 10, 6, c)
+        rect(legs, x - 2, 55, 12, 4, c)
+        rect(legs, x - 4, 58, 13, 5, "brown0")
+        hline(legs, x - 4, x + 8, 61, "ink")
+    S.alpha_composite(outline(legs))
+    # hunched torso, shoulders low and forward (left), hips high behind
+    t = new(48, 64)
+    poly(t, [(5, 46), (12, 36), (30, 30), (41, 36), (40, 52), (12, 52)], "orange2")
+    dither_grad(t, (24, 30, 42, 53), "orange2", "orange1", "x", 2, 0.0, 1.0,
+                Image.composite(Image.new("L", t.size, 255), Image.new("L", t.size, 0), shade_mask(t)))
+    for k in (40, 45):
+        line(t, [(10, k + 1), (38, k - 8)], "yellow2")             # strips follow the bent back
+    hline(t, 12, 40, 51, "ink2")
+    S.alpha_composite(outline(t))
+    # arms pressed to the floor
+    for sh, el, hd, shade in (((12, 42), (6, 50), (5, 58), False), ((36, 44), (42, 52), (40, 58), True)):
+        S.alpha_composite(fm_arm(sh, el, hd, shade, 8))
+    # head hanging down in front of the chest, bruised
+    hd = new(48, 64)
+    foreman_head(hd, 17, 43, True)
+    S.alpha_composite(outline(hd))
+    # hat knocked off to the side, tipped over
+    hat = new(48, 64)
+    hx, hy = 8, 24
+    ellipse(hat, hx - 9, hy - 9, hx + 9, hy + 3, "yellow")
+    rect(hat, hx - 9, hy - 3, 19, 5, "yellow")
+    dither_grad(hat, (hx, hy - 9, hx + 10, hy + 3), "yellow", "orange3", "x", 2, 0.0, 1.0)
+    rect(hat, hx - 14, hy + 1, 24, 2, "orange3")
+    hat = hat.rotate(-38, center=(hx, hy), resample=Image.NEAREST)
+    # dent
+    px(hat, 5, 19, "orange2"); px(hat, 6, 20, "orange2")
+    S.alpha_composite(outline(hat))
+    # two pipes across the back
+    for (p0, p1) in (((14, 29), (45, 47)), ((20, 25), (45, 38))):
+        pl = new(48, 64)
+        line(pl, [p0, p1], "grey2", 5)
+        line(pl, [(p0[0], p0[1] - 1), (p1[0], p1[1] - 1)], "grey4", 1)
+        line(pl, [(p0[0], p0[1] + 2), (p1[0], p1[1] + 2)], "grey1", 1)
+        ellipse(pl, p1[0] - 3, p1[1] - 3, p1[0] + 1, p1[1] + 2, "grey1")
+        S.alpha_composite(outline(pl))
+    # dust
+    for p in ((3, 52), (2, 56), (44, 56), (46, 50), (30, 62)):
+        px(S, *p, "grey3")
+    return S
+
+
 def foreman_frame(pose, f=0):
+    if pose == "hurt":
+        return foreman_hurt()
     S = new(48, 64)
     dy = 0; tx = 0
     leg_n = 14; leg_f = 25     # x of far/near leg left edge
@@ -924,7 +1035,7 @@ def foreman_frame(pose, f=0):
         dy = 1 if f == 1 else 0
         leg_n, leg_f = (11, 28) if f == 0 else (19, 20)
     elif pose == "wind":
-        tx = 3; leg_n, leg_f = 15, 27
+        tx = 0; dy = 8; leg_n, leg_f = 15, 27
     elif pose == "slam":
         tx = -3; dy = 3; leg_n, leg_f = 12, 27
     elif pose == "hurt":
@@ -957,8 +1068,6 @@ def foreman_frame(pose, f=0):
     if pose == "idle" or pose == "walk":
         sw = (-2 if f == 1 else 2) if pose == "walk" else 0
         S.alpha_composite(fm_arm((35 + tx, 29 + dy), (37 + tx + sw, 40 + dy), (37 + tx + 2 * sw, 50 + dy), True))
-    elif pose == "wind":
-        S.alpha_composite(fm_arm((36 + tx, 29), (40 + tx, 24), (36 + tx, 18), True))
     elif pose == "slam":
         S.alpha_composite(fm_arm((30 + tx, 33 + dy), (24 + tx, 40 + dy), (16 + tx, 46), True))
     # ---- hammer behind the body in wind (head up behind head)
@@ -1002,18 +1111,7 @@ def foreman_frame(pose, f=0):
     if pose == "hurt":
         hx = 21 + tx; hy = 31
     hd = new(48, 64)
-    rect(hd, hx - 1, hy + 6, 10, 8, "skin0")                  # neck
-    ellipse(hd, hx - 8, hy - 8, hx + 8, hy + 8, "ink2")        # head in deep shadow
-    # jaw rim light (right/under) so it reads as a face
-    for (x, y) in ((hx - 5, hy + 7), (hx - 4, hy + 8), (hx + 6, hy + 4), (hx + 7, hy + 2)):
-        px(hd, x, y, "skin0")
-    rect(hd, hx - 6, hy + 5, 9, 3, "ink")
-    # eyes: two dull glints
-    px(hd, hx - 5, hy + 1, "red2"); px(hd, hx - 2, hy + 1, "red2")
-    if pose == "hurt":
-        px(hd, hx - 5, hy + 1, "ink2"); px(hd, hx - 2, hy + 1, "ink2")
-        for p in ((hx - 6, hy), (hx - 4, hy + 2), (hx - 4, hy), (hx - 6, hy + 2)):
-            px(hd, *p, "grey3")
+    foreman_head(hd, hx, hy + 5)
     S.alpha_composite(outline(hd))
     hat = new(48, 64)
     ellipse(hat, hx - 10, hy - 14, hx + 10, hy + 2, "yellow")
@@ -1023,12 +1121,9 @@ def foreman_frame(pose, f=0):
     px(hat, hx - 6, hy - 10, "yellow2"); px(hat, hx - 5, hy - 11, "yellow2"); px(hat, hx - 6, hy - 9, "yellow2")
     rect(hat, hx - 15, hy, 27, 3, "yellow")                      # brim juts forward (left)
     rect(hat, hx - 15, hy + 2, 27, 1, "orange3")
-    if pose == "hurt":
-        hat = hat.rotate(-12, center=(hx, hy), resample=Image.NEAREST)
-    # clean hat to pure palette (rotate keeps palette; fine)
     S.alpha_composite(outline(hat))
     # ---- lanyard + blank id card (agency)
-    if pose != "hurt":
+    if True:
         ly = 26 + dy
         line(S, [(hx - 2, ly), (hx - 7 if pose != "slam" else hx - 6, ly + 6)], "green1")
         line(S, [(hx + 3, ly), (hx - 4, ly + 6)], "green0")
@@ -1042,27 +1137,25 @@ def foreman_frame(pose, f=0):
     elif pose == "walk":
         sw = 2 if f == 1 else -2
         S.alpha_composite(fm_arm((16 + tx, 29 + dy), (14 + tx + sw, 40 + dy), (13 + tx + 2 * sw, 50 + dy)))
-    elif pose == "wind":
-        S.alpha_composite(fm_arm((17 + tx, 30), (26 + tx, 28), (33 + tx, 20)))
     elif pose == "slam":
         S.alpha_composite(fm_arm((16 + tx, 34 + dy), (12 + tx, 44 + dy), (12 + tx, 50)))
-    elif pose == "hurt":
-        S.alpha_composite(fm_arm((15 + tx, 40), (8 + tx, 32), (11 + tx, 22)))
-        S.alpha_composite(fm_arm((35 + tx, 40), (40 + tx, 32), (33 + tx, 22), True))
 
-    # ---- sledgehammer
+    # ---- sledgehammer raised high above the head
     if pose == "wind":
         hm = new(48, 64)
-        line(hm, [(30 + tx, 26), (42 + tx, 7)], "brown2", 3)
-        out = outline(hm)
-        S.alpha_composite(out)
+        rect(hm, 34, 6, 4, 30, "brown2")
+        vline(hm, 37, 6, 35, "brown1")
+        S.alpha_composite(outline(hm))
         hh = new(48, 64)
-        rect(hh, 36 + tx, 0, 12, 9, "grey2")
-        rect(hh, 36 + tx, 0, 12, 2, "grey4")
-        rect(hh, 36 + tx, 7, 12, 2, "grey1")
+        rect(hh, 27, 0, 16, 9, "grey2")
+        rect(hh, 27, 0, 16, 2, "grey4")
+        rect(hh, 27, 7, 16, 2, "grey1")
+        rect(hh, 27, 0, 3, 9, "grey1")                    # striking face
+        rect(hh, 40, 0, 3, 9, "grey1")
+        vline(hh, 28, 1, 7, "grey3"); vline(hh, 41, 1, 7, "grey3")
         S.alpha_composite(outline(hh))
-        # hand over the handle
-        S.alpha_composite(fm_arm((17 + tx, 30), (26 + tx, 28), (33 + tx, 20)))
+        S.alpha_composite(fm_arm((38, 38), (40, 30), (36, 24), True, 8))
+        S.alpha_composite(fm_arm((16, 39), (27, 36), (35, 31), False, 8))
     elif pose == "slam":
         # dust burst
         for (cx, cy, r) in ((4, 58, 6), (13, 60, 5), (20, 61, 4)):

@@ -307,7 +307,7 @@ def limb(layer, pts, c="green0", w=2):
         line(layer, [a, b], c, w)
 
 
-def paper(img, cx, by, w=10, h=12, tilt=0, stamp=True, c="white"):
+def paper(img, cx, by, w=10, h=12, tilt=0, stamp=True, c="white", fire=0):
     """sheet of paper: bottom centre at (cx, by); tilt shears the top by `tilt` px."""
     x0 = cx - w // 2
     y0 = by - h
@@ -320,6 +320,22 @@ def paper(img, cx, by, w=10, h=12, tilt=0, stamp=True, c="white"):
     if stamp:
         rect(img, x0 + w - 5 + tilt // 2, y0 + h - 4, 3, 2, "red2")
     px(img, x0 + 1 + tilt, y0 + 1, "grey4") if False else None
+    if fire:
+        # burning edges: charred rim turning orange/red, flame tongues licking up from the top
+        for i in range(w):
+            xx = x0 + i + tilt
+            px(img, xx, y0, "orange2" if i % 2 == 0 else "red2")
+            px(img, xx, y0 + 1, "ink2" if i % 3 == 0 else "orange1") if i % 2 == 1 else None
+        for k in range(h // 2):
+            px(img, int(x0 + w - 1 + tilt * (1 - k * 2 / h)), y0 + k, "red2" if k % 2 == 0 else "orange2")
+            px(img, int(x0 + tilt * (1 - k * 2 / h)), y0 + k, "orange2" if k % 2 == 0 else "red2")
+        for i, (dx, hh) in enumerate(((1, 3), (3, 5), (5, 2), (7, 4), (9, 3))):
+            fx = x0 + dx + tilt - (1 if fire == 2 else 0) * (i % 2)
+            for t in range(hh):
+                px(img, fx, y0 - 1 - t, "red2" if t == 0 else ("orange2" if t < hh - 1 else "yellow"))
+            if hh > 3:
+                px(img, fx + 1, y0 - 1, "orange2"); px(img, fx - 1, y0 - 2, "red2")
+        px(img, x0 + 2 + tilt, y0 - 7, "orange3"); px(img, x0 + w - 2 + tilt, y0 - 6, "yellow")   # embers
     return img
 
 
@@ -365,6 +381,17 @@ def kwak_frame(pose, f=0):
     px(t, 32 + lean // 2 + 3, top + 20, "yellow2")                # tie pin / button
     px(t, 32 + lean // 2, top + 18, "ink2"); px(t, 32 + lean // 2, top + 23, "ink2")
     im.alpha_composite(outline(t))
+    if S.get("rage"):
+        # suit torn open: rips showing the shirt and skin, ragged hem
+        L = lean // 2
+        poly(im, [(27 + L, top + 11), (30 + L, top + 9), (29 + L, top + 13), (32 + L, top + 16), (28 + L, top + 18),
+                  (26 + L, top + 15)], "skin1", "ink")
+        px(im, 29 + L, top + 13, "skin0"); px(im, 28 + L, top + 16, "skin0")
+        poly(im, [(34 + L, top + 20), (37 + L, top + 19), (36 + L, top + 24), (34 + L, top + 22)], "white", "ink")
+        for (x, y) in ((27, 48), (30, 49), (33, 48), (36, 49)):          # ragged hem notches
+            px(im, x, y, "ink"); px(im, x, y + 1, (0, 0, 0, 0))
+        px(im, 31 + L, top + 6, "ink"); px(im, 32 + L, top + 7, "ink")  # tie snapped short
+        line(im, [(32 + lean, top + 1), (32 + L, top + 7)], "yellow", 2)
     # ---- normal arms hanging at the sides
     arms = new(64, 64)
     swing = S.get("armswing", 0)
@@ -373,9 +400,14 @@ def kwak_frame(pose, f=0):
     rect(arms, 21 + lean // 3 - swing, top + 26, 3, 3, SKIN[0])
     rect(arms, 41 + lean // 3 + swing, top + 26, 3, 3, SKIN[0])
     im.alpha_composite(outline(arms))
+    if S.get("rage"):
+        for sx in (-1, 1):                       # torn sleeves: skin showing at the elbows
+            ex = (23 + lean // 2 - swing) if sx < 0 else (41 + lean // 2 + swing)
+            rect(im, ex - 1, top + 12, 3, 3, "skin1", "ink")
+            px(im, ex, top + 13, "skin0")
     # ---- sheets over the hands
     for (hx, hy), (tilt, sc) in zip(sheets, S["tilts"]):
-        paper(im, hx, hy - 1, tilt=tilt)
+        paper(im, hx, hy - 1, tilt=tilt, fire=S.get("fire", 0))
     # ---- neck + head
     hx0 = 32 + lean + S.get("hshift", 0)
     hy0 = 3 + bob + hdy
@@ -395,10 +427,28 @@ def kwak_frame(pose, f=0):
     ey = hy0 + 9
     lens = "grey4"
     crack = S.get("crack", False)
+    rage = S.get("rage", False)
+    if rage:
+        lens = "red3"
+        # red glow bleeding onto the skin around the lenses (ordered dither)
+        for yy in range(ey - 9, ey + 10):
+            for xx in range(hx0 - 14, hx0 + 15):
+                d = ((xx - hx0) ** 2 + ((yy - ey) * 1.3) ** 2) ** 0.5 / 13
+                if d < 1 and im.getpixel((xx, yy))[:3] == PAL[SKIN[0]] and (1 - d) * 0.9 > _thr(xx, yy, 4):
+                    px(im, xx, yy, "red4")
     for (lx0) in (hx0 - 7, hx0 + 2):
         rect(im, lx0, ey - 2, 6, 5, lens, "ink2")
     line(im, [(hx0 - 1, ey), (hx0 + 1, ey)], "ink2")
-    if S.get("squint"):
+    if rage:
+        for lx0 in (hx0 - 6, hx0 + 3):                 # glowing slits
+            rect(im, lx0 + 1, ey - 1, 3, 2, "yellow2")
+            px(im, lx0 + 2, ey, "white")
+            px(im, lx0, ey - 2, "red4"); px(im, lx0 + 4, ey + 1, "red2")
+        line(im, [(hx0 - 8, ey - 5), (hx0 - 2, ey - 3)], "ink", 2)       # furious brows
+        line(im, [(hx0 + 8, ey - 5), (hx0 + 2, ey - 3)], "ink", 2)
+        for (x, y) in ((hx0 - 6, hy0 - 2), (hx0 - 3, hy0 - 3), (hx0 + 1, hy0 - 3), (hx0 + 5, hy0 - 2), (hx0 + 7, hy0 + 1)):
+            px(im, x, y, "grey3"); px(im, x, y - 1, "grey3")                 # hair standing up
+    elif S.get("squint"):
         for lx0 in (hx0 - 6, hx0 + 3):
             line(im, [(lx0, ey - 1), (lx0 + 3, ey)], "ink"); line(im, [(lx0 + 3, ey - 1 + 2), (lx0, ey + 1)], "ink") if False else None
             px(im, lx0 + 1, ey + 1, "ink"); px(im, lx0 + 2, ey + 1, "ink")
@@ -406,10 +456,14 @@ def kwak_frame(pose, f=0):
         for lx0 in (hx0 - 6, hx0 + 3):
             rect(im, lx0 + 1, ey - 1, 2, 3, "ink")
     # glint
-    gx = [hx0 - 6, hx0 + 3][f % 2] if not S.get("noglint") else None
+    gx = [hx0 - 6, hx0 + 3][f % 2] if not (S.get("noglint") or rage) else None
     if gx is not None:
         px(im, gx, ey - 2 + 0, "white"); px(im, gx + 1, ey - 2, "white"); px(im, gx, ey - 1, "white")
         px(im, [hx0 + 3, hx0 - 6][f % 2] + 4, ey + 1, "white")
+    if rage:
+        line(im, [(hx0 - 7, ey - 2), (hx0 - 3, ey + 2)], "ink"); line(im, [(hx0 - 4, ey - 2), (hx0 - 5, ey + 2)], "red1")
+        line(im, [(hx0 + 7, ey + 2), (hx0 + 3, ey - 2)], "ink"); line(im, [(hx0 + 5, ey - 2), (hx0 + 6, ey + 2)], "red1")
+        px(im, hx0 - 1, ey + 3, "red4"); px(im, hx0 + 1, ey + 3, "red4")
     if crack:
         line(im, [(hx0 - 7, ey - 2), (hx0 - 2, ey + 2)], "ink")
         line(im, [(hx0 - 5, ey + 2), (hx0 - 4, ey - 2)], "ink2") if False else None
@@ -420,6 +474,11 @@ def kwak_frame(pose, f=0):
     if S.get("grimace"):
         rect(im, hx0 - 3, my - 1, 7, 3, "red0", "ink")
         px(im, hx0 - 2, my - 1, "white"); px(im, hx0, my - 1, "white"); px(im, hx0 + 2, my - 1, "white")
+    elif S.get("roar"):
+        rect(im, hx0 - 4, my - 1, 9, 4, "red0", "ink")
+        for k in range(-3, 4, 2):
+            px(im, hx0 + k, my, "white")
+        px(im, hx0 - 1, my + 2, "red3"); px(im, hx0, my + 2, "red3"); px(im, hx0 + 1, my + 2, "red3")
     elif S.get("grin"):
         line(im, [(hx0 - 4, my), (hx0 + 4, my)], "ink")
         px(im, hx0 - 5, my - 1, "ink"); px(im, hx0 + 5, my - 1, "ink")
@@ -445,6 +504,11 @@ KW_POSES = {
     "hurt_0": dict(hands=[(12, 26), (50, 15), (8, 40), (57, 30)], tilts=[(-3, 0), (3, 0), (-3, 0), (3, 0)],
                    lean=-5, hdy=2, hshift=-1, crack=True, grimace=True, squint=True, noglint=True, sag=6, f=0,
                    armswing=3),
+    # final form: furious, glasses cracked and glowing red, suit torn, contracts on fire
+    "phase2_0": dict(hands=[(9, 21), (55, 21), (6, 38), (58, 38)], tilts=[(-1, 0), (1, 0), (-2, 0), (2, 0)],
+                     rage=True, roar=True, fire=1, lean=-1, hdy=1, sag=-1, f=0, armswing=1),
+    "phase2_1": dict(hands=[(12, 17), (52, 17), (9, 34), (55, 34)], tilts=[(2, 0), (-2, 0), (1, 0), (-1, 0)],
+                     rage=True, roar=True, fire=2, lean=1, bob=1, hdy=0, sag=-3, f=1, armswing=-1),
 }
 
 
@@ -1316,7 +1380,7 @@ def main():
     for k, p in KW_POSES.items():
         frames.append(kwak_frame(p, p.get("f", 0))); names.append(k)
     frames.append(kwak_defeat()); names.append("defeat_0")
-    order = ["idle_0", "idle_1", "tell_0", "lunge_0", "hurt_0", "defeat_0"]
+    order = ["idle_0", "idle_1", "tell_0", "lunge_0", "hurt_0", "defeat_0", "phase2_0", "phase2_1"]
     frames = [frames[names.index(n)] for n in order]
     sheet(frames, "props/kwak_boss", order, cols=6)
     save(build_park(), "bg/park.png")
