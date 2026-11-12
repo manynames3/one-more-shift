@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, button, soundToggle, enStub } from "../ui.js";
-import { S, t, won, hourly, GIG, newRun, MAX_CONTINUES, continueCost, saveDaily } from "../state.js";
+import { W, H, BAR, C, txt, button, soundToggle, enStub, stampKey } from "../ui.js";
+import { S, t, won, hourly, GIG, newRun, MAX_CONTINUES, continueCost, saveDaily, hasStr } from "../state.js";
 import * as snd from "../audio.js";
 import { setActionLabel, showPad } from "../touchpad.js";
 import { sharePayStub } from "../share.js";
@@ -34,7 +34,7 @@ export default class Result extends Phaser.Scene {
       size: v.length > 13 ? 9 : 11, color: i === 4 || i === 5 ? C.red2 : C.ink, shadow: false,
     })));
     const stamp = this.add.container(100, 179, [
-      this.add.rectangle(0, 0, 74, 28, 0xf6f1e7).setOrigin(0), this.add.image(0, 0, this.stampKey).setOrigin(0),
+      this.add.rectangle(0, 0, 74, 28, 0xf6f1e7).setOrigin(0), this.add.image(0, 0, stampKey(this.stampKey)).setOrigin(0),
     ]).setVisible(false);
     stub.add(stamp);
     this.tweens.add({ targets: stub, y: BAR + 4, duration: 900, ease: "Stepped", easeParams: [18], onStart: () => snd.sfx("print") });
@@ -45,6 +45,13 @@ export default class Result extends Phaser.Scene {
     this.add.rectangle(0, 0, W, BAR, 0x14101a).setOrigin(0).setDepth(20);
     this.add.rectangle(0, H - BAR, W, BAR, 0x14101a).setOrigin(0).setDepth(20);
 
+    // how not to die of this next time, in the top letterbox
+    this.tipText = null;
+    if (!win && hasStr("tip_" + cause)) {
+      const tip = txt(this, W / 2, 6, t("tip_" + cause), { ox: 0.5, size: 9, color: C.yellow, depth: 31 }).setAlpha(0);
+      this.tweens.add({ targets: tip, alpha: 1, delay: 1200, duration: 400 });
+      this.tipText = tip;
+    }
     const x = 256;
     txt(this, x, BAR + 12, t(dailyOk ? "over_daily" : win ? "over_win" : fired ? "over_fired" : "over_fail"), { ox: 0.5, color: win ? C.green : C.red, depth: 30 });
     const why = txt(this, x, BAR + 26, t("cause_" + cause), { ox: 0.5, size: 9, depth: 30, wrap: 112 });
@@ -101,7 +108,7 @@ export default class Result extends Phaser.Scene {
       try { gif = this.gif || (this.gif = await replayGif()); } catch { gif = null; }
       this.shareBtn.label.setText(t("share"));
     }
-    const how = await sharePayStub(this, this.rows, this.stampKey, text, gif);
+    const how = await sharePayStub(this, this.rows, stampKey(this.stampKey), text, gif);
     this.sharing = false;
     if (how === "download") {
       this.shareBtn.label.setText(t("saved"));

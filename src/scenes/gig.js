@@ -2,7 +2,7 @@
 // A scene using it sets this.clockBase (minutes past midnight at 00 of the shift) and may define
 // clockHot() (clock turns orange) and tickSlip() (update the top-left slip).
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, soundToggle, enHud } from "../ui.js";
+import { W, H, BAR, C, txt, soundToggle, enHud, stampKey } from "../ui.js";
 import { S, t, won, START_DEBT, recordBest, markSeen, hourly, clearAct, saveNote } from "../state.js";
 import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
@@ -274,7 +274,7 @@ export const GigMixin = {
 
   stamp(key) {
     this.add.rectangle(W / 2, H / 2, 164, 72, 0xf6f1e7).setStrokeStyle(1, 0x14101a).setDepth(955);
-    const s = this.add.image(W / 2, H / 2, key).setDepth(960).setScale(3).setAlpha(0);
+    const s = this.add.image(W / 2, H / 2, stampKey(key)).setDepth(960).setScale(3).setAlpha(0);
     this.tweens.add({ targets: s, scale: 2, alpha: 1, duration: 140, ease: "Quad.easeIn", onComplete: () => { snd.sfx("stamp"); this.cameras.main.shake(140, 0.008); } });
   },
 

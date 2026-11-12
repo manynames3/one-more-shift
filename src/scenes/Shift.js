@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, rand, pick, soundToggle, enHud } from "../ui.js";
+import { W, H, BAR, C, txt, rand, pick, soundToggle, enHud, stampKey } from "../ui.js";
 import { S, t, rulesFor, won, START_DEBT, recordBest, markSeen, seeded, saveDaily, clearAct, hourly, saveNote } from "../state.js";
 import * as snd from "../audio.js";
 import { DreadMixin } from "./dread.js";
@@ -688,7 +688,7 @@ export default class Shift extends Phaser.Scene {
   stamp(key) {
     // a paper slip so the stamp reads over the busy store
     this.add.rectangle(W / 2, H / 2, 164, 72, 0xf6f1e7).setStrokeStyle(1, 0x14101a).setDepth(955);
-    const s = this.add.image(W / 2, H / 2, key).setDepth(960).setScale(3).setAlpha(0);
+    const s = this.add.image(W / 2, H / 2, stampKey(key)).setDepth(960).setScale(3).setAlpha(0);
     this.tweens.add({ targets: s, scale: 2, alpha: 1, duration: 140, ease: "Quad.easeIn", onComplete: () => { snd.sfx("stamp"); this.cameras.main.shake(140, 0.008); } });
   }
 

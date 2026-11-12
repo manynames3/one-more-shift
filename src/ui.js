@@ -85,3 +85,34 @@ export function enHud(scene) {
   scene.add.rectangle(200, H - 22 + 4, 24, 14, 0x14101a).setOrigin(0).setDepth(905);
   txt(scene, 222, H - 22 + 6, "DEBT", { ox: 1, size: 9, color: C.red, depth: 906 });
 }
+
+/** English stamps: the painted ones say 퇴근 성공 / 해고 / 퇴근 실패. Made once at boot from the originals. */
+const STAMP_EN = {
+  ui_stamp_success: { text: "CLOCKED OUT", ink: "#3b8a5a", bg: "#f6f1e7", r: [6, 6, 60, 16], font: '10px "Galmuri9"' },
+  ui_stamp_fail: { text: "FAILED", ink: "#c8202f", bg: "#f6f1e7", r: [6, 6, 60, 16], font: '12px "Galmuri11"' },
+  ui_stamp_fired: { text: "FIRED", ink: "#f6f1e7", bg: "#c8202f", r: [5, 5, 62, 18], font: '12px "Galmuri11"' },
+};
+export function makeEnglishStamps(scene) {
+  texMgr = scene.textures;
+  for (const [key, o] of Object.entries(STAMP_EN)) {
+    if (!scene.textures.exists(key) || scene.textures.exists(key + "_en")) continue;
+    const src = scene.textures.get(key).getSourceImage();
+    const cv = scene.textures.createCanvas(key + "_en", src.width, src.height), g = cv.getContext();
+    g.imageSmoothingEnabled = false;
+    g.drawImage(src, 0, 0);
+    g.fillStyle = o.bg; g.fillRect(...o.r);
+    // draw the words on a scratch canvas, then keep only solid pixels so the font stays crisp
+    const tc = document.createElement("canvas"); tc.width = src.width; tc.height = src.height;
+    const tg = tc.getContext("2d");
+    tg.font = o.font; tg.textAlign = "center"; tg.textBaseline = "middle"; tg.fillStyle = o.ink;
+    tg.fillText(o.text, Math.round(src.width / 2), Math.round(o.r[1] + o.r[3] / 2) + 1);
+    const d = tg.getImageData(0, 0, tc.width, tc.height), a = d.data;
+    for (let i = 3; i < a.length; i += 4) a[i] = a[i] >= 110 ? 255 : 0;
+    tg.putImageData(d, 0, 0);
+    g.drawImage(tc, 0, 0);
+    cv.refresh();
+  }
+}
+let texMgr = null;
+/** The stamp texture for the current language. */
+export const stampKey = key => (S.lang === "en" && texMgr?.exists(key + "_en") ? key + "_en" : key);
