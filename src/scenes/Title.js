@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { W, H, C, txt, soundToggle } from "../ui.js";
 import { CALM, setCalm } from "../calm.js";
-import { S, t, saveSettings, newRun, newDailyRun, today, dailyRecord, notesFound } from "../state.js";
+import { S, t, saveSettings, newRun, newDailyRun, today, dailyRecord, notesFound, savedRun } from "../state.js";
 import * as snd from "../audio.js";
 import { setActionLabel, showPad } from "../touchpad.js";
 
@@ -14,7 +14,9 @@ export default class Title extends Phaser.Scene {
     const logo = this.add.image(W / 2, 22, "ui_logo").setOrigin(0.5, 0);
     this.tweens.add({ targets: logo, y: 34, duration: 700, ease: "Bounce.easeOut" });
 
-    this.prompt = txt(this, W / 2, H - 17, t("start"), { ox: 0.5 });
+    const saved = savedRun();
+    this.resume = !S.acts[1] && saved && !saved.daily && (saved.act || 1) === 1 && saved.shift > 1 ? saved : null;
+    this.prompt = txt(this, W / 2, H - 17, this.resume ? t("startCont", saved.shift) : t("start"), { ox: 0.5 });
     this.tweens.add({ targets: this.prompt, alpha: 0.15, duration: 520, yoyo: true, repeat: -1, ease: "Stepped", easeParams: [2] });
 
     if (S.best > 0) txt(this, 6, 6, t("best", S.best + 1), { size: 9, color: C.yellow });
@@ -52,6 +54,8 @@ export default class Title extends Phaser.Scene {
       this.cameras.main.fadeOut(250, 20, 16, 26);
       // once Act 1 is done, the job board comes first
       if (S.acts[1]) return this.time.delayedCall(280, () => this.scene.start("Board"));
+      // a night of Act 1 already under way: pick it up, don't start over
+      if (this.resume) { S.run = this.resume; return this.time.delayedCall(280, () => this.scene.start("Agency", { context: "resume" })); }
       newRun();
       const ctx = S.runs > 1 ? "again" : "intro";
       // the very first night starts the way every gig does: on the phone
@@ -79,7 +83,7 @@ export default class Title extends Phaser.Scene {
     this.time.delayedCall(280, () => this.scene.start("Agency", { context: "dailyIntro" }));
   }
 
-  flipLang() { S.lang = S.lang === "ko" ? "en" : "ko"; saveSettings(); snd.init(); snd.sfx("ui"); this.drawLang(); this.drawCalm(); this.prompt.setText(t("start")); this.daily.setText(t("daily", today())); }
+  flipLang() { S.lang = S.lang === "ko" ? "en" : "ko"; saveSettings(); snd.init(); snd.sfx("ui"); this.drawLang(); this.drawCalm(); this.prompt.setText(this.resume ? t("startCont", this.resume.shift) : t("start")); this.daily.setText(t("daily", today())); }
   drawCalm() { this.calm.setText(t(CALM.on ? "flashOff" : "flashOn") + " (C)"); }
   drawLang() { this.lang.setText((S.lang === "ko" ? "[한국어] EN" : "한국어 [EN]") + " (L)"); }
 }

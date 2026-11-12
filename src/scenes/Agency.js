@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { W, H, C, txt, soundToggle, enCard } from "../ui.js";
+import { W, H, C, txt, soundToggle, enCard, artKey } from "../ui.js";
 import { S, t, won, newRuleFor, MULT, hourly, GIG, saveRun, hasStr } from "../state.js";
 import { quotaFor } from "./Shift.js";
 import { dQuotaFor } from "./Delivery.js";
@@ -21,9 +21,9 @@ export default class Agency extends Phaser.Scene {
     saveRun(run);
     this.cameras.main.fadeIn(250, 20, 16, 26);
     snd.ambience(false);
-    this.add.image(0, 0, "bg_agency_office").setOrigin(0);
+    this.add.image(0, 0, artKey("bg_agency_office")).setOrigin(0);
     this.add.sprite(160, 118, "characters_kwak").setOrigin(0.5, 1).play("characters_kwak_down_idle");
-    this.add.image(0, 0, "bg_agency_desk_fg").setOrigin(0);
+    this.add.image(0, 0, artKey("bg_agency_desk_fg")).setOrigin(0);
     this.add.rectangle(0, 0, W, 22, 0x14101a).setOrigin(0);
     txt(this, 6, 6, run.daily ? t("dailyRow", run.daily) : t("shiftN", run.shift), { size: 9, color: C.yellow });
     soundToggle(this);
@@ -56,6 +56,12 @@ export default class Agency extends Phaser.Scene {
   // Type two lines at a time.
   say() {
     const a = this.lines[this.idx] || "", b = this.lines[this.idx + 1] || "";
+    // a line too wide for the box drops to the small pixel font
+    for (const [o, s] of [[this.l1, a], [this.l2, b]]) {
+      o.setFontFamily("Galmuri11").setFontSize("12px").setText(s);
+      if (o.width > 220) o.setFontFamily("Galmuri9").setFontSize("10px");
+      o.setText("");
+    }
     this.full = [a, b]; this.typed = 0; this.typing = true;
     this.l1.setText(""); this.l2.setText(""); this.more.setVisible(false);
     this.typer?.remove();

@@ -4,7 +4,7 @@ import { installCalm } from "./calm.js";
 installCalm();
 import { FilmFX, applyFilm } from "./filmfx.js";
 import { W, H } from "./ui.js";
-import { S } from "./state.js";
+import { S, t } from "./state.js";
 import Boot from "./scenes/Boot.js";
 import Title from "./scenes/Title.js";
 import Agency from "./scenes/Agency.js";
@@ -61,6 +61,6 @@ async function start() {
   if (rot) rot.textContent = S.lang === "ko" ? "화면을 가로로 돌리면 더 커집니다" : "Rotate your phone for a bigger view";
   applyFilm(game);
   installPause(game);
-  window.__game = game; window.__S = S;   // handy for debugging from the console
+  window.__game = game; window.__S = S; window.__t = t;   // handy for debugging from the console
 }
 start();

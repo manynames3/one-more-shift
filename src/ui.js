@@ -116,6 +116,8 @@ export function makeEnglishStamps(scene) {
 /** English versions of close-ups with words painted in: [x, y, w, h] to repaint, the sample point for its
  *  fill (or a colour), the English, its ink. A dark fill gets the cream outlined look of the original label. */
 const ART_EN = {
+  bg_agency_desk_fg: [{ r: [148, 95, 26, 10], fill: "#f8b84a", text: "KWAK", ink: "#14101a" }],
+  bg_agency_office: [{ r: [176, 76, 34, 12], fill: "#2a1a10", text: "HIRING", ink: "#ffd42a" }],
   cu_sora_desk: [
     { r: [43, 112, 50, 11], fill: "#1c1724", text: "RULES 1-99", ink: "#fff3a8" },
     { r: [224, 143, 51, 11], fill: "#ffd42a", text: "KWAK", ink: "#14101a" },

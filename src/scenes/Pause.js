@@ -39,7 +39,7 @@ export default class Pause extends Phaser.Scene {
     this.add.rectangle(W / 2, 88, 132, 92, 0x14101a).setStrokeStyle(1, 0x4a4458);
     txt(this, W / 2, 50, t("paused"), { ox: 0.5, color: C.yellow });
     txt(this, W / 2, 64, t("pauseHint"), { ox: 0.5, size: 9, color: C.grey });
-    button(this, W / 2, 96, "ui_btn_primary", t("resume"), () => this.resume());
+    button(this, W / 2, 96, "ui_btn_primary", t("resumeBtn"), () => this.resume());
     button(this, W / 2, 120, "ui_btn_secondary", t("quitTitle"), () => this.quit());
     this.input.keyboard.on("keydown-SPACE", () => this.resume());
     this.input.keyboard.on("keydown-ENTER", () => this.resume());
