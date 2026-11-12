@@ -43,7 +43,7 @@ export const UsherMixin = {
     const b = this.boss;
     if (b.phase === "dark" && Math.abs(this.p.x - b.x) < 22) return this.hitUsher();
     if (b.phase === "lit" && b.cool <= 0) {
-      b.phase = "dark"; b.dark = DARK_SECS;
+      b.phase = "dark"; b.dark = b.hp <= 2 ? DARK_SECS - 0.7 : DARK_SECS;
       this.dark.setAlpha(0.72); b.beam.setVisible(false); this.screen.setFrame("off_0");
       b.spr.setFrame("dark_0"); snd.sfx("clang"); this.unhint("lamp");
       this.hint("hit", Math.round(b.x), 60);
@@ -56,6 +56,7 @@ export const UsherMixin = {
     b.spr.setFrame("hurt_0"); this.unhint("hit");
     this.drawUsher();
     if (b.hp <= 0) return this.winUsher();
+    if (b.hp === 2) { this.caption(t("usherPhase2"), 2); snd.sfx("roar"); }
     this.lightsOn();
     b.x = b.x < W / 2 ? W - 40 : 40;    // it reappears at the far end of the beam
   },
@@ -81,7 +82,7 @@ export const UsherMixin = {
         b.lunge -= dt; s.setFrame("lunge_0");
         b.x += dir * 120 * dt;
       } else {
-        b.x += dir * Math.min(Math.abs(dx), (30 + 8 * (HP - b.hp)) * dt);
+        b.x += dir * Math.min(Math.abs(dx), (30 + (b.hp <= 2 ? 22 : 8) * (HP - b.hp)) * dt);
         s.setFrame("walk_" + (Math.floor(this.time.now / 140) % 4));
         if (Math.abs(dx) < 46 && Math.random() < dt * 1.2) { b.lunge = 0.45; snd.sfx("dash"); }
       }

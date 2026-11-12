@@ -57,7 +57,7 @@ export default class Park extends Phaser.Scene {
     this.buildHud();
     this.bindInput();
     startReplay(this.game);
-    snd.music("store"); snd.ambience(false);
+    snd.music("park"); snd.ambience(false);
     this.caption(t("parkStart"), 3.5);
   }
 
@@ -239,15 +239,16 @@ export default class Park extends Phaser.Scene {
   tickBoss(dt) {
     const b = this.boss, s = b.spr, p = this.p;
     b.t -= dt; b.iframe -= dt;
+    if (!b.p2 && this.min >= 52) { b.p2 = true; this.caption(t("kwakPhase2"), 2); snd.sfx("roar"); this.cameras.main.shake(300, 0.01); }
     if (b.phase === "idle") {
-      s.setFrame("idle_" + (Math.floor(this.time.now / 300) % 2));
+      s.setFrame((b.p2 ? "phase2_" : "idle_") + (Math.floor(this.time.now / 300) % 2));
       b.x += Math.sign(p.x - b.x) * Math.min(Math.abs(p.x - b.x), 26 * dt);
       if (b.t <= 0) { b.phase = "tell"; b.t = 0.6; s.setFrame("tell_0"); snd.sfx("warn"); }
     } else if (b.phase === "tell" && b.t <= 0) {
       b.phase = "lunge"; b.target = Phaser.Math.Clamp(p.x, 20, W - 20); s.setFrame("lunge_0"); snd.sfx("dash");
     } else if (b.phase === "lunge") {
-      const dx = b.target - b.x, step = 300 * dt;
-      if (Math.abs(dx) <= step) { b.x = b.target; b.phase = "idle"; b.t = rand(0.9, 1.5); snd.sfx("clang"); }
+      const dx = b.target - b.x, step = (b.p2 ? 380 : 300) * dt;
+      if (Math.abs(dx) <= step) { b.x = b.target; b.phase = "idle"; b.t = b.p2 ? rand(0.45, 0.8) : rand(0.9, 1.5); snd.sfx("clang"); }
       else b.x += Math.sign(dx) * step;
       if (Math.abs(p.x - b.x) < 16 && b.iframe <= 0) {
         b.hits++; b.iframe = 1.2; this.drawLives();

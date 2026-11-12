@@ -61,7 +61,7 @@ export default class Site extends Phaser.Scene {
     this.initNote(230);
     this.bindInput();
     startReplay(this.game);
-    snd.music("store"); snd.ambience(true);
+    snd.music("site"); snd.ambience(true);
 
     const plate = this.add.rectangle(W / 2, 70, 150, 34, 0x14101a, 0.85).setStrokeStyle(1, 0xffd42a).setDepth(879);
     const title = txt(this, W / 2, 56, t("shiftN", run.shift), { ox: 0.5, color: C.yellow, depth: 880 });
@@ -251,7 +251,11 @@ export default class Site extends Phaser.Scene {
       b.phase = "slam"; b.t = 0.5; s.setFrame("slam_0"); snd.sfx("stamp"); this.cameras.main.shake(150, 0.008);
       const reach = b.x + (s.flipX ? 22 : -22);
       if (Math.abs(p.x - reach) < 22 && b.iframe <= 0) this.foremanHit();
-    } else if (b.phase === "slam" && b.t <= 0) { b.phase = "walk"; b.t = 0.8; }
+    } else if (b.phase === "slam" && b.t <= 0) {
+      // phase 2 (last hit left): a second swing right after the first
+      if (b.hp === 1 && !b.second) { b.second = true; b.phase = "wind"; b.t = 0.4; s.setFrame("wind_0"); snd.sfx("warn"); }
+      else { b.second = false; b.phase = "walk"; b.t = 0.8; }
+    }
     else if (b.phase === "hurt" && b.t <= 0) { b.phase = "walk"; b.t = 1; }
     s.x = Math.round(Phaser.Math.Clamp(b.x, 16, W - 16));
   }
@@ -271,6 +275,7 @@ export default class Site extends Phaser.Scene {
     b.hp--; b.phase = "hurt"; b.t = 1.4; b.spr.setFrame("hurt_0"); b.cool = 1.6;
     this.drawForeman();
     if (b.hp <= 0) return this.winForeman();
+    if (b.hp === 1) { this.caption(t("foremanPhase2"), 2); snd.sfx("roar"); }
     this.time.delayedCall(900, () => { if (this.boss.phase !== "done") this.load_.setPosition(HOOK, 46); });
   }
 

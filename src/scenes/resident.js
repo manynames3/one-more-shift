@@ -48,6 +48,12 @@ export const ResidentMixin = {
     b.glow.setPosition(BULB[b.side].x, BULB[b.side].y);
     b.peek.setPosition(PEEK[b.side].x, PEEK[b.side].y).setFlipX(b.side === "R").setVisible(true).setAlpha(0);
     this.tweens.add({ targets: b.peek, alpha: 1, delay: 250, duration: 300 });
+    // phase 2: from the 4th floor an eye shows on the wrong side too. Only the flickering bulb is honest.
+    if (!b.decoy) b.decoy = this.add.sprite(0, 0, "props_resident", "peek_0").setOrigin(0.5, 1).setDepth(5);
+    const other = b.side === "L" ? "R" : "L";
+    b.decoy.setPosition(PEEK[other].x, PEEK[other].y).setFlipX(other === "R").setVisible(this.floor >= 4).setAlpha(0);
+    if (this.floor >= 4) this.tweens.add({ targets: b.decoy, alpha: 1, delay: 250, duration: 300 });
+    if (this.floor === 4 && !b.warned) { b.warned = true; this.caption(t("resPhase2"), 2.2); }
     b.hp.setText("♥".repeat(LIVES - b.hits) + "♡".repeat(b.hits));
     b.floorTxt.setText(`${this.floor}F → ${t("roofF")}`);
     this.hint("flight", W / 2, 96);
@@ -73,7 +79,7 @@ export const ResidentMixin = {
     this.busy = true; this.p.anims.stop();
     snd.sfx("step"); this.time.delayedCall(110, () => snd.sfx("step")); this.time.delayedCall(220, () => snd.sfx("step"));
     this.tweens.add({ targets: this.p, y: FY - 12, duration: 200 });
-    b.peek.setVisible(false); b.glow.setAlpha(0);
+    b.peek.setVisible(false); b.glow.setAlpha(0); b.decoy?.setVisible(false);
     this.cut(() => {
       this.floor++;
       if (this.floor >= ROOF) return this.toRoof();

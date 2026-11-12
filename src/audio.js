@@ -167,6 +167,71 @@ const SONGS = {
       drums: { notes: "k . h . s . h . k . h k s . h h | k . h . s . h . k k h . s . o . |" },
     },
   },
+  // Act 2, the event: a carnival oom-pah in E minor that never quite resolves.
+  event: {
+    bpm: 132, swing: 0,
+    ch: {
+      lead: { type: "p50", vol: 0.08, vib: 0.01, r: 0.05, s: 0.55, notes:
+        "E5 - - - B4 - E5 - G5 - - - F#5 - E5 - | D#5 - - - F#5 - B5 - A5 - G5 - F#5 - - - | E5 - - - G5 - B5 - C6 - B5 - A5 - G5 - | F#5 - D#5 - B4 - - - E5 - - - . . . . |" },
+      arp: { type: "p12", vol: 0.04, d: 0.04, s: 0.25, r: 0.02, arp: ["E4 G4 B4", "B3 D#4 F#4", "C4 E4 G4", "B3 D#4 F#4"], pattern: [0, 2, 1, 2] },
+      bass: { type: "triangle", vol: 0.32, s: 0.7, r: 0.03, roots: ["E2", "B2", "C3", "B2"], pattern: "R . . . R2 . . . R . . . R2 . . ." },
+      drums: { notes: "k . . . h . h . k . . . h . h . | k . . . h . h . k . s . h . h . |" },
+    },
+  },
+  // Act 3, the dawn milk run: a sleepy lo-fi pulse.
+  milk: {
+    bpm: 100, swing: 0.2,
+    ch: {
+      lead: { type: "p25", vol: 0.08, vib: 0.01, r: 0.1, s: 0.6, notes:
+        "D5 - - - F5 - - - A5 - - - G5 - F5 - | E5 - - - - - - - C5 - - - D5 - - - | A4 - - - D5 - - - F5 - E5 - D5 - C5 - | D5 - - - - - - - . . . . . . . . |" },
+      arp: { type: "p12", vol: 0.04, d: 0.06, s: 0.3, r: 0.05, arp: ["D4 F4 A4", "C4 E4 G4", "Bb3 D4 F4", "A3 C#4 E4"], pattern: [0, 1, 2, 1] },
+      bass: { type: "triangle", vol: 0.32, s: 0.8, r: 0.04, roots: ["D3", "C3", "Bb2", "A2"], pattern: "R . . R . . R . R . . R . . R2 ." },
+      drums: { notes: "k . h . s . h h k . h . s . h . | k . h . s . h h k k h . s . o . |" },
+    },
+  },
+  // Act 4, the cinema: a slow organ-ish waltz in G minor, like an old intermission reel.
+  cinema: {
+    bpm: 88, swing: 0,
+    ch: {
+      lead: { type: "p25", vol: 0.09, vib: 0.018, r: 0.2, s: 0.75, notes:
+        "G4 - - - Bb4 - - - D5 - - - - - - - | Eb5 - - - D5 - - - C5 - - - Bb4 - - - | A4 - - - C5 - - - F#5 - - - - - - - | G5 - - - D5 - - - Bb4 - - - . . . . |" },
+      echo: { type: "p25", vol: 0.03, vib: 0.018, r: 0.2, s: 0.7, delay: 2, detune: 9, from: "lead" },
+      arp: { type: "p12", vol: 0.035, d: 0.08, s: 0.3, r: 0.1, arp: ["G3 Bb3 D4", "Eb3 G3 Bb3", "D3 F#3 A3", "G3 Bb3 D4"], pattern: [0, 1, 2] },
+      bass: { type: "triangle", vol: 0.3, s: 0.9, r: 0.2, roots: ["G2", "Eb2", "D2", "G2"], pattern: "R - - - - - - - R2 - - - - - - -" },
+      drums: { notes: "b . . . . . . . r . . . . . . . | b . . . . . . . r . . . r . . . |" },
+    },
+  },
+  // Act 5, the ward: a heart monitor and a held breath.
+  ward: {
+    bpm: 70, swing: 0,
+    ch: {
+      beep: { type: "p12", vol: 0.04, d: 0.05, s: 0.2, r: 0.05, notes: "C6 . . . . . . . . . . . . . . . | C6 . . . . . . . . . . . . . . . |" },
+      pad: { type: "triangle", vol: 0.12, a: 0.3, s: 1, r: 0.4, notes: "C4 - - - - - - - Eb4 - - - - - - - | Ab3 - - - - - - - G3 - - - - - - - |" },
+      bass: { type: "triangle", vol: 0.24, s: 0.9, r: 0.3, roots: ["C2", "Ab1"], pattern: "R - - - - - - - - - - - - - - -" },
+      drums: { notes: "H . . . . . . . H . . . . . . . | H . . . . . . . H . . . . . . . |" },
+    },
+  },
+  // Act 6, the site: clanking, heavy, E minor.
+  site: {
+    bpm: 118, swing: 0,
+    ch: {
+      lead: { type: "p50", vol: 0.08, vib: 0.004, r: 0.04, s: 0.6, notes:
+        "E4 - E4 - G4 - E4 - D4 - - - B3 - - - | E4 - E4 - G4 - A4 - B4 - - - G4 - - - | C5 - B4 - A4 - G4 - F#4 - - - D4 - - - | E4 - - - - - - - . . . . . . . . |" },
+      bass: { type: "triangle", vol: 0.38, s: 0.7, r: 0.03, roots: ["E2", "E2", "C2", "B1"], pattern: "R R . R R . R . R R . R R . R2 ." },
+      drums: { notes: "k . x . s . k . k . x . s . h h | k . x . s . k k k . x . s s x . |" },
+    },
+  },
+  // Act 7, the park: a music box, slightly out of tune.
+  park: {
+    bpm: 104, swing: 0,
+    ch: {
+      lead: { type: "p12", vol: 0.08, vib: 0.02, d: 0.1, s: 0.3, r: 0.25, notes:
+        "C6 - E6 - G6 - E6 - C6 - G5 - E5 - G5 - | F5 - A5 - C6 - A5 - F5 - - - . . . . | E5 - G5 - C6 - G5 - Eb5 - - - D5 - - - | C5 - - - G5 - - - C5 - - - . . . . |" },
+      echo: { type: "p12", vol: 0.03, vib: 0.02, d: 0.1, s: 0.3, r: 0.25, delay: 3, detune: -14, from: "lead" },
+      bass: { type: "triangle", vol: 0.26, s: 0.7, r: 0.1, roots: ["C3", "F2", "C3", "G2"], pattern: "R . . . R2 . . . R . . . R2 . . ." },
+      drums: { notes: "h . . . h . . . h . . . h . . . | h . . . h . . . h . . . h . h . |" },
+    },
+  },
   // The Rat King: fast, driving, A minor.
   boss: {
     bpm: 150, swing: 0,

@@ -70,7 +70,7 @@ export default class Cinema extends Phaser.Scene {
     this.bindInput();
     this.enter("lobby", LOBBY.window);
     startReplay(this.game);
-    snd.music("store"); snd.ambience(false);
+    snd.music("cinema"); snd.ambience(false);
 
     const plate = this.add.rectangle(W / 2, 70, 150, 34, 0x14101a, 0.85).setStrokeStyle(1, 0xffd42a).setDepth(879);
     const title = txt(this, W / 2, 56, t("shiftN", run.shift), { ox: 0.5, color: C.yellow, depth: 880 });

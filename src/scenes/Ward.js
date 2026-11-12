@@ -63,7 +63,7 @@ export default class Ward extends Phaser.Scene {
     this.initNote(220);
     this.bindInput();
     startReplay(this.game);
-    snd.music("store"); snd.ambience(false);
+    snd.music("ward"); snd.ambience(false);
 
     const plate = this.add.rectangle(W / 2, 70, 150, 34, 0x14101a, 0.85).setStrokeStyle(1, 0xffd42a).setDepth(879);
     const title = txt(this, W / 2, 56, t("shiftN", run.shift), { ox: 0.5, color: C.yellow, depth: 880 });
@@ -229,7 +229,12 @@ export default class Ward extends Phaser.Scene {
   tickBoss(dt) {
     const b = this.boss;
     b.t -= dt;
-    if (b.phase === "back" && b.t <= 0) { b.phase = "tell"; b.t = 0.55; snd.sfx("creak"); b.spr.setTint(0xd3e0d6); }
+    const late = this.p.x > (BED + DOOR) / 2;          // phase 2: closer to the door, it gets tricky
+    if (late && !b.warned) { b.warned = true; this.caption(t("subjectPhase2"), 2); }
+    if (b.phase === "back" && b.t <= 0) {
+      if (late && Math.random() < 0.35) { b.t = rand(0.6, 1.2); snd.sfx("creak"); b.spr.setTint(0xd3e0d6); this.time.delayedCall(250, () => b.spr.clearTint()); }   // a fake: creaks, doesn't turn
+      else { b.phase = "tell"; b.t = late ? 0.38 : 0.55; snd.sfx("creak"); b.spr.setTint(0xd3e0d6); }
+    }
     else if (b.phase === "tell" && b.t <= 0) { b.phase = "look"; b.t = rand(1.4, 2.4); b.spr.clearTint().setFrame("turn_0"); snd.sfx("heart"); }
     else if (b.phase === "look") {
       if (this.moving) return this.subjectHit();

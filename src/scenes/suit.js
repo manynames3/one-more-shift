@@ -59,7 +59,12 @@ export const SuitMixin = {
     } else if (b.phase === "dash") {
       const dx = b.target - b.x, step = 250 * dt;
       s.setFrame("dash_" + (Math.floor(this.time.now / 80) % 2)).setFlipX(dx > 0);
-      if (Math.abs(dx) <= step) { b.x = b.target; b.phase = "stun"; b.t = 1.7; snd.sfx("clang"); this.cameras.main.shake(100, 0.004); }
+      if (Math.abs(dx) <= step) {
+        b.x = b.target;
+        // phase 2 (3+ balloons): a second lunge straight back at you before it reels
+        if (b.ties >= 3 && !b.second) { b.second = true; b.phase = "crouch"; b.t = 0.35; s.setFrame("crouch_0"); snd.sfx("warn"); }
+        else { b.second = false; b.phase = "stun"; b.t = b.ties >= 3 ? 1.35 : 1.7; snd.sfx("clang"); this.cameras.main.shake(100, 0.004); }
+      }
       else b.x += Math.sign(dx) * step;
       if (Math.abs(p.x - b.x) < 14 && b.iframe <= 0) this.suitHit();
     } else if (b.phase === "stun") {
@@ -89,6 +94,7 @@ export const SuitMixin = {
     this.carry = false; b.ties++;
     snd.sfx("stock"); snd.sfx("squeak", 0.1);
     this.drawBossHud(); this.unhint("tie");
+    if (b.ties === 3) { this.caption(t("suitPhase2"), 2); b.spr.setTintFill(0xef3b4a); this.time.delayedCall(150, () => b.spr.clearTint()); snd.sfx("roar"); }
     const bl = this.add.image(b.x + Phaser.Math.Between(-8, 8), FY - 60, b.ties % 2 ? "props_balloon" : "props_balloon_b").setOrigin(0.5, 1).setDepth(96);
     (b.balloons ||= []).push(bl);
     if (b.ties >= TIES) this.winBoss();
