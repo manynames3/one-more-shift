@@ -4,12 +4,13 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
 };
 
-// Pay matches the show: each gig pays a multiple of the 2026 minimum wage (₩10,320 an hour).
-// 편의점 50x (episode 1), delivery 200x (the milk-delivery gig), cinema 100x (the show gives no figure
-// for its cinema shift; 100x is what the agency offers after the first job), freezer 200x (the
-// construction gig). A shift is one in-game hour, so a cleared shift pays one hour at that rate.
+// Pay matches the show: each gig pays a multiple of the 2026 minimum wage (₩10,320 an hour), taken
+// from the show's gig in the same slot: store 50x (episode 1, ₩4M a night), event 75x (episode 2's
+// ₩6M a day, scaled by the same rate), delivery 200x (episode 3's milk run), cinema 100x (no figure in
+// the show; 100x is what the agency offers after the first job), construction 200x (episode 6).
+// A shift is one in-game hour, so a cleared shift pays one hour at that rate.
 export const MIN_WAGE = 10320;
-export const MULT = { 1: 50, 2: 200, 3: 100, 4: 200 };
+export const MULT = { 1: 50, 2: 75, 3: 200, 4: 100, 6: 200 };
 export const hourly = act => MIN_WAGE * (MULT[act] || 50);
 export const START_DEBT = 20000000;
 
@@ -43,13 +44,15 @@ export function seeded(seed) {
   return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
-// The job board: one workplace per act. Only the store is built so far.
+// The job board: one workplace per act, in the order the show's gigs come.
 export const ACTS = [
   { n: 1, key: "store", built: true },
-  { n: 2, key: "delivery", built: true },
-  { n: 3, key: "cinema" },
-  { n: 4, key: "cold" },
-  { n: 5, key: "office" },
+  { n: 2, key: "event", built: true },
+  { n: 3, key: "delivery", built: true },
+  { n: 4, key: "cinema" },
+  { n: 5, key: "trial" },
+  { n: 6, key: "site" },
+  { n: 7, key: "park" },
 ];
 export function clearAct(n, run) {
   S.acts[n] = true; store.set("oms.acts", S.acts);
@@ -84,33 +87,52 @@ export const RULES = ["door", "knock", "clock", "regular", "lamp", "regular", "f
 export function rulesFor(shift) { return [...new Set(RULES.slice(0, Math.min(shift, RULES.length)))]; }
 /** What the manager hands you on the job card for this shift. */
 export function newRuleFor(shift) {
-  if (S.run?.act === 2) return DRULES[Math.min(shift, DRULES.length) - 1];
+  const g = GIG[S.run?.act];
+  if (g?.rules) return g.rules[Math.min(shift, g.rules.length) - 1];
   return shift === 6 ? "disguise" : RULES[Math.min(shift, RULES.length) - 1];
 }
 
-// Act 2, night delivery: floor 4 (1), the door that opens first (2), no elevator after 02:00 (3).
+// Act 2, the night event: balloons for kids only (1), the mascot's head (2), don't answer it (3).
+export const ERULES = ["balloon", "head", "answer"];
+export const erulesFor = shift => ERULES.slice(0, Math.min(shift, ERULES.length));
+// Act 3, dawn delivery: floor 4 (1), the door that opens first (2), no elevator after 02:00 (3).
 export const DRULES = ["floor4", "opendoor", "elevator"];
 export const drulesFor = shift => DRULES.slice(0, Math.min(shift, DRULES.length));
+
+/** Per-act setup: which scene runs the shift, the place on the job card, the manager's lines. */
+export const GIG = {
+  1: { scene: "Shift", place: "place", intro: "intro", briefs: { 2: "brief2", 3: "brief3", 4: "brief4", 5: "brief5", 6: "brief6", 7: "brief7" } },
+  2: { scene: "Event", place: "place2", intro: "e_intro", briefs: { 2: "e_brief2", 3: "e_brief3" }, rules: ERULES },
+  3: { scene: "Delivery", place: "place3", intro: "d_intro", briefs: { 2: "d_brief2", 3: "d_brief3" }, rules: DRULES },
+};
 
 export function won(n) { return "₩" + Math.max(0, Math.round(n)).toLocaleString("en-US"); }
 
 const STR = {
   ko: {
     board: "새벽인력 · 일자리 게시판", act: n => `${n}막`, st_clear: "완료", st_open: "모집 중", st_soon: "준비 중", st_locked: "잠김",
-    job_store: "편의점", job_delivery: "야간 배달", job_cinema: "24시 극장", job_cold: "냉동 창고", job_office: "새벽인력",
+    job_store: "편의점", job_event: "행사", job_delivery: "우유배달", job_cinema: "극장", job_trial: "임상시험", job_site: "공사장", job_park: "놀이공원",
     jd_store: "사흘 밤을 버티고 쥐왕을 쓰러뜨려라", jd_soon: "다음 업데이트에서 문을 엽니다", jd_locked: "앞의 일을 먼저 끝내세요",
     jd_keep: "계속 근무: 편의점 다음 교대", board_clear: "곽 실장: 준호? 모르는 이름인데. 다음 일이나 보자.", act_clear: "1막 완료",
-    place2: "해달마을 야간배달",
-    jd_delivery: "사흘 밤 배달하기 · 보스는 준비 중",
+    place3: "해달 오피스텔 배달",
+    jd_delivery: "사흘 새벽 우유배달 · 보스는 준비 중", jd_event: "사흘 밤 행사 버티기 · 보스는 준비 중",
     rule_floor4: "4층에는 배달하지 마시오", rule_opendoor: "노크 전에 문이 열리면 돌아서시오", rule_elevator: "02:00 이후 엘리베이터 금지",
     cause_floor4: "4층에 배달했다", cause_opendoor: "먼저 열린 문 앞에 남았다", cause_elevator: "엘리베이터를 탔다", cause_wrong: "엉뚱한 집 노크",
-    d_intro: ["오늘은 배달이야. 오토바이 타지?", "해달마을 아파트로 가.", "주문서 호수 문 앞에 두면 돼.", "아, 4층 주문은 가지 마.", "카운터에 반납해."],
+    d_intro: ["새벽 우유배달이야. 오토바이 타지?", "해달 오피스텔로 가.", "주문서 호수 문 앞에 두면 돼.", "아, 4층 주문은 가지 마.", "카운터에 반납해."],
     d_brief2: ["노크 전에 문이 먼저 열리면...", "돌아서. 그 층을 나갔다 다시 와."],
     d_brief3: ["02:00 넘으면 엘리베이터 타지 마.", "...그 주문들, 전부 한 번호였어."],
     order: n => `주문 ${n}호`, noOrder: "주문 없음", dHint: "이동: ←→·터치   행동: Space·↑·터치",
     hint_pick: "Space: 주문 받기", hint_out: "→ 출발", hint_return: "4층 주문! 카운터에 반납", hint_f4: "4층... 노크 금지", hint_open: "문이 먼저 열렸다! 이 층을 떠나!",
     hint_elev: "02:00 이후 계단만", hint_back: "← 1층 아래로 나가 허브로", returned: "반납", wrongFlat: "엉뚱한 집!", tip: "팁",
     stairsUp: "▲", stairsDown: "▼", exitOut: "◀ 밖으로", toHall: "복도",
+    place2: "그랜드 오픈 행사", banner: "그랜드 오픈",
+    rule_balloon: "풍선은 아이에게만 주시오", rule_head: "탈 머리가 벗겨지면 무대를 보지 마시오", rule_answer: "탈이 이름을 부르면 대답하지 마시오",
+    cause_balloon: "어른에게 풍선을 줬다", cause_head: "탈 속을 봤다", cause_answer: "이름에 대답했다",
+    e_intro: ["오늘은 행사야. 인형탈 매니저.", "아이들한테 풍선 나눠 주고,", "탈이 더워하면 부채질해 줘.", "어른이 풍선 달라면... 주지 마."],
+    e_brief2: ["탈 머리가 벗겨지면...", "무대 보지 마. 돌아서서 기다려."],
+    e_brief3: ["탈이 네 이름을 부르면 대답하지 마.", "...걔가 네 이름을 어떻게 알지?"],
+    hint_take: "Space: 풍선 들기", hint_give: "아이에게 풍선 (Space)", hint_adult: "어른! 거절하기 (Space)", hint_fan: "부채질 (Space)", hint_turn: "돌아서! →", hint_quiet: "대답 금지! 아무것도 하지 마",
+    call: "소라야~", refused: "거절", adultAsk: "풍선 줘", holdBalloon: "풍선 들고 있음", emptyHand: "빈손",
     board_keys: "←→ 고르기 · Space 선택 · Esc 처음으로",
     start: "아무 키나 누르세요", best: n => `최고 기록 · ${n}번째 교대`, lang: "한국어", loading: "출근 준비 중",
     rule_door: "그것이 오면 문을 바라보시오", rule_clock: "03:33에는 움직이지 마시오", rule_regular: "단골은 계산해 주지 마시오", rule_fridge: "03:40 이후 냉장고를 열지 마시오", rule_knock: "철문이 두드리면 창고에서 나가시오", rule_lamp: "가로등 아래 그것을 쳐다보지 마시오", rule_disguise: "그림자 없는 손님은 단골이다",
@@ -152,20 +174,28 @@ const STR = {
   },
   en: {
     board: "DAWN STAFFING · JOB BOARD", act: n => `ACT ${n}`, st_clear: "CLEAR", st_open: "HIRING", st_soon: "SOON", st_locked: "LOCKED",
-    job_store: "STORE", job_delivery: "DELIVERY", job_cinema: "CINEMA", job_cold: "FREEZER", job_office: "AGENCY",
+    job_store: "STORE", job_event: "EVENT", job_delivery: "MILK", job_cinema: "CINEMA", job_trial: "TRIAL", job_site: "SITE", job_park: "PARK",
     jd_store: "Survive three nights and beat the Rat King", jd_soon: "Opens in a future update", jd_locked: "Finish the job before it first",
     jd_keep: "Keep working: next shift at the store", board_clear: "Kwak: Junho? Never heard of him. Let's find your next job.", act_clear: "ACT 1 CLEAR",
-    place2: "Haedal Delivery",
-    jd_delivery: "Deliver for three nights · boss coming soon",
+    place3: "Haedal Milk Run",
+    jd_delivery: "Three dawn milk runs · boss coming soon", jd_event: "Work three event nights · boss coming soon",
     rule_floor4: "Never deliver to the 4th floor", rule_opendoor: "Door opens first? Walk away", rule_elevator: "No elevator after 02:00",
     cause_floor4: "Delivered to 4F", cause_opendoor: "Lingered at the door", cause_elevator: "Took the elevator", cause_wrong: "Knocked on the wrong door",
-    d_intro: ["Delivery tonight. You can ride?", "Haedal Village apartments.", "Leave bags at the flat on the slip.", "4th-floor orders? Don't go.", "Hand those back at the counter."],
+    d_intro: ["Dawn milk run. You can ride?", "Haedal Officetel.", "Leave bags at the flat on the slip.", "4th-floor orders? Don't go.", "Hand those back at the counter."],
     d_brief2: ["If a door opens before you knock...", "Turn around. Come back later."],
     d_brief3: ["After 02:00, stairs only.", "...Every order: the same phone."],
     order: n => `ORDER ${n}`, noOrder: "NO ORDER", dHint: "Move: ←→/tap   Act: Space/↑/tap",
     hint_pick: "Space: take an order", hint_out: "→ Ride", hint_return: "4th floor! Hand it back", hint_f4: "4th floor... don't knock", hint_open: "It opened first! Leave this floor!",
     hint_elev: "Stairs only after 02:00", hint_back: "← Down from floor 1 to ride back", returned: "Returned", wrongFlat: "Wrong flat!", tip: "Tip",
     stairsUp: "▲", stairsDown: "▼", exitOut: "◀ OUT", toHall: "HALL",
+    place2: "Grand Opening", banner: "GRAND OPENING",
+    rule_balloon: "Balloons for kids only", rule_head: "Head off? Don't look at the stage", rule_answer: "If it calls your name, don't answer",
+    cause_balloon: "Balloon to an adult", cause_head: "Saw inside the suit", cause_answer: "Answered its call",
+    e_intro: ["Event work tonight. Mascot handler.", "Hand balloons to the kids,", "fan the suit when it gets hot.", "Grown-up wants a balloon? No."],
+    e_brief2: ["If the mascot's head comes off...", "Don't look. Turn around and wait."],
+    e_brief3: ["If it calls your name, don't answer.", "...How does it know your name?"],
+    hint_take: "Space: grab a balloon", hint_give: "Balloon to the kid (Space)", hint_adult: "Adult! Refuse (Space)", hint_fan: "Fan the suit (Space)", hint_turn: "TURN AWAY! →", hint_quiet: "Don't answer! Do nothing",
+    call: "Sora~", refused: "Refused", adultAsk: "Balloon?", holdBalloon: "BALLOON", emptyHand: "EMPTY",
     board_keys: "←→ pick · Space choose · Esc title",
     start: "PRESS ANY KEY", best: n => `BEST · SHIFT ${n}`, lang: "ENGLISH", loading: "Clocking in",
     rule_door: "When it comes, face the door", rule_clock: "Do not move at 03:33", rule_regular: "Never ring up the Regular", rule_fridge: "Don't open the fridge after 03:40", rule_knock: "If the steel door knocks, leave the stockroom", rule_lamp: "Don't look at what stands under the streetlamp", rule_disguise: "No shadow? It's the Regular",

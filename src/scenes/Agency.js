@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import { W, H, C, txt, soundToggle } from "../ui.js";
-import { S, t, won, newRuleFor, MULT, hourly } from "../state.js";
+import { S, t, won, newRuleFor, MULT, hourly, GIG } from "../state.js";
 import { quotaFor } from "./Shift.js";
 import { dQuotaFor } from "./Delivery.js";
+import { eQuotaFor } from "./Event.js";
+const QUOTA = { 1: quotaFor, 2: eQuotaFor, 3: dQuotaFor };
 import * as snd from "../audio.js";
 
 // Briefing: the manager talks, then hands over tonight's job card.
@@ -23,8 +25,8 @@ export default class Agency extends Phaser.Scene {
     this.newRule = newRuleFor(run.shift);
     const ctx = data?.context || "intro";
     snd.music(ctx === "intro" ? "title" : "office");
-    this.act2 = run.act === 2;
-    const brief = (this.act2 ? { 2: "d_brief2", 3: "d_brief3" } : { 2: "brief2", 3: "brief3", 4: "brief4", 5: "brief5", 6: "brief6", 7: "brief7" })[run.shift] || "same";
+    this.gig = GIG[run.act || 1];
+    const brief = this.gig.briefs[run.shift] || "same";
     this.lines = [...t(ctx === "next" ? brief : ctx)];
     this.face = ctx === "next" && brief !== "same" ? "sly" : ctx === "cont" ? "serious" : "smile";
 
@@ -80,14 +82,14 @@ export default class Agency extends Phaser.Scene {
     snd.sfx("stamp");
     const c = this.add.container(100, -100).setDepth(50);
     c.add(this.add.image(0, 0, "ui_job_card").setOrigin(0));
-    c.add(txt(this, 32, 23, t(this.act2 ? "place2" : "place"), { size: 9, color: C.ink, shadow: false }));
+    c.add(txt(this, 32, 23, t(this.gig.place), { size: 9, color: C.ink, shadow: false }));
     c.add(txt(this, 32, 37, t("wageLine", MULT[S.run.act || 1], hourly(S.run.act || 1)), { size: 9, color: C.ink, shadow: false }));
     c.add(txt(this, 13, 60, t("rule_" + this.newRule), { size: 9, color: C.red2, shadow: false, wrap: 94 }));
     this.card = c;
     this.tweens.add({ targets: c, y: 26, duration: 380, ease: "Back.easeOut" });
     this.l1.setText(t("rulePre") + t("rule_" + this.newRule));
     this.l1.setColor(C.red);
-    this.l2.setText(t("quotaLine", won((this.act2 ? dQuotaFor : quotaFor)(S.run.shift))) + "   [ " + t("go") + " ]"); this.more.setVisible(false);
+    this.l2.setText(t("quotaLine", won(QUOTA[S.run.act || 1](S.run.shift))) + "   [ " + t("go") + " ]"); this.more.setVisible(false);
     this.tweens.add({ targets: this.l2, alpha: 0.3, duration: 400, yoyo: true, repeat: -1 });
     this.guard = this.time.now + 350;
   }
@@ -97,6 +99,6 @@ export default class Agency extends Phaser.Scene {
     this.done = true;
     snd.sfx("start");
     this.cameras.main.fadeOut(250, 20, 16, 26);
-    this.time.delayedCall(280, () => this.scene.start(this.act2 ? "Delivery" : "Shift"));
+    this.time.delayedCall(280, () => this.scene.start(this.gig.scene));
   }
 }

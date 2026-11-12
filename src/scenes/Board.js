@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, soundToggle } from "../ui.js";
-import { S, t, ACTS, actOpen, newRun } from "../state.js";
+import { S, t, ACTS, actOpen, newRun, GIG } from "../state.js";
 import * as snd from "../audio.js";
 
 // The agency's job board: one card per act. Shown from the title once Act 1 is cleared,
 // and right after beating the Rat King (context "clear"), where the store gets stamped.
-const CW = 56, CH = 78, GAP = 4, X0 = (W - (CW * 5 + GAP * 4)) / 2, Y0 = BAR + 26;
+const CW = 42, CH = 78, GAP = 3, X0 = (W - (CW * 7 + GAP * 6)) / 2, Y0 = BAR + 26;
 
 export default class Board extends Phaser.Scene {
   constructor() { super("Board"); }
@@ -62,8 +62,8 @@ export default class Board extends Phaser.Scene {
   /** Small picture for each open job, borrowed from the existing props. */
   icon(key) {
     return {
-      store: ["props_register"], delivery: ["props_box_closed"], cinema: ["props_cctv", "cctv_0"],
-      cold: ["props_wet_floor_sign"], office: ["props_time_clock"],
+      store: ["props_register"], event: ["props_balloon"], delivery: ["props_delivery_bag"], cinema: ["props_cctv", "cctv_0"],
+      trial: ["props_wet_floor_sign"], site: ["props_box_stack"], park: ["props_coin_spin", "coin_0"],
     }[key];
   }
 
@@ -78,7 +78,7 @@ export default class Board extends Phaser.Scene {
     const c = this.cards[i];
     this.tweens.add({ targets: c, y: c.baseY - 3, duration: 380, yoyo: true, repeat: -1, ease: "Stepped", easeParams: [3] });
     const a = c.act;
-    const key = !c.open ? "jd_locked" : !a.built ? "jd_soon" : a.key === "delivery" ? "jd_delivery" : this.ctx === "clear" ? "jd_keep" : "jd_store";
+    const key = !c.open ? "jd_locked" : !a.built ? "jd_soon" : a.n > 1 ? "jd_" + a.key : this.ctx === "clear" ? "jd_keep" : "jd_store";
     this.desc.setText(t(key)).setColor(!c.open ? C.dim : !a.built ? C.orange : C.white);
   }
 
@@ -92,7 +92,7 @@ export default class Board extends Phaser.Scene {
     }
     this.locked = true;
     snd.sfx("start");
-    if (a.key === "delivery") { newRun(2); return this.leave("Agency", { context: "d_intro" }); }
+    if (a.n > 1) { newRun(a.n); return this.leave("Agency", { context: GIG[a.n].intro }); }
     if (this.ctx === "clear") return this.leave("Agency", { context: "next" });
     newRun();
     this.leave("Agency", { context: S.runs > 1 ? "again" : "intro" });

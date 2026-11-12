@@ -37,8 +37,12 @@ export default class Boot extends Phaser.Scene {
     // Act 2 (night delivery)
     [["bg_delivery_hub", "bg/delivery_hub.png"], ["bg_apt_hall", "bg/apt_hall.png"], ["bg_stairwell", "bg/stairwell.png"],
       ["props_moped", "props/moped.png"], ["props_moped_b", "props/moped_b.png"], ["props_delivery_bag", "props/delivery_bag.png"],
-      ["props_apt_door_open", "props/apt_door_open.png"], ["props_elevator_open", "props/elevator_open.png"]]
+      ["props_apt_door_open", "props/apt_door_open.png"], ["props_elevator_open", "props/elevator_open.png"],
+      // Act 2 (night event)
+      ["bg_event_plaza", "bg/event_plaza.png"], ["props_balloon", "props/balloon.png"], ["props_balloon_b", "props/balloon_b.png"], ["props_water", "props/water.png"]]
       .forEach(([k, f]) => this.load.image(k, f));
+    this.load.atlas("props_mascot", "props/mascot.png", "props/mascot.json");
+    this.load.atlas("props_kid", "props/kid.png", "props/kid.json");
   }
 
   create() {
