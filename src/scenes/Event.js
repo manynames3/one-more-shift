@@ -173,11 +173,11 @@ export default class Event extends Phaser.Scene {
       const tx = SLOTS[i], s = g.spr;
       if (Math.abs(s.x - tx) > 1) {
         s.x += Math.sign(tx - s.x) * Math.min(Math.abs(tx - s.x), 40 * dt);
-        if (g.kid) s.setFrame("left_walk_" + (Math.floor(this.time.now / 140) % 4)); else s.play(g.key + "_left_walk", true);
+        if (g.key === "props_kid") s.setFrame("left_walk_" + (Math.floor(this.time.now / 140) % 4)); else s.play(g.key + "_left_walk", true);
         g.atSlot = false;
       } else {
         s.x = tx; g.atSlot = true;
-        if (g.kid) s.setFrame("down_idle_" + (Math.floor(this.time.now / 500) % 2)); else s.play(g.key + "_down_idle", true);
+        if (g.key === "props_kid") s.setFrame("down_idle_" + (Math.floor(this.time.now / 500) % 2)); else s.play(g.key + "_down_idle", true);
       }
       s.setDepth(90 + i * 0.1); g.sh.setPosition(s.x, FY - 1).setDepth(89);
       const isFront = i === 0 && g.atSlot;

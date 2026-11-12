@@ -12,6 +12,7 @@ export default class Board extends Phaser.Scene {
 
   create(data) {
     this.ctx = data?.context || "title";
+    this.clearedAct = data?.act || 1;
     this.cameras.main.fadeIn(250, 20, 16, 26);
     snd.ambience(false); snd.music("office");
     this.add.image(0, 0, "bg_street_night").setOrigin(0);
@@ -78,7 +79,7 @@ export default class Board extends Phaser.Scene {
     const c = this.cards[i];
     this.tweens.add({ targets: c, y: c.baseY - 3, duration: 380, yoyo: true, repeat: -1, ease: "Stepped", easeParams: [3] });
     const a = c.act;
-    const key = !c.open ? "jd_locked" : !a.built ? "jd_soon" : a.n > 1 ? "jd_" + a.key : this.ctx === "clear" ? "jd_keep" : "jd_store";
+    const key = !c.open ? "jd_locked" : !a.built ? "jd_soon" : a.n > 1 ? "jd_" + a.key : this.ctx === "clear" && this.clearedAct === 1 ? "jd_keep" : "jd_store";
     this.desc.setText(t(key)).setColor(!c.open ? C.dim : !a.built ? C.orange : C.white);
   }
 
@@ -92,8 +93,9 @@ export default class Board extends Phaser.Scene {
     }
     this.locked = true;
     snd.sfx("start");
+    // the job you just finished: keep working it (endless nights, same run)
+    if (this.ctx === "clear" && a.n === this.clearedAct) return this.leave("Agency", { context: "next" });
     if (a.n > 1) { newRun(a.n); return this.leave("Agency", { context: GIG[a.n].intro }); }
-    if (this.ctx === "clear") return this.leave("Agency", { context: "next" });
     newRun();
     this.leave("Agency", { context: S.runs > 1 ? "again" : "intro" });
   }
@@ -106,19 +108,20 @@ export default class Board extends Phaser.Scene {
 
   /** Just beat the Rat King: the manager dodges the question, the store gets stamped, Act 2 opens. */
   playClear() {
-    const store = this.cards[0], next = this.cards[1];
-    next.setAlpha(0.35);
-    const say = txt(this, W / 2, BAR + 8, t("board_clear"), { ox: 0.5, size: 9, color: C.white });
+    const n = this.clearedAct, store = this.cards[n - 1], next = this.cards[n];
+    this.pick(n, true);
+    if (next) next.setAlpha(0.35);
+    const say = txt(this, W / 2, BAR + 8, t(n === 1 ? "board_clear" : "board_clear2"), { ox: 0.5, size: 9, color: C.white });
     say.setBackgroundColor("#14101a").setPadding(3, 1, 3, 1);
     this.time.delayedCall(900, () => {
-      const s = txt(this, store.x + CW / 2, store.y + 30, t("act_clear"), { ox: 0.5, size: 9, color: C.green, depth: 20 });
+      const s = txt(this, store.x + CW / 2, store.y + 30, t("st_clear"), { ox: 0.5, size: 9, color: C.green, depth: 20 });
       s.setBackgroundColor("#14101a").setPadding(2, 1, 2, 1).setScale(2).setAlpha(0);
       this.tweens.add({ targets: s, scale: 1, alpha: 1, duration: 180, ease: "Quad.easeIn" });
       snd.sfx("stamp"); this.cameras.main.shake(120, 0.006);
     });
     this.time.delayedCall(1800, () => {
       snd.sfx("ui");
-      this.tweens.add({ targets: next, alpha: 1, duration: 300 });
+      if (next) this.tweens.add({ targets: next, alpha: 1, duration: 300 });
       this.locked = false;
     });
   }

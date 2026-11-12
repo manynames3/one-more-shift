@@ -705,7 +705,7 @@ export default class Shift extends Phaser.Scene {
     if (actDone) clearAct(1, this.run);
     this.time.delayedCall(2100, () => this.cameras.main.fadeOut(300, 20, 16, 26));
     this.time.delayedCall(2450, () => win ? this.scene.start("Result", { cause: "win" })
-      : actDone ? this.scene.start("Board", { context: "clear" }) : this.scene.start("Agency", { context: "next" }));
+      : actDone ? this.scene.start("Board", { context: "clear", act: 1 }) : this.scene.start("Agency", { context: "next" }));
   }
 
   dailyDone() {

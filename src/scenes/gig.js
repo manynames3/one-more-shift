@@ -3,7 +3,7 @@
 // clockHot() (clock turns orange) and tickSlip() (update the top-left slip).
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, soundToggle } from "../ui.js";
-import { S, t, won, START_DEBT, recordBest, markSeen, hourly } from "../state.js";
+import { S, t, won, START_DEBT, recordBest, markSeen, hourly, clearAct } from "../state.js";
 import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
 
@@ -135,7 +135,11 @@ export const GigMixin = {
     b.setAlpha(0); this.tweens.add({ targets: b, alpha: 1, delay: 300, duration: 200 });
     this.p.setVisible(true); this.p.anims.stop(); this.p.setFrame("face_smile");
     const win = this.run.debt <= 0;
+    // until this gig's boss is built, surviving its third night clears the act
+    const act = this.run.act, actDone = this.run.shift === 4 && !S.acts[act];
+    if (actDone) clearAct(act, this.run);
     this.time.delayedCall(2100, () => this.cameras.main.fadeOut(300, 20, 16, 26));
-    this.time.delayedCall(2450, () => win ? this.scene.start("Result", { cause: "win" }) : this.scene.start("Agency", { context: "next" }));
+    this.time.delayedCall(2450, () => win ? this.scene.start("Result", { cause: "win" })
+      : actDone ? this.scene.start("Board", { context: "clear", act }) : this.scene.start("Agency", { context: "next" }));
   },
 };
