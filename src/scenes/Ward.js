@@ -61,6 +61,7 @@ export default class Ward extends Phaser.Scene {
 
     this.buildHud();
     this.initNote(220);
+    if (this.run.shift === 1) this.time.delayedCall(2900, () => { if (!this.over) this.caption(t("how5"), 5); });
     this.bindInput();
     startReplay(this.game);
     snd.music("ward"); snd.ambience(false);

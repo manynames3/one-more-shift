@@ -71,6 +71,7 @@ export default class Delivery extends Phaser.Scene {
 
     this.buildHud();
     this.initNote(40, "stairs");
+    if (this.run.shift === 1) this.time.delayedCall(2900, () => { if (!this.over) this.caption(t("how3"), 5); });
     this.bindInput();
     this.enter("hub", HUB.arrive - 40);
     startReplay(this.game);

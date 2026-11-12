@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, C, txt, soundToggle } from "../ui.js";
-import { S, t, saveSettings, newRun, newDailyRun, today, dailyRecord } from "../state.js";
+import { S, t, saveSettings, newRun, newDailyRun, today, dailyRecord, notesFound } from "../state.js";
 import * as snd from "../audio.js";
 import { setActionLabel } from "../touchpad.js";
 
@@ -17,6 +17,9 @@ export default class Title extends Phaser.Scene {
     this.tweens.add({ targets: this.prompt, alpha: 0.15, duration: 520, yoyo: true, repeat: -1, ease: "Stepped", easeParams: [2] });
 
     if (S.best > 0) txt(this, W / 2, 6, t("best", S.best + 1), { ox: 0.5, size: 9, color: C.yellow });
+    // story progress, once there is any
+    const ends = Object.keys(S.endings || {}).length, notes = notesFound();
+    if (ends || notes) txt(this, W - 6, 6, t("progress", ends, notes), { ox: 1, size: 9, color: C.grey });
 
     this.lang = txt(this, 6, H - 16, "", { size: 9, color: C.grey }).setInteractive({ useHandCursor: true });
     this.lang.on("pointerdown", (p, x, y, ev) => { ev.stopPropagation(); this.flipLang(); });

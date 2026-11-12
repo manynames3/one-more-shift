@@ -2,7 +2,7 @@
 
 **A 16-bit horror game you can play in a browser tab in under 10 seconds. No install, no login, no backend.**
 
-You take a night shift at a convenience store. Every shift adds one strange rule. Break a rule and you never clock out.
+You owe ₩40,000,000 and a night-shift agency has work for you: seven gigs, from a convenience store to a shut-down amusement park. Every night adds one strange rule. Break a rule and you never clock out.
 
 **▶ Play it: [one-more-shift.pages.dev](https://one-more-shift.pages.dev)**
 
@@ -19,11 +19,11 @@ that is playable within one tap, readable on a phone, and gives the player somet
 
 | | |
 |---|---|
-| **Game** | Title, briefing, store shift, pay-stub result. Three rules that stack one per shift. |
+| **Game** | Seven gigs in a row (store, night event, dawn milk run, cinema, clinical trial, construction site, amusement park), 21 rules, a boss with two phases at the end of each gig, a story told in portrait scenes, three endings and six hidden notes. |
 | **Art** | 121 original pixel-art assets, all generated from code on a single locked 45-colour palette. |
 | **Audio** | Music and 13 sound effects synthesized in the browser. Zero audio files. |
 | **Languages** | Korean and English, switchable in game. |
-| **Input** | Keyboard, mouse and touch from the same code path. |
+| **Input** | Keyboard, mouse and touch from the same code path, plus an on-screen d-pad whose action button names what it will do. |
 | **Sharing** | The end-of-run pay stub renders to a 720×960 PNG; a death also shares a 4-second GIF replay of the scare, recorded from the canvas and encoded in the browser. |
 | **Hosting** | Static site on Cloudflare Pages. Every push to `main` deploys. |
 
@@ -57,13 +57,24 @@ you first; after a lunge it's dazed, and that's the only time the mop hurts it. 
 and you finish the shift with hazard pay.
 
 Every shift has a pay quota, so you can't hide at the register. Miss it or collect three customer complaints and you're
-fired. Clear the ₩1,000,000 debt to win.
+fired.
 
 Each new rule gets a one-time on-screen hint until you survive it once. Die and you can continue from the same shift
 twice per run, for a cleanup fee added to your debt.
 
-Every shift has a pay quota, so you can't hide at the register: the side jobs and dropped coins are where the money is.
-Miss the quota or collect three customer complaints and you're fired. Clear the ₩700,000 debt to win.
+**Then six more gigs, in the order the show's jobs come.** Each runs three nights with one new rule a night, one
+skill check of its own and a two-phase boss on night three:
+
+| Gig | Pay | Its own skill check | Boss |
+|---|---|---|---|
+| Night event, mascot handler | 75× minimum wage | fill balloons from the helium tank | the empty suit: tie five balloons on it while it's dazed |
+| Dawn milk run | 200× | hop road cones on the moped | the Resident: a chase up a scissor stairwell, read the flickering bulb |
+| Cinema | 100× | thread the reel on the beat | the Usher: it only exists in the projector beam |
+| Clinical trial | 150× | hold still for the needle | subject 3 at the door: move only while its back is turned |
+| Construction site | 500× | set the brick stack square | the Foreman: lure him under the crane hook |
+| Amusement park | the rest of the debt | every kind of rule at once | 곽 실장's offer: sign, refuse and survive him, or hand over the six notes |
+
+Your debt and earnings carry from gig to gig, and each gig's clue points at 준호, the brother who never clocked out.
 
 **Balance is tested with bots.** A bot that never leaves the register used to win every run; now it misses the quota by
 shift 2–3, while a bot that serves first and does side jobs when the till is clear survives. Bot testing also surfaced
@@ -89,13 +100,14 @@ npm run dev      # http://localhost:5173
 npm run build    # static site in dist/
 ```
 
-Controls: arrow keys or WASD to move, Space to work. On touch, tap the floor to walk and tap a customer, shelf or
-fridge to work. `L` switches language, `M` mutes.
+Controls: arrow keys or WASD to move, Space to work. On touch, use the on-screen d-pad and action button, or tap
+where to go. `L` switches language, `M` mutes.
 
 ## Project layout
 
 ```
-src/scenes/     Boot, Title, Agency (briefing), Shift (the game), Result (pay stub)
+src/scenes/     Boot, Title, Board (job board), Agency (briefing), Shift (the store), Event, Delivery, Cinema,
+                Ward, Site, Park (the other gigs), gig.js (shared HUD, dialogue, skill checks), Result, Ending
 src/state.js    run state and translations
 src/audio.js    WebAudio music and effects
 src/share.js    pay-stub PNG renderer
@@ -111,9 +123,9 @@ Cloudflare Pages: build command `npm run build`, output directory `dist`.
 
 ## What's next
 
+- Hand playtests on phones to tune each gig's pay target.
 - A unique death animation per rule.
 - Launch posts for Korean and English communities.
-- A second workplace.
 
 ## Credits
 

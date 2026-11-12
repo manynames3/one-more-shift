@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, BAR, C, txt, soundToggle } from "../ui.js";
-import { S, t, ACTS, actOpen, newRun, GIG } from "../state.js";
+import { S, t, ACTS, actOpen, newRun, GIG, savedRun } from "../state.js";
 import * as snd from "../audio.js";
 import { setActionLabel } from "../touchpad.js";
 
@@ -57,6 +57,8 @@ export default class Board extends Phaser.Scene {
     const tag = txt(this, CW / 2, CH - 14, t(st), { ox: 0.5, size: 9, shadow: false,
       color: { st_clear: C.green, st_open: C.yellow, st_soon: C.orange, st_locked: C.dim }[st] });
     c.add(tag);
+    // the Regular's note for this act, once found
+    if (S.notes[a.n]) c.add(this.add.image(CW - 7, 7, "props_note"));
     c.frame = frame; c.tag = tag; c.act = a; c.open = open; c.baseY = y;
     frame.setInteractive({ useHandCursor: true }).on("pointerdown", () => { snd.init(); this.sel === i ? this.choose() : this.pick(i); });
     return c;
@@ -82,7 +84,9 @@ export default class Board extends Phaser.Scene {
     this.tweens.add({ targets: c, y: c.baseY - 3, duration: 380, yoyo: true, repeat: -1, ease: "Stepped", easeParams: [3] });
     const a = c.act;
     const key = !c.open ? "jd_locked" : !a.built ? "jd_soon" : a.n > 1 ? "jd_" + a.key : this.ctx === "clear" && this.clearedAct === 1 ? "jd_keep" : "jd_store";
-    this.desc.setText(t(key)).setColor(!c.open ? C.dim : !a.built ? C.orange : C.white);
+    const sv = savedRun();
+    const resume = c.open && a.built && this.ctx !== "clear" && sv && sv.act === a.n && sv.shift > 1 && !S.acts[a.n];
+    this.desc.setText(resume ? t("jd_resume", sv.shift) : t(key)).setColor(!c.open ? C.dim : !a.built ? C.orange : C.white);
   }
 
   choose() {
@@ -97,6 +101,11 @@ export default class Board extends Phaser.Scene {
     snd.sfx("start");
     // the job you just finished: keep working it (endless nights, same run)
     if (this.ctx === "clear" && a.n === this.clearedAct) return this.leave("Agency", { context: "next" });
+    // a run of this job left mid-way (tab closed between nights): pick it up where it stopped
+    const saved = savedRun();
+    if (this.ctx !== "clear" && saved && saved.act === a.n && saved.shift > 1 && !S.acts[a.n]) {
+      S.run = saved; return this.leave("Agency", { context: "resume" });
+    }
     if (a.n > 1) { newRun(a.n); return this.leave("Agency", { context: GIG[a.n].intro }); }
     newRun();
     this.leave("Agency", { context: S.runs > 1 ? "again" : "intro" });

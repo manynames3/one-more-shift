@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { W, H, C, txt, soundToggle } from "../ui.js";
-import { S, t, won, newRuleFor, MULT, hourly, GIG } from "../state.js";
+import { S, t, won, newRuleFor, MULT, hourly, GIG, saveRun } from "../state.js";
 import { quotaFor } from "./Shift.js";
 import { dQuotaFor } from "./Delivery.js";
 import { eQuotaFor } from "./Event.js";
@@ -18,6 +18,7 @@ export default class Agency extends Phaser.Scene {
   create(data) {
     setActionLabel("");
     const run = S.run;
+    saveRun(run);
     this.cameras.main.fadeIn(250, 20, 16, 26);
     snd.ambience(false);
     this.add.image(0, 0, "bg_agency_office").setOrigin(0);

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { W, H, BAR, C, txt, onAdvance } from "../ui.js";
+import { W, H, BAR, C, txt, onAdvance, button } from "../ui.js";
 import { S, t, won, clearAct, saveEnding } from "../state.js";
 import * as snd from "../audio.js";
 import { setActionLabel } from "../touchpad.js";
@@ -15,7 +15,7 @@ export default class Ending extends Phaser.Scene {
 
   create(data) {
     setActionLabel("");
-    const key = data?.ending || "walk";
+    const key = this.key = data?.ending || "walk";
     const run = S.run;
     if (key === "sign" && run) { run.earned += run.debt; run.debt = 0; }
     if (run) clearAct(7, run);
@@ -53,7 +53,16 @@ export default class Ending extends Phaser.Scene {
     const roll = this.add.container(0, H).setDepth(21);
     t("credits").forEach((s, i) => roll.add(txt(this, W / 2, i * 16, s, { ox: 0.5, size: i === 0 ? 11 : 9, color: i === 0 ? C.yellow : C.white })));
     this.tweens.add({ targets: roll, y: BAR + 10, duration: 7000, ease: "Linear" });
+    // share which ending you got
+    this.time.delayedCall(1500, () => button(this, W / 2, H - BAR - 14, "ui_btn_secondary", t("share"), () => this.share(), 30));
     this.time.delayedCall(9000, () => this.toTitle());
+  }
+
+  async share() {
+    this.guard = this.time.now + 600;
+    const text = t("endShare", t("end_" + this.key)) + "\nhttps://one-more-shift.pages.dev";
+    try { if (navigator.share) return await navigator.share({ text }); } catch { /* cancelled */ }
+    try { await navigator.clipboard.writeText(text); } catch { /* no clipboard */ }
   }
 
   toTitle() {

@@ -67,6 +67,7 @@ export default class Cinema extends Phaser.Scene {
 
     this.buildHud();
     this.initNote(200, "lobby");
+    if (this.run.shift === 1) this.time.delayedCall(2900, () => { if (!this.over) this.caption(t("how4"), 5); });
     this.bindInput();
     this.enter("lobby", LOBBY.window);
     startReplay(this.game);

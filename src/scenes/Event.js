@@ -68,6 +68,7 @@ export default class Event extends Phaser.Scene {
 
     this.buildHud();
     this.initNote(120);
+    if (this.run.shift === 1) this.time.delayedCall(2900, () => { if (!this.over) this.caption(t("how2"), 5); });
     this.bindInput();
     startReplay(this.game);
     snd.music("event"); snd.ambience(false);
@@ -202,7 +203,12 @@ export default class Event extends Phaser.Scene {
       const isFront = i === 0 && g.atSlot;
       g.ask.setVisible(isFront).setPosition(s.x, s.y - (g.kid ? 38 : 52));
       if (isFront) {
-        if (!g.kid) this.hint("adult", FRONT, 52);
+        if (!g.kid) {
+          this.hint("adult", FRONT, 52);
+          // a grown-up who gets no answer gives up after a while (no complaint), so a held balloon never jams the queue
+          g.wait += dt;
+          if (g.wait > 7) { this.unhint("adult"); this.leaveQueue(g, false); snd.sfx("grumble"); return; }
+        }
         else if (this.carry) this.hint("give", FRONT, 52);
         // kids only wait so long at the front
         if (g.kid) {

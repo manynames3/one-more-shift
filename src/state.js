@@ -56,6 +56,10 @@ export const ACTS = [
   { n: 6, key: "site", built: true },
   { n: 7, key: "park", built: true },
 ];
+/** The run in progress, saved at each briefing so closing the tab mid-act doesn't lose the nights. */
+export function saveRun(run) { if (run && !run.daily) store.set("oms.run", run); }
+export const savedRun = () => store.get("oms.run", null);
+
 export function saveNote(act) { S.notes[act] = true; store.set("oms.notes", S.notes); }
 export const notesFound = () => [1, 2, 3, 4, 5, 6].filter(n => S.notes[n]).length;
 export function saveEnding(k) { S.endings[k] = true; store.set("oms.endings", S.endings); }
@@ -203,6 +207,15 @@ const STR = {
     pad_hold: "꾹", pad_tap: "탁", pad_hop: "점프", pad_boss: "!", pad_counter: "주문", pad_exit: "출발", pad_elev: "승강기", pad_door: "노크", pad_stair: "계단", pad_hall: "복도",
     pad_cart: "풍선", pad_stage: "부채", pad_front: "건네기", pad_window: "매표", pad_hall3: "3관", pad_booth: "영사실", pad_down: "아래로", pad_proj: "필름", pad_trash: "줍기",
     pad_hatch: "약", pad_bed: "침대", pad_pile: "벽돌", pad_board: "점호", pad_hoist: "싣기", pad_junho: "준호",
+    how2: "만두군 행사: 카트에서 풍선 채우기 → 줄 선 아이에게. 탈이 더워하면 무대에서 부채질.",
+    how3: "새벽 배달: 허브에서 주문 → 오토바이 → 계단이나 엘리베이터로 그 층 → 문 앞에서 노크.",
+    how4: "극장: 매표소에서 표 팔기, 상영 끝나면 3관 청소, 필름이 끝나면 오른쪽 계단 위 영사실.",
+    how5: "임상시험: 왼쪽 창구에서 약, 침대에서 일지, 간호사가 오면 침대에서 채혈.",
+    how6: "공사장: 왼쪽에서 벽돌 들고 → 오른쪽 호이스트에 싣기. 초록에 맞춰 내려놓기.",
+    progress: (e, n) => `엔딩 ${e}/3 · 쪽지 ${n}/6`,
+    resume: ["다시 왔네. 어제 하던 거 이어서 하자."],
+    jd_resume: n => `이어서 하기: ${n}번째 밤`,
+    endShare: e => `한 번만 더 · ${e}에 도착했다.`,
     who_sora: "소라", who_kwak: "곽 실장", who_junho: "준호", who_regular: "단골",
     talk_suit: [["sora", "scared", "...떨어진 탈 머리 안쪽에 뭐가 붙어 있다."], ["sora", "neutral", "세탁표. '담당 준호'. ...오빠 이름이다."]],
     talk_phone: [["sora", "scared", "오빠 폴더폰이다. 2년 전에 잃어버렸다던."], ["sora", "tired", "주문 47건... 전부 이 폰에서 들어왔어."], ["junho", "sad", "(음성 메시지) 소라야. 이 번호로 오는 일은 받지 마."]],
@@ -333,6 +346,15 @@ const STR = {
     pad_hold: "HOLD", pad_tap: "TAP", pad_hop: "HOP", pad_boss: "!", pad_counter: "ORDER", pad_exit: "RIDE", pad_elev: "LIFT", pad_door: "KNOCK", pad_stair: "STAIRS", pad_hall: "HALL",
     pad_cart: "PUMP", pad_stage: "FAN", pad_front: "GIVE", pad_window: "SELL", pad_hall3: "HALL 3", pad_booth: "BOOTH", pad_down: "DOWN", pad_proj: "REEL", pad_trash: "CLEAN",
     pad_hatch: "PILL", pad_bed: "BED", pad_pile: "BRICKS", pad_board: "FLIP", pad_hoist: "LOAD", pad_junho: "JUNHO",
+    how2: "The event: fill a balloon at the cart, hand it to a kid in line. Fan the suit on stage when it's hot.",
+    how3: "Milk run: take an order at the hub, ride over, stairs or lift to the floor, knock at the flat.",
+    how4: "Cinema: sell tickets at the window, clean Hall 3 after each film, change the reel up the stairs.",
+    how5: "Trial: pills at the hatch (left), diary at your bed, blood draw at your bed when the nurse comes.",
+    how6: "Site: bricks from the pile (left) to the hoist (right). Set them down in the green.",
+    progress: (e, n) => `ENDINGS ${e}/3 · NOTES ${n}/6`,
+    resume: ["You're back. Let's pick up where you left off."],
+    jd_resume: n => `Continue: night ${n}`,
+    endShare: e => `ONE MORE SHIFT · I reached ${e}.`,
     who_sora: "SORA", who_kwak: "KWAK", who_junho: "JUNHO", who_regular: "THE REGULAR",
     talk_suit: [["sora", "scared", "...Something's stuck inside the fallen head."], ["sora", "neutral", "A laundry tag. 'Handled by JUNHO.' ...My brother's name."]],
     talk_phone: [["sora", "scared", "Junho's flip phone. The one he 'lost' two years ago."], ["sora", "tired", "Forty-seven orders... all from this phone."], ["junho", "sad", "(voicemail) Sora. If a job comes from this number, don't take it."]],

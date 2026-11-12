@@ -59,6 +59,7 @@ export default class Site extends Phaser.Scene {
 
     this.buildHud();
     this.initNote(230);
+    if (this.run.shift === 1) this.time.delayedCall(2900, () => { if (!this.over) this.caption(t("how6"), 5); });
     this.bindInput();
     startReplay(this.game);
     snd.music("site"); snd.ambience(true);
