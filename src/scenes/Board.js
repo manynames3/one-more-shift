@@ -63,7 +63,7 @@ export default class Board extends Phaser.Scene {
   /** Small picture for each open job, borrowed from the existing props. */
   icon(key) {
     return {
-      store: ["props_register"], event: ["props_balloon"], delivery: ["props_delivery_bag"], cinema: ["props_cctv", "cctv_0"],
+      store: ["props_register"], event: ["props_balloon"], delivery: ["props_milk_carrier"], cinema: ["props_cctv", "cctv_0"],
       trial: ["props_wet_floor_sign"], site: ["props_box_stack"], park: ["props_coin_spin", "coin_0"],
     }[key];
   }

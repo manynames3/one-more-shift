@@ -4,6 +4,7 @@ import { S, t, won, recordBest, erulesFor } from "../state.js";
 import * as snd from "../audio.js";
 import { startReplay, endReplay } from "../replay.js";
 import { GigMixin } from "./gig.js";
+import { SuitMixin, SUIT_NIGHT, SUIT_MIN } from "./suit.js";
 
 // Act 2: the night event. A grand opening in a shut mall at midnight; Sora handles the mascot.
 // Side view, one screen: the stage (left), the balloon cart (middle), the guest queue (right).
@@ -95,6 +96,7 @@ export default class Event extends Phaser.Scene {
 
   act() {
     if (this.over || this.busy || this.working) return;
+    if (this.bossActive() && this.tryTie()) return;
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
     if (s) this.use(s[2]);
   }
@@ -109,6 +111,11 @@ export default class Event extends Phaser.Scene {
 
   use(what) {
     this.intent = null; this.target = null;
+    if (this.bossActive()) {
+      if (this.tryTie()) return;
+      if (what === "cart" && !this.carry) { this.carry = true; snd.sfx("work"); }
+      return;
+    }
     // night 3: while it's calling, doing anything at all counts as answering
     if (this.call.on) return this.fail("answer");
     if (what === "cart") {
@@ -255,6 +262,7 @@ export default class Event extends Phaser.Scene {
 
   // ---- HUD bits used by the shared HUD -------------------------------------------
   hotRule() {
+    if (this.boss) return "boss2";
     if (this.head.off) return "head";
     if (this.call.on) return "answer";
     const g = this.front();
@@ -315,8 +323,9 @@ export default class Event extends Phaser.Scene {
     const p = this.p;
     p.play(P + "_scared");
     // the empty suit steps off the stage and stands over her
-    const m = this.mascot;
-    m.setFrame("headoff_1").setDepth(101);
+    const m = this.boss?.spr?.visible ? this.boss.spr : this.mascot;
+    if (m === this.mascot) m.setFrame("headoff_1");
+    m.setDepth(101);
     this.tweens.add({ targets: m, x: p.x - (this.face === "left" ? 18 : -18), y: FY + 2, scale: 1.25, duration: 500, ease: "Quad.easeIn" });
     this.cameras.main.shake(450, 0.012);
     this.time.delayedCall(1700, () => this.cameras.main.fadeOut(300, 20, 16, 26));
@@ -327,8 +336,16 @@ export default class Event extends Phaser.Scene {
     for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
     if (this.over) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
+    if (this.bossActive() || this.bossDone) {
+      this.tickPlayer(dt);
+      if (this.over) return;
+      if (this.bossActive()) this.tickBoss(dt);
+      if (this.over) return;
+      return this.tickHud(dt);
+    }
     this.minT += dt;
     while (this.minT >= MINLEN) { this.minT -= MINLEN; this.min++; if (this.min >= 60) return this.clockOut(); }
+    if (this.run.shift === SUIT_NIGHT && this.min >= SUIT_MIN && !this.boss) return this.startBoss();
     this.tickPlayer(dt);
     if (this.over) return;
     this.tickMascot(dt);
@@ -339,4 +356,4 @@ export default class Event extends Phaser.Scene {
   }
 }
 
-Object.assign(Event.prototype, GigMixin);
+Object.assign(Event.prototype, GigMixin, SuitMixin);

@@ -8,6 +8,14 @@ import * as snd from "../audio.js";
 import { cancelReplay } from "../replay.js";
 
 export const GigMixin = {
+  /** A line of story text across the top of the play area. */
+  caption(line, secs = 4) {
+    const c = txt(this, W / 2, 40, line, { ox: 0.5, size: 9, color: C.white, depth: 960, wrap: W - 40 });
+    c.setBackgroundColor("#14101a").setPadding(4, 2, 4, 2);
+    this.tweens.add({ targets: c, alpha: 0, delay: secs * 1000, duration: 500, onComplete: () => c.destroy() });
+    return c;
+  },
+
   hint(key, x, y) {
     const pre = this.hintPre || "";
     if (S.seen[pre + key] || this.hints[key]) return;
@@ -80,7 +88,7 @@ export const GigMixin = {
     }
     this.ruleTxt.setAlpha(hot && !on ? 0.35 : 1);
     const m = Math.min(this.min, 60), tot = this.clockBase + m;
-    this.hudClock.setText(`0${Math.floor(tot / 60)}:${String(tot % 60).padStart(2, "0")}`)
+    this.hudClock.setText(`${String(Math.floor(tot / 60) % 24).padStart(2, "0")}:${String(tot % 60).padStart(2, "0")}`)
       .setColor(this.clockHot?.() ? C.orange : C.white);
     this.tickSlip?.();
   },
@@ -92,6 +100,7 @@ export const GigMixin = {
   },
 
   freeze() {
+    this.endBossFx?.();
     this.over = true; this.busy = true;
     snd.music("off"); snd.ambience(false);
     this.workBar.clear(); this.clearHints(); this.flick.setAlpha(0);
@@ -120,7 +129,7 @@ export const GigMixin = {
 
   clockOut() {
     if (this.over) return;
-    if (this.pay < this.quota) return this.fired("quota");
+    if (this.pay < this.quota && !this.bossDone) return this.fired("quota");
     markSeen([...this.hintsShown]);
     cancelReplay();
     this.freeze();

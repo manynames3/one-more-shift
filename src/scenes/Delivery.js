@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { W, H, BAR, C, txt, rand, pick, soundToggle } from "../ui.js";
 import { S, t, won, recordBest, drulesFor } from "../state.js";
 import { GigMixin } from "./gig.js";
+import { ResidentMixin, CHASE_NIGHT, CHASE_MIN } from "./resident.js";
 import * as snd from "../audio.js";
 import { startReplay, endReplay } from "../replay.js";
 
@@ -45,9 +46,9 @@ export default class Delivery extends Phaser.Scene {
     if (window.__speed) { this.tweens.timeScale = window.__speed; this.time.timeScale = window.__speed; }
 
     // world: one background swapped per place, plus overlays
-    this.bg = this.add.image(0, 0, "bg_delivery_hub").setOrigin(0);
+    this.bg = this.add.image(0, 0, "bg_milk_depot").setOrigin(0);
     this.elevOpen = this.add.image(18, 86, "props_elevator_open").setOrigin(0).setDepth(2).setVisible(false);
-    this.doorOpen = this.add.image(0, 92, "props_apt_door_open").setOrigin(0).setDepth(2).setVisible(false);
+    this.doorOpen = this.add.image(0, 92, "props_officetel_door_open").setOrigin(0).setDepth(2).setVisible(false);
     this.floorTxt = txt(this, 38, 71, "", { ox: 0.5, size: 9, color: C.red, shadow: false, depth: 3 });
     this.plates = HALL.doors.map(x => txt(this, x, 79, "", { ox: 0.5, size: 9, color: C.ink, shadow: false, depth: 3 })
       .setBackgroundColor("#dcd7e0").setPadding(2, 0, 2, 0));
@@ -65,7 +66,7 @@ export default class Delivery extends Phaser.Scene {
     // player and the bag she carries
     this.sh = this.add.image(0, FY - 1, "props_shadow_blob").setAlpha(0.6).setDepth(99);
     this.p = this.add.sprite(HUB.arrive - 40, FY, P, "right_walk_0").setOrigin(0.5, FEET).setDepth(100);
-    this.bag = this.add.image(0, 0, "props_delivery_bag").setDepth(101).setVisible(false);
+    this.bag = this.add.image(0, 0, "props_milk_carrier").setDepth(101).setVisible(false);
     this.workBar = this.add.graphics().setDepth(620);
 
     this.buildHud();
@@ -99,11 +100,11 @@ export default class Delivery extends Phaser.Scene {
     this.p.setVisible(true); this.p.x = x;
     const f4 = this.floor === 4;
     if (place === "hub") {
-      this.bg.setTexture("bg_delivery_hub");
+      this.bg.setTexture("bg_milk_depot");
       this.navR.setText(t("hint_out").slice(0, 1));
       if (!this.order) this.hint("pick", HUB.counter, 92);
     } else if (place === "hall") {
-      this.bg.setTexture("bg_apt_hall");
+      this.bg.setTexture("bg_officetel_hall");
       this.floorTxt.setText(String(this.floor));
       HALL.doors.forEach((dx, i) => this.plates[i].setText(`${this.floor}0${i + 1}`).setVisible(true));
       if (f4) { this.bg.setTint(0xd9a0a0); this.dim.setAlpha(0.18); this.hint("f4", 170, 60); }
@@ -190,12 +191,16 @@ export default class Delivery extends Phaser.Scene {
   /** Do whatever is within reach. */
   act() {
     if (this.over || this.busy || this.working || this.place === "ride") return;
+    if (this.place === "roof") { this.pickPhone(); return; }
+    if (this.boss) return;
     const s = this.spots().find(([x, r]) => Math.abs(this.p.x - x) <= r);
     if (s) this.use(s[2]);
   }
 
   tap(x, y) {
     if (this.over || this.busy || this.place === "ride" || y < BAR || y > H - BAR) return;
+    if (this.place === "chase") { this.target = x < W / 2 ? 0 : W; this.intent = null; return; }
+    if (this.place === "roof") { this.target = Phaser.Math.Clamp(x, 12, W - 12); this.intent = Math.abs(x - 250) < 24 ? "phone" : null; return; }
     if (this.working) this.cancelWork();
     // tapping an edge of the stairwell means "take the stairs"
     if (this.place === "stairs" && x > 280) { this.target = W + 10; this.intent = null; return; }
@@ -207,6 +212,7 @@ export default class Delivery extends Phaser.Scene {
 
   use(what) {
     this.intent = null; this.target = null;
+    if (what === "phone") return this.pickPhone();
     if (what === "counter") return this.counter();
     if (what === "exit") return this.ride(true);
     if (what === "elev") return this.elevator();
@@ -296,6 +302,7 @@ export default class Delivery extends Phaser.Scene {
   // ---- HUD -----------------------------------------------------------------------
 
   hotRule() {
+    if (this.boss) return "boss3";
     if (this.opened && this.place === "hall" && this.order?.trap) return "opendoor";
     if (this.place === "hall" && this.floor === 4) return "floor4";
     if (this.order?.floor === 4) return "floor4";
@@ -412,8 +419,16 @@ export default class Delivery extends Phaser.Scene {
     for (const o of this.children.list) if (o.depth >= 640 && o.scrollFactorY !== 0) o.setScrollFactor(0);
     if (this.over) return;
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
+    if (this.boss) {
+      this.tickPlayer(dt);
+      if (this.over) return;
+      this.tickBoss(dt);
+      if (this.over) return;
+      return this.tickHud(dt);
+    }
     this.minT += dt;
     while (this.minT >= MINLEN) { this.minT -= MINLEN; this.addMin(1); if (this.over) return; }
+    if (this.run.shift === CHASE_NIGHT && this.min >= CHASE_MIN && !this.busy && this.place !== "ride") return this.startBoss();
     if (this.noElevator() && this.place === "hall") this.hint("elev", 84, 60);
     this.tickPlayer(dt);
     if (this.over) return;
@@ -423,4 +438,4 @@ export default class Delivery extends Phaser.Scene {
   }
 }
 
-Object.assign(Delivery.prototype, GigMixin);
+Object.assign(Delivery.prototype, GigMixin, ResidentMixin);

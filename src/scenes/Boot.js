@@ -43,6 +43,15 @@ export default class Boot extends Phaser.Scene {
       .forEach(([k, f]) => this.load.image(k, f));
     this.load.atlas("props_mascot", "props/mascot.png", "props/mascot.json");
     this.load.atlas("props_kid", "props/kid.png", "props/kid.json");
+    this.load.atlas("props_suit_boss", "props/suit_boss.png", "props/suit_boss.json");
+    this.load.atlas("props_resident", "props/resident.png", "props/resident.json");
+    this.load.atlas("props_screen_film", "props/screen_film.png", "props/screen_film.json");
+    this.load.atlas("props_usher", "props/usher.png", "props/usher.json");
+    [["bg_cinema_lobby", "bg/cinema_lobby.png"], ["bg_cinema_hall", "bg/cinema_hall.png"], ["bg_cinema_booth", "bg/cinema_booth.png"],
+      ["props_beam", "props/beam.png"], ["props_reel", "props/reel.png"]].forEach(([k, f]) => this.load.image(k, f));
+    [["bg_stairwell_scissor", "bg/stairwell_scissor.png"], ["bg_roof", "bg/roof.png"], ["bg_milk_depot", "bg/milk_depot.png"],
+      ["bg_officetel_hall", "bg/officetel_hall.png"], ["props_milk_carrier", "props/milk_carrier.png"],
+      ["props_officetel_door_open", "props/officetel_door_open.png"]].forEach(([k, f]) => this.load.image(k, f));
   }
 
   create() {

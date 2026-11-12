@@ -4,7 +4,8 @@ import { S, t, won, newRuleFor, MULT, hourly, GIG } from "../state.js";
 import { quotaFor } from "./Shift.js";
 import { dQuotaFor } from "./Delivery.js";
 import { eQuotaFor } from "./Event.js";
-const QUOTA = { 1: quotaFor, 2: eQuotaFor, 3: dQuotaFor };
+import { cQuotaFor } from "./Cinema.js";
+const QUOTA = { 1: quotaFor, 2: eQuotaFor, 3: dQuotaFor, 4: cQuotaFor };
 import * as snd from "../audio.js";
 
 // Briefing: the manager talks, then hands over tonight's job card.

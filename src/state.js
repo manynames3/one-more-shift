@@ -49,7 +49,7 @@ export const ACTS = [
   { n: 1, key: "store", built: true },
   { n: 2, key: "event", built: true },
   { n: 3, key: "delivery", built: true },
-  { n: 4, key: "cinema" },
+  { n: 4, key: "cinema", built: true },
   { n: 5, key: "trial" },
   { n: 6, key: "site" },
   { n: 7, key: "park" },
@@ -98,12 +98,16 @@ export const erulesFor = shift => ERULES.slice(0, Math.min(shift, ERULES.length)
 // Act 3, dawn delivery: floor 4 (1), the door that opens first (2), no elevator after 02:00 (3).
 export const DRULES = ["floor4", "opendoor", "elevator"];
 export const drulesFor = shift => DRULES.slice(0, Math.min(shift, DRULES.length));
+// Act 4, the cinema: the screen (1), the audience count (2), the film that isn't on the schedule (3).
+export const CRULES = ["screen", "count", "unscheduled"];
+export const crulesFor = shift => CRULES.slice(0, Math.min(shift, CRULES.length));
 
 /** Per-act setup: which scene runs the shift, the place on the job card, the manager's lines. */
 export const GIG = {
   1: { scene: "Shift", place: "place", intro: "intro", briefs: { 2: "brief2", 3: "brief3", 4: "brief4", 5: "brief5", 6: "brief6", 7: "brief7" } },
   2: { scene: "Event", place: "place2", intro: "e_intro", briefs: { 2: "e_brief2", 3: "e_brief3" }, rules: ERULES },
   3: { scene: "Delivery", place: "place3", intro: "d_intro", briefs: { 2: "d_brief2", 3: "d_brief3" }, rules: DRULES },
+  4: { scene: "Cinema", place: "place4", intro: "c_intro", briefs: { 2: "c_brief2", 3: "c_brief3" }, rules: CRULES },
 };
 
 export function won(n) { return "₩" + Math.max(0, Math.round(n)).toLocaleString("en-US"); }
@@ -125,6 +129,23 @@ const STR = {
     hint_pick: "Space: 주문 받기", hint_out: "→ 출발", hint_return: "4층 주문! 카운터에 반납", hint_f4: "4층... 노크 금지", hint_open: "문이 먼저 열렸다! 이 층을 떠나!",
     hint_elev: "02:00 이후 계단만", hint_back: "← 1층 아래로 나가 허브로", returned: "반납", wrongFlat: "엉뚱한 집!", tip: "팁",
     stairsUp: "▲", stairsDown: "▼", exitOut: "◀ 밖으로", toHall: "복도",
+    rule_boss2: "빈 탈에 풍선 다섯 개를 묶으시오", cause_suit: "빈 탈에게 붙잡혔다", suitTurn: "...머리가 없어도 공연은 계속된다.",
+    suitTies: (n, m) => `풍선 ${n}/${m}`, hint_tie: "풍선을 들고, 비틀거릴 때 묶어! (Space)", hint_tieNow: "지금! 묶어!",
+    clue_suit: "무대 위 탈 머리 안쪽 세탁표: '담당 준호'",
+    rule_boss3: "깜빡이는 계단 말고 반대쪽으로 오르시오", cause_resident: "주민에게 붙잡혔다", chaseStart: "위층에서 누가 내려온다. 옥상으로!",
+    hint_flight: "깜빡이는 쪽은 안 돼! ← →", hint_phone: "Space: 휴대폰 줍기", roofF: "옥상",
+    clue_phone: "낡은 폴더폰. 주문 47건, 전부 발신자 '준호'.",
+    place4: "별빛극장 야간", jd_cinema: "사흘 밤 극장 지키기 · 안내원을 조심",
+    rule_screen: "화면을 3초 이상 보지 마시오", rule_count: "더 많이 나오면 3관을 잠그시오", rule_unscheduled: "상영표에 없는 영화엔 영사실 금지",
+    rule_boss4: "불을 끄고 어둠 속에서 치시오",
+    cause_screen: "화면을 너무 오래 봤다", cause_count: "3관을 잠그지 않았다", cause_booth: "영사실에 올라갔다", cause_usher: "안내원에게 붙잡혔다",
+    c_intro: ["별빛극장 야간이야. 표 팔고,", "상영 끝나면 3관 청소.", "필름 끝나면 영사실 가서 갈아 끼우고.", "아, 영화는 보지 마. 3초 이상은."],
+    c_brief2: ["3관에 들어간 손님 수를 세.", "나온 사람이 더 많으면... 문 잠가."],
+    c_brief3: ["상영표에 없는 영화가 걸리면,", "영사실엔 올라가지 마. 절대로."],
+    hint_look: "화면 보지 마! →", hint_lock: "더 나왔다! 3관 잠가 (Space)", hint_cctv: "상영표에 없는 영화... 영사실 금지",
+    hallIn: n => `3관 입장 ${n}명`, nowShowing: "상영 중", intermission: "휴식", filmBroke: "필름 끊김!",
+    usherStart: "영사기가 저절로 켜졌다. 빛 속에서 누가 걸어 나온다.", usherHp: n => `안내원 ${n}`, hint_lamp: "Space: 영사기 끄기", hint_hit: "지금! 어둠 속에서 쳐!",
+    clue_cctv: "화면 속 CCTV, 계산대 뒤에 선 남자. 명찰: 준호.",
     place2: "그랜드 오픈 행사", banner: "만두군 쇼",
     rule_balloon: "풍선은 아이에게만 주시오", rule_head: "탈이 벗겨지면 무대를 보지 마시오", rule_answer: "탈이 부르면 대답하지 마시오",
     cause_balloon: "어른에게 풍선을 줬다", cause_head: "탈 속을 봤다", cause_answer: "이름에 대답했다",
@@ -188,6 +209,23 @@ const STR = {
     hint_pick: "Space: take an order", hint_out: "→ Ride", hint_return: "4th floor! Hand it back", hint_f4: "4th floor... don't knock", hint_open: "It opened first! Leave this floor!",
     hint_elev: "Stairs only after 02:00", hint_back: "← Down from floor 1 to ride back", returned: "Returned", wrongFlat: "Wrong flat!", tip: "Tip",
     stairsUp: "▲", stairsDown: "▼", exitOut: "◀ OUT", toHall: "HALL",
+    rule_boss2: "Tie five balloons to the empty suit", cause_suit: "Caught by the empty suit", suitTurn: "...The show goes on without a head.",
+    suitTies: (n, m) => `BALLOONS ${n}/${m}`, hint_tie: "Hold a balloon, tie it on when it reels (Space)", hint_tieNow: "NOW! TIE IT!",
+    clue_suit: "Laundry tag inside the head on the stage: 'handled by JUNHO'",
+    rule_boss3: "Climb the flight that ISN'T flickering", cause_resident: "Caught by the Resident", chaseStart: "Something's coming down. Get to the roof!",
+    hint_flight: "Not the flickering side! ← →", hint_phone: "Space: pick up the phone", roofF: "ROOF",
+    clue_phone: "An old flip phone. 47 orders, every one placed by 'JUNHO'.",
+    place4: "Starlight Cinema", jd_cinema: "Three nights at the cinema · mind the Usher",
+    rule_screen: "Don't stare at the screen (3s)", rule_count: "More out than in? Lock Hall 3", rule_unscheduled: "Unlisted film? Avoid the booth",
+    rule_boss4: "Cut the lamp, hit it in the dark",
+    cause_screen: "Watched the screen", cause_count: "Didn't lock Hall 3", cause_booth: "Went up to the booth", cause_usher: "Caught by the Usher",
+    c_intro: ["Starlight Cinema, nights. Sell tickets,", "clean Hall 3 after each film,", "and change the reel up in the booth.", "Oh, don't watch the films. Not over 3 seconds."],
+    c_brief2: ["Count who goes into Hall 3.", "If more come out... lock the door."],
+    c_brief3: ["If a film that isn't on the schedule starts,", "don't go up to the booth. Ever."],
+    hint_look: "Don't watch! →", hint_lock: "One too many! Lock Hall 3 (Space)", hint_cctv: "Not on the schedule... stay out of the booth",
+    hallIn: n => `HALL 3 IN: ${n}`, nowShowing: "SHOWING", intermission: "BREAK", filmBroke: "Film broke!",
+    usherStart: "The projector came on by itself. Someone walks out of the light.", usherHp: n => `USHER ${n}`, hint_lamp: "Space: cut the lamp", hint_hit: "NOW! Hit it in the dark!",
+    clue_cctv: "On the CCTV film, a man behind a counter. Name tag: JUNHO.",
     place2: "Grand Opening", banner: "MANDU SHOW",
     rule_balloon: "Balloons for kids only", rule_head: "Head off? Don't look at the stage", rule_answer: "If it calls your name, don't answer",
     cause_balloon: "Balloon to an adult", cause_head: "Saw inside the suit", cause_answer: "Answered its call",

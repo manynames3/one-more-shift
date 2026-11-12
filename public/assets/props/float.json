@@ -1,0 +1,68 @@
+{
+ "frames": {
+  "f_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   }
+  },
+  "f_1": {
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   }
+  },
+  "f_wrong_0": {
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   }
+  }
+ },
+ "meta": {
+  "image": "float.png",
+  "size": {
+   "w": 288,
+   "h": 64
+  },
+  "scale": 1,
+  "frameWidth": 96,
+  "frameHeight": 64
+ }
+}

@@ -1,0 +1,104 @@
+{
+ "frames": {
+  "film_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   },
+   "sourceSize": {
+    "w": 116,
+    "h": 86
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   }
+  },
+  "film_1": {
+   "frame": {
+    "x": 116,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   },
+   "sourceSize": {
+    "w": 116,
+    "h": 86
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   }
+  },
+  "cctv_0": {
+   "frame": {
+    "x": 232,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   },
+   "sourceSize": {
+    "w": 116,
+    "h": 86
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   }
+  },
+  "cctv_1": {
+   "frame": {
+    "x": 348,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   },
+   "sourceSize": {
+    "w": 116,
+    "h": 86
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   }
+  },
+  "off_0": {
+   "frame": {
+    "x": 464,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   },
+   "sourceSize": {
+    "w": 116,
+    "h": 86
+   },
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 116,
+    "h": 86
+   }
+  }
+ },
+ "meta": {
+  "image": "screen_film.png",
+  "size": {
+   "w": 580,
+   "h": 86
+  },
+  "scale": 1,
+  "frameWidth": 116,
+  "frameHeight": 86
+ }
+}
