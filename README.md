@@ -24,6 +24,7 @@ that is playable within one tap, readable on a phone, and gives the player somet
 | **Audio** | Music, sound effects, a room tone for every location (wind, a ward's heart monitor, a projector through the wall, a stairwell drone) and a dread drone that builds through each night, all synthesized in the browser. Zero audio files. |
 | **Scares** | Once or twice a night something no rule covers happens: Sora's double at the edge of the frame, a blackout, a whisper, the clock reading 04:44, her heartbeat. They never punish you and never fake a real rule's trigger. |
 | **Accessibility** | A "Flashes: off" switch on the title screen drops camera flashes, softens shakes and replaces strobes with a steady dim. |
+| **Learning curve** | Each death screen gives a one-line tip for that exact cause. First nights introduce jobs one at a time, and hints wait until nothing covers them. P, Esc or the on-screen ‖ pauses, and the game pauses itself when the tab loses focus. |
 | **Languages** | Korean and English, switchable in game. |
 | **Input** | Keyboard, mouse and touch from the same code path, plus an on-screen d-pad whose action button names what it will do. |
 | **Sharing** | The end-of-run pay stub renders to a 720×960 PNG; a death also shares a 4-second GIF replay of the scare, recorded from the canvas and encoded in the browser. |
