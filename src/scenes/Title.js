@@ -17,18 +17,23 @@ export default class Title extends Phaser.Scene {
     this.prompt = txt(this, W / 2, H - 17, t("start"), { ox: 0.5 });
     this.tweens.add({ targets: this.prompt, alpha: 0.15, duration: 520, yoyo: true, repeat: -1, ease: "Stepped", easeParams: [2] });
 
-    if (S.best > 0) txt(this, W / 2, 6, t("best", S.best + 1), { ox: 0.5, size: 9, color: C.yellow });
+    if (S.best > 0) txt(this, 6, 6, t("best", S.best + 1), { size: 9, color: C.yellow });
     // story progress, once there is any
     const ends = Object.keys(S.endings || {}).length, notes = notesFound();
     if (ends || notes) txt(this, W - 6, 6, t("progress", ends, notes), { ox: 1, size: 9, color: C.grey });
 
-    this.lang = txt(this, 6, H - 16, "", { size: 9, color: C.grey }).setInteractive({ useHandCursor: true });
+    // settings look like buttons: a plate, a hover colour, and a key in brackets
+    const asButton = o => o.setBackgroundColor("#2a2233").setPadding(4, 2, 4, 2).setInteractive({ useHandCursor: true })
+      .on("pointerover", () => o.setColor(C.yellow)).on("pointerout", () => o.setColor(C.white));
+    this.lang = asButton(txt(this, 4, H - 18, "", { size: 9, color: C.white, shadow: false }));
     this.lang.on("pointerdown", (p, x, y, ev) => { ev.stopPropagation(); this.flipLang(); });
     this.input.keyboard.on("keydown-L", () => this.flipLang());
     this.drawLang();
     soundToggle(this);
-    this.calm = txt(this, W - 24, H - 16, "", { size: 9, color: C.grey, ox: 1 }).setInteractive({ useHandCursor: true });
-    this.calm.on("pointerdown", (p, x, y, ev) => { ev.stopPropagation(); setCalm(!CALM.on); snd.sfx("ui"); this.drawCalm(); });
+    this.calm = asButton(txt(this, W - 22, H - 18, "", { size: 9, color: C.white, ox: 1, shadow: false }));
+    const flipCalm = () => { setCalm(!CALM.on); snd.init(); snd.sfx("ui"); this.drawCalm(); };
+    this.calm.on("pointerdown", (p, x, y, ev) => { ev.stopPropagation(); flipCalm(); });
+    this.input.keyboard.on("keydown-C", flipCalm);
     this.drawCalm();
 
     // daily shift: same night for everyone, once a day
@@ -52,7 +57,8 @@ export default class Title extends Phaser.Scene {
       // the very first night starts the way every gig does: on the phone
       this.time.delayedCall(280, () => S.runs > 1 ? this.scene.start("Agency", { context: ctx }) : this.scene.start("Offer", { act: 1, next: { scene: "Agency", data: { context: ctx } } }));
     };
-    this.input.keyboard.on("keydown", e => { if (!["KeyL", "KeyM", "KeyD"].includes(e.code)) go(); });
+    // setting keys (language, sound, daily, flashes, film, pause) don't start the game
+    this.input.keyboard.on("keydown", e => { if (!["KeyL", "KeyM", "KeyD", "KeyC", "KeyF", "KeyP", "Escape"].includes(e.code)) go(); });
     this.input.on("pointerdown", go);
   }
 
@@ -74,6 +80,6 @@ export default class Title extends Phaser.Scene {
   }
 
   flipLang() { S.lang = S.lang === "ko" ? "en" : "ko"; saveSettings(); snd.init(); snd.sfx("ui"); this.drawLang(); this.drawCalm(); this.prompt.setText(t("start")); this.daily.setText(t("daily", today())); }
-  drawCalm() { this.calm.setText(t(CALM.on ? "flashOff" : "flashOn")); }
-  drawLang() { this.lang.setText((S.lang === "ko" ? "[한국어]  EN" : "한국어  [EN]")); }
+  drawCalm() { this.calm.setText(t(CALM.on ? "flashOff" : "flashOn") + " (C)"); }
+  drawLang() { this.lang.setText((S.lang === "ko" ? "[한국어] EN" : "한국어 [EN]") + " (L)"); }
 }
