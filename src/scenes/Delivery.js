@@ -47,7 +47,8 @@ export default class Delivery extends Phaser.Scene {
     this.elevOpen = this.add.image(18, 86, "props_elevator_open").setOrigin(0).setDepth(2).setVisible(false);
     this.doorOpen = this.add.image(0, 92, "props_apt_door_open").setOrigin(0).setDepth(2).setVisible(false);
     this.floorTxt = txt(this, 38, 71, "", { ox: 0.5, size: 9, color: C.red, shadow: false, depth: 3 });
-    this.plates = HALL.doors.map(x => txt(this, x, 80, "", { ox: 0.5, size: 9, color: C.ink, shadow: false, depth: 3 }));
+    this.plates = HALL.doors.map(x => txt(this, x, 79, "", { ox: 0.5, size: 9, color: C.ink, shadow: false, depth: 3 })
+      .setBackgroundColor("#dcd7e0").setPadding(2, 0, 2, 0));
     this.bigFloor = txt(this, 86, 44, "", { ox: 0.5, color: C.grey, shadow: false, depth: 3 }).setScale(2);
     this.navL = txt(this, 6, FY - 26, "", { size: 9, color: C.yellow, depth: 630 });
     this.navR = txt(this, W - 6, FY - 26, "", { ox: 1, size: 9, color: C.yellow, depth: 630 });
@@ -102,7 +103,7 @@ export default class Delivery extends Phaser.Scene {
     this.place = place; this.target = null; this.intent = null;
     this.clearHints();
     this.elevOpen.setVisible(false); this.doorOpen.setVisible(false);
-    this.floorTxt.setText(""); this.plates.forEach(p => p.setText("")); this.bigFloor.setText("");
+    this.floorTxt.setText(""); this.plates.forEach(p => p.setText("").setVisible(false)); this.bigFloor.setText("");
     this.navL.setText(""); this.navR.setText("");
     this.bg.clearTint(); this.dim.setAlpha(0); this.stalker.setVisible(false);
     this.p.setVisible(true); this.p.x = x;
@@ -114,7 +115,7 @@ export default class Delivery extends Phaser.Scene {
     } else if (place === "hall") {
       this.bg.setTexture("bg_apt_hall");
       this.floorTxt.setText(String(this.floor));
-      HALL.doors.forEach((dx, i) => this.plates[i].setText(`${this.floor}0${i + 1}`));
+      HALL.doors.forEach((dx, i) => this.plates[i].setText(`${this.floor}0${i + 1}`).setVisible(true));
       if (f4) { this.bg.setTint(0xd9a0a0); this.dim.setAlpha(0.18); this.hint("f4", 170, 60); }
       this.opened = false;       // a door that opens first only does it once per visit
     } else if (place === "stairs") {
@@ -148,7 +149,7 @@ export default class Delivery extends Phaser.Scene {
       if (this.over) return;
       this.place = "ride";
       this.bg.setTexture("bg_street_night").clearTint(); this.dim.setAlpha(0);
-      this.floorTxt.setText(""); this.plates.forEach(p => p.setText("")); this.bigFloor.setText(""); this.navL.setText(""); this.navR.setText("");
+      this.floorTxt.setText(""); this.plates.forEach(p => p.setText("").setVisible(false)); this.bigFloor.setText(""); this.navL.setText(""); this.navR.setText("");
       this.elevOpen.setVisible(false); this.doorOpen.setVisible(false);
       const dir = toApts ? 1 : -1;
       this.moped.setVisible(true).setFlipX(!toApts).setPosition(toApts ? -30 : W + 30, FY + 2);
@@ -191,7 +192,7 @@ export default class Delivery extends Phaser.Scene {
   /** Interactive spots in the current place: [x, reach, what]. */
   spots() {
     if (this.place === "hub") return [[HUB.counter, 16, "counter"], [HUB.exit, 16, "exit"]];
-    if (this.place === "hall") return [[HALL.elev, 16, "elev"], ...HALL.doors.map((x, i) => [x, 11, "door" + i]), [HALL.stair, 16, "stair"]];
+    if (this.place === "hall") return [[HALL.elev, 16, "elev"], ...HALL.doors.map((x, i) => [x, 11, "door" + i]), [HALL.stair, 22, "stair"]];
     if (this.place === "stairs") return [[STAIR.door, 14, "hall"]];
     return [];
   }
@@ -478,7 +479,7 @@ export default class Delivery extends Phaser.Scene {
     // the Resident: one tenant behind every door, a little taller on every floor
     if (!this.stalker.visible) {
       const sx = this.place === "hall" && cause === "opendoor" ? HALL.doors[this.order.flat - 1] : p.x + (this.face === "left" ? 14 : -14);
-      this.stalker.setVisible(true).setPosition(sx, FY + 2).setScale(1.6 + 0.12 * this.floor).setDepth(99);
+      this.stalker.setVisible(true).setPosition(sx, FY + 2).setScale(1.3 + 0.08 * this.floor).setDepth(99);
     }
     this.cameras.main.shake(450, 0.012);
     this.time.delayedCall(1700, () => this.cameras.main.fadeOut(300, 20, 16, 26));
@@ -533,7 +534,7 @@ export default class Delivery extends Phaser.Scene {
     const dt = Math.min(ms, 50) / 1000 * (window.__speed || 1);
     this.minT += dt;
     while (this.minT >= MINLEN) { this.minT -= MINLEN; this.addMin(1); if (this.over) return; }
-    if (this.noElevator() && this.place === "hall") this.hint("elev", HALL.elev + 4, 60);
+    if (this.noElevator() && this.place === "hall") this.hint("elev", 84, 60);
     this.tickPlayer(dt);
     if (this.over) return;
     this.tickDoor(dt);
